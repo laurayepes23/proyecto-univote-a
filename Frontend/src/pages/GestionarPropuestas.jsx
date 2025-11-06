@@ -352,7 +352,6 @@ export default function GestionarPropuestas() {
                     </div>
                 )}
             </main>
-            <Footer />
         </div>
     );
 }

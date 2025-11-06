@@ -213,7 +213,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\laura\\univote\\Backend\\generated\\prisma",
+      "value": "C:\\Users\\laura\\Downloads\\Univote\\Backend\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -227,7 +227,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\laura\\univote\\Backend\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\laura\\Downloads\\Univote\\Backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
