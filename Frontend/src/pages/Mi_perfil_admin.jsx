@@ -9,6 +9,8 @@ import {
   FaUser,
   FaIdCard,
   FaPen,
+  FaExclamationTriangle,
+  FaClock,
 } from 'react-icons/fa'
 
 const Mi_perfil_admin = () => {
@@ -25,7 +27,12 @@ const Mi_perfil_admin = () => {
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
-  // Cargar datos del administrador
+  // Estados para el límite de intentos
+  const [intentos, setIntentos] = useState(0)
+  const [bloqueado, setBloqueado] = useState(false)
+  const [tiempoRestante, setTiempoRestante] = useState(0)
+
+  // Cargar datos del administrador y estado de intentos
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
@@ -59,6 +66,20 @@ const Mi_perfil_admin = () => {
           newPassword: '',
           confirmPassword: '',
         })
+
+        // Cargar estado de intentos desde localStorage
+        const intentosGuardados = localStorage.getItem('intentosCambioContrasena')
+        const tiempoBloqueo = localStorage.getItem('tiempoBloqueoContrasena')
+        
+        if (intentosGuardados) {
+          setIntentos(parseInt(intentosGuardados))
+        }
+
+        if (tiempoBloqueo && new Date().getTime() < parseInt(tiempoBloqueo)) {
+          setBloqueado(true)
+          const tiempoRestanteCalc = parseInt(tiempoBloqueo) - new Date().getTime()
+          setTiempoRestante(tiempoRestanteCalc)
+        }
       } catch (error) {
         console.error('Error al cargar el perfil:', error)
         setError(error.message || 'No se pudieron cargar los datos del perfil.')
@@ -69,6 +90,26 @@ const Mi_perfil_admin = () => {
 
     fetchAdminData()
   }, [])
+
+  // Contador regresivo cuando está bloqueado
+  useEffect(() => {
+    let intervalo;
+    if (bloqueado && tiempoRestante > 0) {
+      intervalo = setInterval(() => {
+        setTiempoRestante(prev => {
+          if (prev <= 1000) {
+            setBloqueado(false)
+            setIntentos(0)
+            localStorage.removeItem('tiempoBloqueoContrasena')
+            localStorage.removeItem('intentosCambioContrasena')
+            return 0
+          }
+          return prev - 1000
+        })
+      }, 1000)
+    }
+    return () => clearInterval(intervalo)
+  }, [bloqueado, tiempoRestante])
 
   // Manejar cambios en el formulario
   const handleChange = (e) => {
@@ -100,8 +141,29 @@ const Mi_perfil_admin = () => {
     }
   }
 
-  // Validar formulario completo
+  // Función para formatear el tiempo restante
+  const formatearTiempo = (milisegundos) => {
+    const minutos = Math.ceil(milisegundos / 1000 / 60)
+    return `${minutos} minuto${minutos !== 1 ? 's' : ''}`
+  }
+
+  // Validar formulario completo con límite de intentos
   const validateForm = async () => {
+    if (bloqueado) {
+      setError(`Debes esperar ${formatearTiempo(tiempoRestante)} antes de intentar cambiar la contraseña nuevamente.`)
+      return false
+    }
+
+    if (intentos >= 3) {
+      // Bloquear por 30 minutos
+      const tiempoBloqueo = new Date().getTime() + (30 * 60 * 1000)
+      localStorage.setItem('tiempoBloqueoContrasena', tiempoBloqueo.toString())
+      setBloqueado(true)
+      setTiempoRestante(30 * 60 * 1000)
+      setError('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
+      return false
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     if (!formData.correo || !emailRegex.test(formData.correo.trim())) {
@@ -122,7 +184,19 @@ const Mi_perfil_admin = () => {
 
       const isCurrentPasswordValid = await validateCurrentPassword()
       if (!isCurrentPasswordValid) {
-        setError('La contraseña actual es incorrecta')
+        const nuevosIntentos = intentos + 1
+        setIntentos(nuevosIntentos)
+        localStorage.setItem('intentosCambioContrasena', nuevosIntentos.toString())
+        
+        if (nuevosIntentos >= 3) {
+          const tiempoBloqueo = new Date().getTime() + (30 * 60 * 1000)
+          localStorage.setItem('tiempoBloqueoContrasena', tiempoBloqueo.toString())
+          setBloqueado(true)
+          setTiempoRestante(30 * 60 * 1000)
+          setError('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
+        } else {
+          setError(`Contraseña actual incorrecta. Intentos restantes: ${3 - nuevosIntentos}`)
+        }
         return false
       }
 
@@ -189,13 +263,18 @@ const Mi_perfil_admin = () => {
         correo: formData.correo,
       }))
 
-      // ✅ RESETEAR CAMPOS DE CONTRASEÑA
+      // ✅ RESETEAR CAMPOS DE CONTRASEÑA Y CONTADOR DE INTENTOS
       setFormData((prev) => ({
         ...prev,
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       }))
+
+      // ✅ RESETEAR INTENTOS EN ÉXITO
+      setIntentos(0)
+      localStorage.removeItem('intentosCambioContrasena')
+      localStorage.removeItem('tiempoBloqueoContrasena')
 
       setIsEditing(false)
       setSuccess('¡Perfil actualizado con éxito!')
@@ -207,7 +286,7 @@ const Mi_perfil_admin = () => {
       }
       localStorage.setItem('adminData', JSON.stringify(updatedAdminData))
 
-      setTimeout(() => setSuccess(''), 3000)
+      setTimeout(() => setSuccess(''), 5000)
     } catch (error) {
       console.error('Error actualizando perfil:', error)
       let errorMessage = 'Error al actualizar el perfil'
@@ -323,12 +402,49 @@ const Mi_perfil_admin = () => {
             </h2>
             <button
               onClick={isEditing ? handleCancelEdit : handleStartEditing}
-              className="px-6 py-3 text-sm font-semibold text-white bg-blue-900 rounded-lg hover:bg-blue-800 transition-colors flex items-center shadow-md"
+              disabled={bloqueado}
+              className={`px-6 py-3 text-sm font-semibold rounded-lg transition-colors flex items-center shadow-md ${
+                bloqueado 
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                  : 'bg-blue-900 text-white hover:bg-blue-800'
+              }`}
             >
               <FaPen className="mr-2" />
               {isEditing ? 'Cancelar Edición' : 'Editar Perfil'}
+              {bloqueado && ' (Bloqueado)'}
             </button>
           </div>
+
+          {/* Alerta de bloqueo */}
+          {bloqueado && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center">
+                <FaExclamationTriangle className="text-red-500 mr-3 text-xl" />
+                <div>
+                  <p className="font-bold text-red-700">Cambio de contraseña bloqueado</p>
+                  <p className="text-red-600 text-sm">
+                    Has excedido el número máximo de intentos. Podrás intentar nuevamente en{' '}
+                    <span className="font-bold">{formatearTiempo(tiempoRestante)}</span>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Información de intentos */}
+          {!bloqueado && intentos > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center">
+                <FaClock className="text-yellow-600 mr-3 text-xl" />
+                <div>
+                  <p className="font-bold text-yellow-700">Intentos fallidos</p>
+                  <p className="text-yellow-600 text-sm">
+                    Has tenido {intentos} intento(s) fallido(s). Te quedan {3 - intentos} intento(s) restante(s).
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {perfil && (
             <div className="space-y-8">
@@ -354,7 +470,6 @@ const Mi_perfil_admin = () => {
                       <p className="text-xs font-bold text-gray-500 mb-1">Número de Documento</p>
                       <p className="font-semibold text-gray-800 text-lg">{perfil.numeroDoc}</p>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -382,6 +497,7 @@ const Mi_perfil_admin = () => {
                           onChange={handleChange}
                           className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                           placeholder="Ingresa tu correo electrónico"
+                          disabled={bloqueado}
                         />
                         <p className="text-xs text-gray-500">Este será tu nuevo correo de contacto</p>
                       </div>
@@ -409,8 +525,14 @@ const Mi_perfil_admin = () => {
                             onChange={handleChange}
                             className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                             placeholder="Ingresa tu contraseña actual"
+                            disabled={bloqueado}
                           />
-                          <p className="text-xs text-orange-600 font-medium">Requerida para realizar cualquier cambio</p>
+                          <p className="text-xs text-orange-600 font-medium">
+                            {bloqueado 
+                              ? 'Campo bloqueado temporalmente' 
+                              : 'Requerida para realizar cualquier cambio'
+                            }
+                          </p>
                         </div>
                       </div>
 
@@ -428,8 +550,14 @@ const Mi_perfil_admin = () => {
                             onChange={handleChange}
                             className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                             placeholder="Dejar en blanco para no cambiar"
+                            disabled={bloqueado}
                           />
-                          <p className="text-xs text-gray-500">Mínimo 8 caracteres. Campo opcional.</p>
+                          <p className="text-xs text-gray-500">
+                            {bloqueado 
+                              ? 'Cambio de contraseña bloqueado temporalmente' 
+                              : 'Mínimo 6 caracteres. Campo opcional.'
+                            }
+                          </p>
                         </div>
                       </div>
 
@@ -447,8 +575,14 @@ const Mi_perfil_admin = () => {
                             onChange={handleChange}
                             className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                             placeholder="Confirmar nueva contraseña"
+                            disabled={bloqueado}
                           />
-                          <p className="text-xs text-gray-500">Debe coincidir con la nueva contraseña</p>
+                          <p className="text-xs text-gray-500">
+                            {bloqueado 
+                              ? 'Campo bloqueado temporalmente' 
+                              : 'Debe coincidir con la nueva contraseña'
+                            }
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -465,11 +599,15 @@ const Mi_perfil_admin = () => {
                     </button>
                     <button
                       onClick={handleSaveChanges}
-                      disabled={updating}
-                      className="px-8 py-3 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-md disabled:opacity-50"
+                      disabled={updating || bloqueado}
+                      className={`px-8 py-3 text-sm font-semibold rounded-lg transition-colors flex items-center shadow-md ${
+                        bloqueado || updating
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
                     >
                       <FaSave className="mr-2" />
-                      {updating ? 'Guardando...' : 'Guardar Cambios'}
+                      {bloqueado ? 'Bloqueado' : updating ? 'Guardando...' : 'Guardar Cambios'}
                     </button>
                   </div>
                 )}

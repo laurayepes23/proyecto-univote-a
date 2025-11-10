@@ -1,3 +1,4 @@
+// src/voters/voters.service.ts
 import { Injectable, NotFoundException, ConflictException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -214,7 +215,6 @@ export class VotersService {
 
             const { contrasena_voter, ...result } = voter;
             
-            // Convertir BigInt a string para evitar problemas de serialización
             const formattedResult = {
                 ...result,
                 num_doc_voter: result.num_doc_voter.toString()
@@ -243,7 +243,6 @@ export class VotersService {
             console.log('📥 Actualizando votante ID:', id);
             console.log('📥 Datos recibidos:', updateVoterDto);
 
-            // Verificar que el votante existe
             const existingVoter = await this.prisma.voter.findUnique({
                 where: { id_voter: id }
             });
@@ -252,24 +251,32 @@ export class VotersService {
                 throw new NotFoundException(`Votante con ID ${id} no encontrado`);
             }
 
-            // Preparar datos para actualizar
             const updateData: any = {};
 
-            // Solo actualizar correo si se proporciona
             if (updateVoterDto.correo_voter !== undefined) {
                 updateData.correo_voter = updateVoterDto.correo_voter;
             }
 
-            // Solo actualizar contraseña si se proporciona
             if (updateVoterDto.contrasena_voter) {
                 console.log('🔐 Hasheando nueva contraseña');
                 updateData.contrasena_voter = await bcrypt.hash(updateVoterDto.contrasena_voter, 10);
             }
 
-            // Si no hay datos para actualizar, retornar error
+            if (updateVoterDto.estado_voter !== undefined) {
+                console.log('🔄 Actualizando estado a:', updateVoterDto.estado_voter);
+                
+                if (!['Activo', 'Inactivo'].includes(updateVoterDto.estado_voter)) {
+                    throw new BadRequestException('El estado debe ser "Activo" o "Inactivo"');
+                }
+                
+                updateData.estado_voter = updateVoterDto.estado_voter;
+            }
+
             if (Object.keys(updateData).length === 0) {
                 throw new BadRequestException('No se proporcionaron datos para actualizar');
             }
+
+            console.log('📤 Datos a actualizar en la base de datos:', updateData);
 
             const updatedVoter = await this.prisma.voter.update({
                 where: { id_voter: id },
@@ -303,10 +310,20 @@ export class VotersService {
                 num_doc_voter: result.num_doc_voter.toString()
             };
 
-            console.log('✅ Votante actualizado exitosamente');
+            console.log('✅ Votante actualizado exitosamente:', {
+                id: formattedResult.id_voter,
+                nombre: formattedResult.nombre_voter,
+                estado: formattedResult.estado_voter
+            });
+
             return formattedResult;
         } catch (error) {
             console.error('❌ Error en VotersService.update:', error);
+            console.error('❌ Detalles del error:', {
+                message: error.message,
+                code: error.code,
+                meta: error.meta
+            });
             
             if (error instanceof NotFoundException || error instanceof BadRequestException) {
                 throw error;
@@ -314,12 +331,79 @@ export class VotersService {
             
             if (error.code === 'P2002') {
                 const target = error.meta?.target;
-                if (target.includes('correo_voter')) {
+                if (target && target.includes('correo_voter')) {
                     throw new ConflictException('El correo electrónico ya está registrado.');
                 }
             }
             
             throw new InternalServerErrorException('Error interno del servidor al actualizar votante');
+        }
+    }
+
+    async updateEstado(id: number, estado: string) {
+        try {
+            console.log('🔄 Actualizando solo el estado del votante ID:', id);
+            console.log('🔄 Nuevo estado:', estado);
+
+            if (!['Activo', 'Inactivo'].includes(estado)) {
+                throw new BadRequestException('El estado debe ser "Activo" o "Inactivo"');
+            }
+
+            const existingVoter = await this.prisma.voter.findUnique({
+                where: { id_voter: id }
+            });
+
+            if (!existingVoter) {
+                throw new NotFoundException(`Votante con ID ${id} no encontrado`);
+            }
+
+            const updatedVoter = await this.prisma.voter.update({
+                where: { id_voter: id },
+                data: { estado_voter: estado },
+                include: {
+                    role: {
+                        select: {
+                            id_role: true,
+                            nombre_role: true
+                        }
+                    },
+                    election: {
+                        select: {
+                            id_election: true,
+                            nombre_election: true
+                        }
+                    },
+                    career: {
+                        select: {
+                            id_career: true,
+                            nombre_career: true
+                        }
+                    }
+                }
+            });
+
+            const { contrasena_voter, ...result } = updatedVoter;
+            
+            const formattedResult = {
+                ...result,
+                num_doc_voter: result.num_doc_voter.toString()
+            };
+
+            console.log('✅ Estado actualizado exitosamente:', {
+                id: formattedResult.id_voter,
+                nombre: formattedResult.nombre_voter,
+                estado: formattedResult.estado_voter
+            });
+
+            return formattedResult;
+        } catch (error) {
+            console.error('❌ Error en VotersService.updateEstado:', error);
+            
+            if (error instanceof NotFoundException || error instanceof BadRequestException) {
+                throw error;
+            }
+            
+            throw new InternalServerErrorException('Error interno del servidor al actualizar el estado del votante');
         }
     }
 
@@ -401,6 +485,55 @@ export class VotersService {
         } catch (error) {
             console.error('❌ Error en validateRelations:', error);
             throw error;
+        }
+    }
+
+    async findByEstado(estado: string) {
+        try {
+            console.log('🔍 Buscando votantes por estado:', estado);
+
+            if (!['Activo', 'Inactivo'].includes(estado)) {
+                throw new BadRequestException('El estado debe ser "Activo" o "Inactivo"');
+            }
+
+            const voters = await this.prisma.voter.findMany({
+                where: { estado_voter: estado },
+                include: {
+                    role: {
+                        select: {
+                            id_role: true,
+                            nombre_role: true
+                        }
+                    },
+                    election: {
+                        select: {
+                            id_election: true,
+                            nombre_election: true
+                        }
+                    },
+                    career: {
+                        select: {
+                            id_career: true,
+                            nombre_career: true
+                        }
+                    }
+                },
+                orderBy: { nombre_voter: 'asc' }
+            });
+
+            return voters.map(voter => {
+                const { contrasena_voter, ...voterWithoutPassword } = voter;
+                return {
+                    ...voterWithoutPassword,
+                    num_doc_voter: voterWithoutPassword.num_doc_voter.toString()
+                };
+            });
+        } catch (error) {
+            console.error('❌ Error en VotersService.findByEstado:', error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Error interno del servidor al buscar votantes por estado');
         }
     }
 }

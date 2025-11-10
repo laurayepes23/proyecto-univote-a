@@ -81,20 +81,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VISIÓN Y MISIÓN */}
-      <section className="w-full mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div id="vision" className="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-md shadow-xl transform transition-all duration-300 hover:scale-105">
-          <h3 className="text-2xl font-semibold mb-3 text-center">Visión</h3>
-          <p className="text-sm text-gray-700 text-justify">
+      {/* VISIÓN Y MISIÓN - TAMAÑO AUMENTADO */}
+      <section className="w-full mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto px-6">
+        <div id="vision" className="bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-xl shadow-xl transform transition-all duration-300 hover:scale-105">
+          <h3 className="text-3xl font-bold mb-4 text-center text-blue-900">Visión</h3>
+          <p className="text-lg text-gray-800 text-justify leading-relaxed">
             Ser la plataforma líder en votaciones electrónicas universitarias a nivel nacional e internacional,
             reconocida por su innovación tecnológica, confiabilidad y capacidad para fomentar la participación democrática
             en la comunidad académica.
           </p>
         </div>
 
-        <div id="mision" className="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-md shadow-xl transform transition-all duration-300 hover:scale-105">
-          <h3 className="text-2xl font-semibold mb-3 text-center">Misión</h3>
-          <p className="text-sm text-gray-700 text-justify">
+        <div id="mision" className="bg-gradient-to-br from-gray-100 to-gray-200 p-8 rounded-xl shadow-xl transform transition-all duration-300 hover:scale-105">
+          <h3 className="text-3xl font-bold mb-4 text-center text-gray-800">Misión</h3>
+          <p className="text-lg text-gray-800 text-justify leading-relaxed">
             Facilitar un proceso electoral universitario seguro, transparente y accesible, integrando tecnologías modernas
             como blockchain y validaciones digitales, para garantizar la participación confiable de estudiantes y docentes
             en la elección de sus representantes.
@@ -159,6 +159,7 @@ export default function Home() {
         </a>
       </section>
 
+      
     </div>
   );
 }

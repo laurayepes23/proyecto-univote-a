@@ -1,3 +1,4 @@
+// src/voters/voters.controller.ts
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { VotersService } from './voters.service';
 import { CreateVoterDto } from './dto/create-voter.dto';
@@ -68,6 +69,23 @@ export class VotersController {
             return result;
         } catch (error) {
             console.error('❌ Error en endpoint update:', error);
+            throw error;
+        }
+    }
+
+    @Patch(':id/estado')
+    async updateEstado(@Param('id') id: string, @Body() updateEstadoDto: { estado_voter: string }) {
+        console.log('🔄 Endpoint updateEstado llamado - ID:', id, 'Estado:', updateEstadoDto.estado_voter);
+        try {
+            const voterId = parseInt(id);
+            if (isNaN(voterId)) {
+                throw new Error('ID inválido');
+            }
+            const result = await this.votersService.updateEstado(voterId, updateEstadoDto.estado_voter);
+            console.log('✅ UpdateEstado completado exitosamente');
+            return result;
+        } catch (error) {
+            console.error('❌ Error en endpoint updateEstado:', error);
             throw error;
         }
     }

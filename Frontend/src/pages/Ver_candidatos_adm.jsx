@@ -29,6 +29,14 @@ const Ver_candidatos_adm = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Estados para la paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [totalItems, setTotalItems] = useState(0);
+
+  // Calcular el número total de páginas
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   // Función para obtener la URL completa de la foto
   const getCandidatePhoto = (candidato) => {
     if (!candidato.foto_candidate) return '/img/default-avatar.png';
@@ -49,27 +57,76 @@ const Ver_candidatos_adm = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchCandidatos = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/candidates`);
-        if (Array.isArray(response.data)) {
-          setCandidatos(response.data);
-        } else {
-          console.error("La respuesta de la API no es un array:", response.data);
-          setError("Error: La respuesta del servidor no tiene el formato esperado.");
-          setCandidatos([]);
-        }
-      } catch (err) {
-        console.error("Error al cargar los candidatos:", err);
-        setError("Error al cargar los datos. Verifique la conexión con el servidor.");
-      } finally {
-        setLoading(false);
+  // Función para obtener candidatos con paginación
+  const fetchCandidatos = async (page = 1) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/candidates`);
+      if (Array.isArray(response.data)) {
+        const allCandidates = response.data;
+        setTotalItems(allCandidates.length);
+        
+        // Paginación en el frontend
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedCandidates = allCandidates.slice(startIndex, endIndex);
+        
+        setCandidatos(paginatedCandidates);
+        setCurrentPage(page);
+      } else {
+        console.error("La respuesta de la API no es un array:", response.data);
+        setError("Error: La respuesta del servidor no tiene el formato esperado.");
+        setCandidatos([]);
       }
-    };
+    } catch (err) {
+      console.error("Error al cargar los candidatos:", err);
+      setError("Error al cargar los datos. Verifique la conexión con el servidor.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCandidatos();
   }, []);
+
+  // Funciones de paginación
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      fetchCandidatos(page);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  };
+
+  // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  };
 
   if (loading) {
     return (
@@ -103,6 +160,35 @@ const Ver_candidatos_adm = () => {
         <h1 className="text-5xl font-extrabold text-center text-blue-800 mb-10">
           Ver Candidatos
         </h1>
+
+        {/* Información de paginación */}
+        <div className="flex justify-between items-center mb-6 max-w-7xl mx-auto">
+          <div className="text-sm text-gray-600">
+            Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} candidatos
+          </div>
+          
+          {/* Selector de items por página */}
+          <div className="flex items-center space-x-2">
+            <label htmlFor="itemsPerPage" className="text-sm text-gray-600">
+              Mostrar:
+            </label>
+            <select
+              id="itemsPerPage"
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+                fetchCandidatos(1);
+              }}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+              <option value="3">3</option>
+              <option value="6">6</option>
+              <option value="9">9</option>
+              <option value="12">12</option>
+            </select>
+          </div>
+        </div>
         
         {candidatos.length === 0 ? (
            <div className="text-center">
@@ -161,6 +247,73 @@ const Ver_candidatos_adm = () => {
                 </div>
               ))}
             </div>
+
+            {/* Controles de paginación */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2 mt-12">
+                <button
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg ${
+                    currentPage === 1
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  Anterior
+                </button>
+
+                {currentPage > 3 && (
+                  <>
+                    <button
+                      onClick={() => goToPage(1)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                    >
+                      1
+                    </button>
+                    {currentPage > 4 && <span className="px-2 text-gray-500">...</span>}
+                  </>
+                )}
+
+                {getPageNumbers().map(page => (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    className={`px-4 py-2 border rounded-lg ${
+                      currentPage === page
+                        ? "bg-blue-500 text-white border-blue-500"
+                        : "border-gray-300 hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                {currentPage < totalPages - 2 && (
+                  <>
+                    {currentPage < totalPages - 3 && <span className="px-2 text-gray-500">...</span>}
+                    <button
+                      onClick={() => goToPage(totalPages)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg ${
+                    currentPage === totalPages
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

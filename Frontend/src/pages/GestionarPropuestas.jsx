@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import NavbarCandidato from "../components/NavbarCandidato";
 import Footer from "../components/Footer";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaRegLightbulb, FaExclamationTriangle, FaSave, FaTimes } from 'react-icons/fa';
+import { FaEdit, FaTrashAlt, FaPlusCircle, FaRegLightbulb, FaExclamationTriangle, FaSave, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -19,6 +19,14 @@ export default function GestionarPropuestas() {
         estado_proposal: 'Activa'
     });
 
+    // Estados para la paginación
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(6);
+    const [totalItems, setTotalItems] = useState(0);
+
+    // Calcular el número total de páginas
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
     // Obtener información del candidato desde localStorage
     const candidateData = JSON.parse(localStorage.getItem('candidateData') || '{}');
     const candidateId = candidateData.id_candidate;
@@ -32,7 +40,7 @@ export default function GestionarPropuestas() {
         fetchProposals();
     }, [candidateId]);
 
-    const fetchProposals = async () => {
+    const fetchProposals = async (page = 1) => {
         try {
             setLoading(true);
             const response = await api.get('/proposals');
@@ -42,13 +50,60 @@ export default function GestionarPropuestas() {
                 proposal => proposal.candidateId === candidateId
             );
             
-            setProposals(candidateProposals);
+            setTotalItems(candidateProposals.length);
+            
+            // Paginación en el frontend
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedProposals = candidateProposals.slice(startIndex, endIndex);
+            
+            setProposals(paginatedProposals);
+            setCurrentPage(page);
         } catch (error) {
             console.error("Error al cargar propuestas:", error);
             setError('Error al cargar las propuestas. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
+    };
+
+    // Funciones de paginación
+    const goToPage = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            fetchProposals(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const goToNextPage = () => {
+        if (currentPage < totalPages) {
+            goToPage(currentPage + 1);
+        }
+    };
+
+    const goToPreviousPage = () => {
+        if (currentPage > 1) {
+            goToPage(currentPage - 1);
+        }
+    };
+
+    // Generar números de página para mostrar
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+        
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+        
+        return pages;
     };
 
     const handleGoToCreatePage = () => {
@@ -59,7 +114,8 @@ export default function GestionarPropuestas() {
         if (window.confirm("¿Estás seguro de que deseas eliminar esta propuesta?")) {
             try {
                 await api.delete(`/proposals/${id}`);
-                setProposals(proposals.filter(prop => prop.id_proposal !== id));
+                // Recargar las propuestas para mantener la paginación correcta
+                await fetchProposals(currentPage);
                 setSuccess('Propuesta eliminada correctamente');
                 
                 setTimeout(() => setSuccess(''), 3000);
@@ -125,12 +181,8 @@ export default function GestionarPropuestas() {
 
             console.log("Propuesta actualizada:", response.data);
 
-            // Actualizar el estado local
-            setProposals(proposals.map(prop => 
-                prop.id_proposal === proposalId 
-                    ? { ...prop, ...editFormData }
-                    : prop
-            ));
+            // Recargar las propuestas para mantener la paginación
+            await fetchProposals(currentPage);
 
             setSuccess('Propuesta actualizada correctamente');
             setEditingId(null);
@@ -195,7 +247,7 @@ export default function GestionarPropuestas() {
             <div className="h-20"></div>
 
             {/* Contenido principal */}
-            <main className="flex-grow max-w-6xl mx-auto p-8">
+            <main className="flex-grow max-w-7xl mx-auto p-8 w-full">
                 {/* Mensajes de éxito y error */}
                 {success && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
@@ -222,6 +274,35 @@ export default function GestionarPropuestas() {
                     </button>
                 </div>
 
+                {/* Información de paginación */}
+                <div className="flex justify-between items-center mb-6">
+                    <div className="text-sm text-gray-600">
+                        Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} propuestas
+                    </div>
+                    
+                    {/* Selector de items por página */}
+                    <div className="flex items-center space-x-2">
+                        <label htmlFor="itemsPerPage" className="text-sm text-gray-600">
+                            Mostrar:
+                        </label>
+                        <select
+                            id="itemsPerPage"
+                            value={itemsPerPage}
+                            onChange={(e) => {
+                                setItemsPerPage(Number(e.target.value));
+                                setCurrentPage(1);
+                                fetchProposals(1);
+                            }}
+                            className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        >
+                            <option value="3">3</option>
+                            <option value="6">6</option>
+                            <option value="9">9</option>
+                            <option value="12">12</option>
+                        </select>
+                    </div>
+                </div>
+
                 {loading ? (
                     <div className="text-center p-12 bg-white rounded-2xl shadow-lg border border-gray-100">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto"></div>
@@ -241,115 +322,184 @@ export default function GestionarPropuestas() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {proposals.map(proposal => (
-                            <div
-                                key={proposal.id_proposal}
-                                className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col justify-between hover:shadow-xl transition-shadow duration-300"
-                            >
-                                {editingId === proposal.id_proposal ? (
-                                    // MODO EDICIÓN
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                                Título *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="titulo_proposal"
-                                                value={editFormData.titulo_proposal}
-                                                onChange={handleEditChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
-                                                required
-                                            />
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                                Descripción *
-                                            </label>
-                                            <textarea
-                                                name="descripcion_proposal"
-                                                value={editFormData.descripcion_proposal}
-                                                onChange={handleEditChange}
-                                                rows="3"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
-                                                required
-                                            />
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                                Estado
-                                            </label>
-                                            <select
-                                                name="estado_proposal"
-                                                value={editFormData.estado_proposal}
-                                                onChange={handleEditChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
-                                            >
-                                                {estados.map(estado => (
-                                                    <option key={estado} value={estado}>
-                                                        {estado}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div className="flex space-x-2 mt-4">
-                                            <button
-                                                onClick={() => handleSaveEdit(proposal.id_proposal)}
-                                                className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center text-sm"
-                                            >
-                                                <FaSave className="mr-1" />
-                                                Guardar
-                                            </button>
-                                            <button
-                                                onClick={handleCancelEdit}
-                                                className="flex-1 bg-gray-500 text-white py-2 px-3 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm"
-                                            >
-                                                <FaTimes className="mr-1" />
-                                                Cancelar
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    // MODO VISUALIZACIÓN
-                                    <>
-                                        <div>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="text-xl font-bold text-gray-800 line-clamp-2 flex-1 mr-2">
-                                                    {proposal.titulo_proposal}
-                                                </h3>
-                                                {getStatusBadge(proposal.estado_proposal)}
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                            {proposals.map(proposal => (
+                                <div
+                                    key={proposal.id_proposal}
+                                    className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col justify-between hover:shadow-xl transition-shadow duration-300"
+                                >
+                                    {editingId === proposal.id_proposal ? (
+                                        // MODO EDICIÓN
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                                    Título *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="titulo_proposal"
+                                                    value={editFormData.titulo_proposal}
+                                                    onChange={handleEditChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+                                                    required
+                                                />
                                             </div>
                                             
-                                            <p className="text-gray-600 text-sm mb-4 line-clamp-4">
-                                                {proposal.descripcion_proposal}
-                                            </p>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                                    Descripción *
+                                                </label>
+                                                <textarea
+                                                    name="descripcion_proposal"
+                                                    value={editFormData.descripcion_proposal}
+                                                    onChange={handleEditChange}
+                                                    rows="3"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+                                                    required
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                                    Estado
+                                                </label>
+                                                <select
+                                                    name="estado_proposal"
+                                                    value={editFormData.estado_proposal}
+                                                    onChange={handleEditChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+                                                >
+                                                    {estados.map(estado => (
+                                                        <option key={estado} value={estado}>
+                                                            {estado}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="flex space-x-2 mt-4">
+                                                <button
+                                                    onClick={() => handleSaveEdit(proposal.id_proposal)}
+                                                    className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center text-sm"
+                                                >
+                                                    <FaSave className="mr-1" />
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    onClick={handleCancelEdit}
+                                                    className="flex-1 bg-gray-500 text-white py-2 px-3 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm"
+                                                >
+                                                    <FaTimes className="mr-1" />
+                                                    Cancelar
+                                                </button>
+                                            </div>
                                         </div>
-                                        
-                                        <div className="flex space-x-4 mt-4">
-                                            <button
-                                                onClick={() => handleStartEdit(proposal)}
-                                                className="flex-1 bg-blue-900 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-800 transition-colors flex items-center justify-center"
-                                            >
-                                                <FaEdit className="mr-2" />
-                                                Editar
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteProposal(proposal.id_proposal)}
-                                                className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-colors flex items-center justify-center"
-                                            >
-                                                <FaTrashAlt className="mr-2" />
-                                                Eliminar
-                                            </button>
-                                        </div>
+                                    ) : (
+                                        // MODO VISUALIZACIÓN
+                                        <>
+                                            <div>
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h3 className="text-xl font-bold text-gray-800 line-clamp-2 flex-1 mr-2">
+                                                        {proposal.titulo_proposal}
+                                                    </h3>
+                                                    {getStatusBadge(proposal.estado_proposal)}
+                                                </div>
+                                                
+                                                <p className="text-gray-600 text-sm mb-4 line-clamp-4">
+                                                    {proposal.descripcion_proposal}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="flex space-x-4 mt-4">
+                                                <button
+                                                    onClick={() => handleStartEdit(proposal)}
+                                                    className="flex-1 bg-blue-900 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-800 transition-colors flex items-center justify-center"
+                                                >
+                                                    <FaEdit className="mr-2" />
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteProposal(proposal.id_proposal)}
+                                                    className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-colors flex items-center justify-center"
+                                                >
+                                                    <FaTrashAlt className="mr-2" />
+                                                    Eliminar
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Controles de paginación */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center space-x-2 mt-8">
+                                <button
+                                    onClick={goToPreviousPage}
+                                    disabled={currentPage === 1}
+                                    className={`p-2 rounded-lg ${
+                                        currentPage === 1
+                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                            : "bg-blue-500 text-white hover:bg-blue-700"
+                                    }`}
+                                >
+                                    <FaChevronLeft />
+                                </button>
+
+                                {currentPage > 3 && (
+                                    <>
+                                        <button
+                                            onClick={() => goToPage(1)}
+                                            className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                                        >
+                                            1
+                                        </button>
+                                        {currentPage > 4 && <span className="px-2 text-gray-500">...</span>}
                                     </>
                                 )}
+
+                                {getPageNumbers().map(page => (
+                                    <button
+                                        key={page}
+                                        onClick={() => goToPage(page)}
+                                        className={`px-3 py-2 border rounded-lg ${
+                                            currentPage === page
+                                                ? "bg-blue-500 text-white border-blue-500"
+                                                : "border-gray-300 hover:bg-gray-100"
+                                        }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+
+                                {currentPage < totalPages - 2 && (
+                                    <>
+                                        {currentPage < totalPages - 3 && <span className="px-2 text-gray-500">...</span>}
+                                        <button
+                                            onClick={() => goToPage(totalPages)}
+                                            className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                                        >
+                                            {totalPages}
+                                        </button>
+                                    </>
+                                )}
+
+                                <button
+                                    onClick={goToNextPage}
+                                    disabled={currentPage === totalPages}
+                                    className={`p-2 rounded-lg ${
+                                        currentPage === totalPages
+                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                            : "bg-blue-500 text-white hover:bg-blue-700"
+                                    }`}
+                                >
+                                    <FaChevronRight />
+                                </button>
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
             </main>
         </div>

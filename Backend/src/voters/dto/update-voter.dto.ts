@@ -1,5 +1,5 @@
 // src/voters/dto/update-voter.dto.ts
-import { IsString, IsOptional, IsEmail, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsEmail, MinLength, IsIn } from 'class-validator';
 
 export class UpdateVoterDto {
   @IsOptional()
@@ -10,4 +10,9 @@ export class UpdateVoterDto {
   @IsString()
   @MinLength(6)
   contrasena_voter?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['Activo', 'Inactivo'], { message: 'El estado debe ser "Activo" o "Inactivo"' })
+  estado_voter?: string;
 }
