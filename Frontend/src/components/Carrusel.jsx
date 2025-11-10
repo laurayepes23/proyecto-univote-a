@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
 const carouselImages = [
-  { src: "/img/carrusel7.jpeg", alt: "Imagen 1" },
-  { src: "/img/Carrusel4.png", alt: "Imagen 2" },
-  { src: "/img/carrusel5.png", alt: "Imagen 3" },
+  { src: "/img/imagen_de_inicio.png.jpeg", alt: "Imagen 1" },
+  { src: "/img/IMG-2.png.jpeg", alt: "Imagen 2" },
+  { src: "/img/carrusel-a.jpeg", alt: "Imagen 3" },
 ];
 
 export default function Carrusel() {

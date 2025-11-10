@@ -6,11 +6,11 @@ import { FaEnvelope, FaPhoneAlt, FaWhatsapp, FaUser, FaUserTie } from "react-ico
 
 const carouselImages = [
   {
-    src: "/img/imagen_de_inicio.png",
+    src: "/img/imagen_de_inicio.png.jpeg",
     alt: "Imagen 1",
   },
   {
-    src: "/img/IMG-2.png",
+    src: "/img/IMG-2.png.jpeg",
     alt: "Imagen 2",
   },
 ];
