@@ -20,7 +20,7 @@ export default function RegistroVotante() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
-    const [showPassword, setShowPassword] = useState(false); // Nuevo estado para mostrar/ocultar contraseña
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const fetchCareers = async () => {
@@ -36,18 +36,26 @@ export default function RegistroVotante() {
     }, []);
 
     // Función para capitalizar nombre y apellido (solo primera letra en mayúscula)
+    // eslint-disable-next-line no-unused-vars
     const capitalizeFirstLetter = (str) => {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     };
 
-    // Función para validar correo institucional
+    // Función para validar correo institucional - SIN CARACTERES ESPECIALES
     const validateEmail = (email) => {
+        // Solo permite letras, números, puntos, guiones y @
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         const commonDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'edu.co', 'university.edu', 'college.edu'];
         
+        // Validar que no tenga caracteres especiales peligrosos
+        const dangerousChars = /[<>{}[\]\\|`~!@#$%^&*()=+';?]/;
+        if (dangerousChars.test(email.split('@')[0])) {
+            return "El correo no puede contener caracteres especiales como < > { } [ ] | ` ~ ! @ # $ % ^ & * ( ) = + ' ; ?";
+        }
+        
         if (!emailRegex.test(email)) {
-            return "Formato de correo inválido";
+            return "Formato de correo no válido";
         }
         
         const domain = email.split('@')[1].toLowerCase();
@@ -98,21 +106,54 @@ export default function RegistroVotante() {
         return null;
     };
 
-    // Función para validar nombre y apellido
+    // Función para validar nombre y apellido - SIN CARACTERES ESPECIALES
     const validateName = (name, fieldName) => {
         if (!name.trim()) {
             return `El ${fieldName} es requerido`;
         }
         
+        // Solo permite letras, espacios y vocales con acento
         if (!/^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/.test(name)) {
-            return `El ${fieldName} solo puede contener letras y espacios`;
+            return `El ${fieldName} solo puede contener letras y espacios. No se permiten números ni caracteres especiales.`;
         }
         
         if (name.length < 2) {
             return `El ${fieldName} debe tener mínimo 2 caracteres`;
         }
         
+        // Validar que no tenga múltiples espacios consecutivos
+        if (/\s{2,}/.test(name)) {
+            return `El ${fieldName} no puede tener espacios consecutivos`;
+        }
+        
+        // Validar que no empiece o termine con espacio
+        if (name.startsWith(' ') || name.endsWith(' ')) {
+            return `El ${fieldName} no puede empezar o terminar con espacios`;
+        }
+        
         return null;
+    };
+
+    // Función para limpiar y formatear nombre y apellido
+    const cleanName = (str) => {
+        if (!str) return '';
+        // Remover caracteres especiales, números y múltiples espacios
+        return str
+            .replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '') // Remover caracteres no permitidos
+            .replace(/\s{2,}/g, ' ') // Reemplazar múltiples espacios por uno solo
+            .trim() // Eliminar espacios al inicio y final
+            .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()); // Capitalizar
+    };
+
+    // Función para limpiar correo
+    const cleanEmail = (email) => {
+        if (!email) return '';
+        // Remover caracteres peligrosos del local-part (antes del @)
+        const [localPart, domain] = email.split('@');
+        if (!domain) return email.toLowerCase();
+        
+        const cleanLocalPart = localPart.replace(/[<>{}[\]\\|`~!@#$%^&*()=+';?]/g, '');
+        return `${cleanLocalPart}@${domain}`.toLowerCase();
     };
 
     const handleChange = (e) => {
@@ -121,11 +162,11 @@ export default function RegistroVotante() {
 
         // Aplicar transformaciones según el campo
         if (name === 'nombre_voter' || name === 'apellido_voter') {
-            processedValue = capitalizeFirstLetter(value);
+            processedValue = cleanName(value);
         }
         
         if (name === 'correo_voter') {
-            processedValue = value.toLowerCase();
+            processedValue = cleanEmail(value);
         }
 
         setFormData({ ...formData, [name]: processedValue });
@@ -284,7 +325,8 @@ export default function RegistroVotante() {
                                         onChange={handleChange}
                                         required
                                         className={getInputClassName('nombre_voter')}
-                                        placeholder="Ej: María"
+                                        placeholder="Ej: María (solo letras)"
+                                        maxLength={50}
                                     />
                                     {fieldErrors.nombre_voter && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.nombre_voter}</p>
@@ -301,7 +343,8 @@ export default function RegistroVotante() {
                                         onChange={handleChange}
                                         required
                                         className={getInputClassName('apellido_voter')}
-                                        placeholder="Ej: González"
+                                        placeholder="Ej: González (solo letras)"
+                                        maxLength={50}
                                     />
                                     {fieldErrors.apellido_voter && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.apellido_voter}</p>
@@ -339,6 +382,8 @@ export default function RegistroVotante() {
                                         required
                                         className={getInputClassName('num_doc_voter')}
                                         placeholder="Mínimo 10 dígitos"
+                                        min="1000000000"
+                                        max="999999999999999"
                                     />
                                     {fieldErrors.num_doc_voter && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.num_doc_voter}</p>
@@ -355,7 +400,8 @@ export default function RegistroVotante() {
                                         onChange={handleChange}
                                         required
                                         className={getInputClassName('correo_voter')}
-                                        placeholder="ejemplo@gmail.com"
+                                        placeholder="ejemplo@gmail.com (sin caracteres especiales)"
+                                        maxLength={100}
                                     />
                                     {fieldErrors.correo_voter && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.correo_voter}</p>
@@ -374,6 +420,7 @@ export default function RegistroVotante() {
                                             required
                                             className={`${getInputClassName('contrasena_voter')} pr-10`}
                                             placeholder="Mínimo 8 caracteres con mayúscula, minúscula, número y carácter especial"
+                                            maxLength={50}
                                         />
                                         <button
                                             type="button"
