@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavbarVotante from '../components/NavbarVotante'
 import Footer from '../components/Footer'
-import axios from 'axios'
+import api, { getWithCache } from '../api/axios'
 import {
   FaEnvelope,
   FaPen,
@@ -16,7 +16,7 @@ import {
   FaClock
 } from 'react-icons/fa'
 
-const API_BASE_URL = 'http://localhost:3000'
+// baseURL centralizada disponible en api.defaults.baseURL cuando se requiera
 
 export default function MiPerfilVotante() {
   const navigate = useNavigate()
@@ -86,6 +86,8 @@ export default function MiPerfilVotante() {
   }, [bloqueado, tiempoRestante])
 
   // ✅ FUNCIÓN PARA CARGAR EL PERFIL - VERSIÓN MEJORADA
+  const initialLoadRef = useRef(false)
+
   const loadVoterProfile = useCallback(async () => {
     try {
       setLoading(true)
@@ -122,7 +124,7 @@ export default function MiPerfilVotante() {
 
       console.log('🔄 Cargando perfil del votante ID:', parsedVoterId);
 
-      const response = await axios.get(`${API_BASE_URL}/voters/${parsedVoterId}`)
+  const response = await getWithCache(`/voters/${parsedVoterId}`)
       const voterData = response.data
 
       console.log('📊 Datos del votante recibidos:', voterData);
@@ -232,7 +234,7 @@ export default function MiPerfilVotante() {
 
       console.log('🔐 Validando contraseña para votante ID:', parsedVoterId)
 
-      const response = await axios.post(`${API_BASE_URL}/voters/validate-password`, {
+      const response = await api.post(`/voters/validate-password`, {
         voterId: parsedVoterId,
         password: formData.currentPassword
       })
@@ -364,8 +366,8 @@ export default function MiPerfilVotante() {
 
       setUpdating(true)
 
-      const response = await axios.patch(
-        `${API_BASE_URL}/voters/${parsedVoterId}`,
+      const response = await api.patch(
+        `/voters/${parsedVoterId}`,
         updateData,
         {
           headers: {
@@ -459,7 +461,10 @@ export default function MiPerfilVotante() {
   }
 
   useEffect(() => {
-    loadVoterProfile()
+    if (!initialLoadRef.current) {
+      initialLoadRef.current = true
+      loadVoterProfile()
+    }
   }, [loadVoterProfile])
 
   const handleRetry = () => {

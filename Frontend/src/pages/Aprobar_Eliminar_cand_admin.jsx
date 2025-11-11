@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar_admin from "../components/Navbar_admin";
-import axios from "axios";
+import api from "../api/axios";
 
 const API_BASE_URL = "http://localhost:3000";
 
@@ -23,7 +23,7 @@ const Aprobar_Eliminar_cand_admin = () => {
   const fetchCandidatos = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/candidates`);
+  const response = await api.get(`/candidates`);
       const allCandidates = response.data;
       
       setTotalItems(allCandidates.length);
@@ -109,7 +109,7 @@ const Aprobar_Eliminar_cand_admin = () => {
   // Función para aprobar un candidato
   const aprobarCandidato = async (id_candidate) => {
     try {
-      await axios.patch(`${API_BASE_URL}/candidates/${id_candidate}`, {
+      await api.patch(`/candidates/${id_candidate}`, {
         estado_candidate: "Aprobado",
       });
       setMessage("✅ Candidato aprobado correctamente.");
@@ -126,7 +126,7 @@ const Aprobar_Eliminar_cand_admin = () => {
   // Función para rechazar un candidato
   const rechazarCandidato = async (id_candidate) => {
     try {
-      await axios.patch(`${API_BASE_URL}/candidates/${id_candidate}`, {
+      await api.patch(`/candidates/${id_candidate}`, {
         estado_candidate: "No Aprobado",
       });
       setMessage("✅ Candidato cambiado a 'No Aprobado' correctamente.");

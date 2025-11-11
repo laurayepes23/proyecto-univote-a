@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useCallback } from "react";
+import api from "../api/axios";
 import Navbar_admin from "../components/Navbar_admin";
 
 // SVG Icons como componentes de React
@@ -22,7 +22,6 @@ const BuildingIcon = () => (
   </svg>
 );
 
-const API_BASE_URL = "http://localhost:3000";
 
 const Ver_candidatos_adm = () => {
   const [candidatos, setCandidatos] = useState([]);
@@ -40,28 +39,17 @@ const Ver_candidatos_adm = () => {
   // Función para obtener la URL completa de la foto
   const getCandidatePhoto = (candidato) => {
     if (!candidato.foto_candidate) return '/img/default-avatar.png';
-    
-    let fotoUrl = candidato.foto_candidate;
-    
-    // Si ya es una URL completa
-    if (fotoUrl.startsWith('http')) {
-      return fotoUrl;
-    }
-    // Si es una ruta relativa que empieza con /
-    else if (fotoUrl.startsWith('/')) {
-      return `${API_BASE_URL}${fotoUrl}`;
-    }
-    // Si es solo el nombre del archivo
-    else {
-      return `${API_BASE_URL}/uploads/candidatos/${fotoUrl}`;
-    }
+    const fotoUrl = candidato.foto_candidate;
+    if (fotoUrl.startsWith('http')) return fotoUrl;
+    if (fotoUrl.startsWith('/')) return fotoUrl; // ya es relativo al backend por proxy/baseURL si se sirve estático
+    return `/uploads/candidatos/${fotoUrl}`;
   };
 
   // Función para obtener candidatos con paginación
-  const fetchCandidatos = async (page = 1) => {
+  const fetchCandidatos = useCallback(async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/candidates`);
+  const response = await api.get(`/candidates`);
       if (Array.isArray(response.data)) {
         const allCandidates = response.data;
         setTotalItems(allCandidates.length);
@@ -84,11 +72,11 @@ const Ver_candidatos_adm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemsPerPage]);
 
   useEffect(() => {
     fetchCandidatos();
-  }, []);
+  }, [fetchCandidatos]);
 
   // Funciones de paginación
   const goToPage = (page) => {
@@ -178,7 +166,7 @@ const Ver_candidatos_adm = () => {
               onChange={(e) => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1);
-                fetchCandidatos(1);
+            fetchCandidatos(1);
               }}
               className="border border-gray-300 rounded px-2 py-1 text-sm"
             >

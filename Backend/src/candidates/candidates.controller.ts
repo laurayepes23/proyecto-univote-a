@@ -56,6 +56,17 @@ export class CandidatesController {
 
   @Post("register")
   @UseInterceptors(FileInterceptor("foto_candidate", multerConfig))
+  createRegister(
+    @Body() createCandidateDto: CreateCandidateDto,
+    @UploadedFile() foto_candidate?: Express.Multer.File
+  ) {
+    return this.candidatesService.create(createCandidateDto, foto_candidate);
+  }
+
+  // Nuevo endpoint base: POST /candidates
+  // Mantiene la misma funcionalidad (con o sin archivo) y evita el 404
+  @Post()
+  @UseInterceptors(FileInterceptor("foto_candidate", multerConfig))
   create(
     @Body() createCandidateDto: CreateCandidateDto,
     @UploadedFile() foto_candidate?: Express.Multer.File

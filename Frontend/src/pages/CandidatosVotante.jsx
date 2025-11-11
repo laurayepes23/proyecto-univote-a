@@ -1,11 +1,10 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import CardCandidato from "../components/CardCandidato";
 import NavbarVotante from "../components/NavbarVotante";
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-const API_BASE_URL = "http://localhost:3000";
 
 export default function CandidatosVotante() {
     const { id } = useParams();
@@ -48,12 +47,12 @@ export default function CandidatosVotante() {
         }
 
         else if (fotoUrl.startsWith('/')) {
-            return `${API_BASE_URL}${fotoUrl}`;
-        }
+                return fotoUrl;
+            }
         
-        else {
-            return `${API_BASE_URL}/uploads/candidatos/${fotoUrl}`;
-        }
+            else {
+                return `/uploads/candidatos/${fotoUrl}`;
+            }
     };
 
     useEffect(() => {
@@ -61,7 +60,7 @@ export default function CandidatosVotante() {
 
         const fetchCandidatos = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/elections/${id}`);
+                const response = await api.get(`/elections/${id}`);
                 const electionData = response.data;
 
                 if (electionData && electionData.candidates) {
@@ -165,7 +164,7 @@ export default function CandidatosVotante() {
         console.log("📤 Enviando voto con datos:", voteData);
 
         try {
-            await axios.post(`${API_BASE_URL}/votes`, voteData);
+            await api.post(`/votes`, voteData);
             alert(`✅ ¡Gracias por votar! Tu voto para ${candidatoSeleccionado.nombre_candidate} ha sido registrado.`);
             setYaVoto(true);
         } catch (error) {

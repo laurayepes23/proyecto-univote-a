@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Navbar_admin from "../components/Navbar_admin";
 import Footer from "../components/Footer";
-import axios from "axios";
-
-const API_BASE_URL = "http://localhost:3000/elections";
+import api, { getWithCache, invalidateCacheByPrefix } from "../api/axios";
 
 const Eliminar_eleccion_adm = () => {
     // Estado para almacenar las elecciones de la base de datos
@@ -21,10 +19,10 @@ const Eliminar_eleccion_adm = () => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     // Función para obtener las elecciones de la API
-    const fetchElections = async (page = 1) => {
+    const fetchElections = useCallback(async (page = 1) => {
         setLoading(true);
         try {
-            const response = await axios.get(API_BASE_URL);
+            const response = await getWithCache('/elections');
             const allElections = response.data;
             
             setTotalItems(allElections.length);
@@ -42,19 +40,25 @@ const Eliminar_eleccion_adm = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [itemsPerPage]);
 
     // Carga las elecciones al montar el componente
+    // Evitar doble llamada inicial en desarrollo por StrictMode
+    const initialFetchRef = useRef(false);
     useEffect(() => {
-        fetchElections();
-    }, []);
+        if (!initialFetchRef.current) {
+            initialFetchRef.current = true;
+            fetchElections();
+        }
+    }, [fetchElections]);
 
     // Nueva función para eliminar una elección
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`${API_BASE_URL}/${id}`);
+            await api.delete(`/elections/${id}`);
             setMessage("✅ Elección eliminada correctamente.");
             // Vuelve a cargar la lista para mostrar el cambio
+            invalidateCacheByPrefix('/elections');
             await fetchElections(currentPage); 
         } catch (err) {
             console.error("Error al eliminar la elección:", err);

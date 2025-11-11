@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar_admin from "../components/Navbar_admin";
 import Footer from "../components/Footer";
-import axios from 'axios'; 
+import api from '../api/axios'; 
 
-const API_BASE_URL = 'http://localhost:3000/voters';
+// const API_BASE_URL = 'http://localhost:3000/voters'; // Removed unused constant
 
 const Gestionar_votantes = () => {
   const [votantes, setVotantes] = useState([]);
@@ -19,10 +19,10 @@ const Gestionar_votantes = () => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Función para obtener y ordenar los votantes de la API
-  const fetchVoters = async (page = 1) => {
+  const fetchVoters = useCallback(async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get(API_BASE_URL);
+  const response = await api.get('/voters');
       const allVoters = response.data;
       
       // Ordenar alfabéticamente por nombre (primera letra)
@@ -56,11 +56,11 @@ const Gestionar_votantes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemsPerPage]);
 
   useEffect(() => {
     fetchVoters(currentPage);
-  }, []);
+  }, [fetchVoters, currentPage]);
 
   // Función para cambiar el estado del votante (Activo/Inactivo)
   const toggleEstado = async (id) => {
@@ -72,7 +72,7 @@ const Gestionar_votantes = () => {
       const nuevoEstado = votanteToUpdate.estado === "Activo" ? "Inactivo" : "Activo";
       
       // Llama a la API para actualizar el estado del votante
-      await axios.patch(`${API_BASE_URL}/${id}`, { estado_voter: nuevoEstado });
+  await api.patch(`/voters/${id}`, { estado_voter: nuevoEstado });
 
       // Actualiza el estado localmente y reordena
       setVotantes((prevVotantes) => {

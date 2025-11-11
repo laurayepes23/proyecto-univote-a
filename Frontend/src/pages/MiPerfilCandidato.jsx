@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NavbarCandidato from '../components/NavbarCandidato'
 import Footer from '../components/Footer'
-import axios from 'axios'
+import api, { getWithCache } from '../api/axios'
 import {
   FaEnvelope,
   FaPen,
@@ -20,7 +20,8 @@ import {
   FaClock
 } from 'react-icons/fa'
 
-const API_BASE_URL = 'http://localhost:3000'
+// Usar la baseURL del cliente centralizado para evitar constantes duplicadas
+const baseURL = api.defaults.baseURL
 
 export default function MiPerfilCandidato() {
   const navigate = useNavigate()
@@ -84,6 +85,18 @@ export default function MiPerfilCandidato() {
   }, [bloqueado, tiempoRestante])
 
   // ✅ FUNCIÓN PARA CARGAR EL PERFIL
+  const initialLoadRef = useRef(false)
+
+  const buildPhotoUrl = (raw) => {
+    if (!raw) return '/img/default-avatar.png'
+    // Si ya es absoluta
+    if (raw.startsWith('http')) return `${raw}?t=${Date.now()}`
+    // Si empieza con / asumimos que es ruta desde el backend
+    if (raw.startsWith('/')) return `${baseURL}${raw}?t=${Date.now()}`
+    // Nombre de archivo almacenado en uploads
+    return `${baseURL}/uploads/candidatos/${raw}?t=${Date.now()}`
+  }
+
   const loadCandidateProfile = useCallback(async () => {
     try {
       setLoading(true)
@@ -99,22 +112,11 @@ export default function MiPerfilCandidato() {
         return
       }
 
-      const response = await axios.get(`${API_BASE_URL}/candidates/${candidateId}`)
-      const candidateData = response.data
+    // GET con micro-caché para evitar doble llamada por StrictMode
+    const response = await getWithCache(`/candidates/${candidateId}`)
+    const candidateData = response.data
 
-      let fotoUrl = '/img/default-avatar.png'
-      if (candidateData.foto_candidate) {
-        if (candidateData.foto_candidate.startsWith('http')) {
-          fotoUrl = candidateData.foto_candidate
-        } 
-        else if (candidateData.foto_candidate.startsWith('/')) {
-          fotoUrl = `${API_BASE_URL}${candidateData.foto_candidate}`
-        }
-        else {
-          fotoUrl = `${API_BASE_URL}/uploads/candidatos/${candidateData.foto_candidate}`
-        }
-        fotoUrl += `?t=${Date.now()}`
-      }
+      const fotoUrl = buildPhotoUrl(candidateData.foto_candidate)
 
       const profileData = {
         id_candidato: candidateData.id_candidate,
@@ -146,10 +148,10 @@ export default function MiPerfilCandidato() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [loadFromLocalStorage])
 
   // ✅ FUNCIÓN PARA CARGAR DESDE LOCALSTORAGE
-  const loadFromLocalStorage = () => {
+  const loadFromLocalStorage = useCallback(() => {
     try {
       const candidateData = localStorage.getItem('candidateData')
       if (candidateData) {
@@ -162,9 +164,7 @@ export default function MiPerfilCandidato() {
           numero_documento: parsedData.num_doc_candidate,
           correo: parsedData.correo_candidate,
           estado: parsedData.estado_candidate,
-          foto: parsedData.foto_candidate ? 
-                `${API_BASE_URL}${parsedData.foto_candidate}?t=${Date.now()}` : 
-                '/img/default-avatar.png',
+      foto: buildPhotoUrl(parsedData.foto_candidate),
           eleccion: parsedData.election?.nombre_election || 'No postulado',
           id_eleccion: parsedData.election?.id_election || null,
         }
@@ -183,7 +183,7 @@ export default function MiPerfilCandidato() {
       console.error('Error loading from localStorage:', error)
       setError('Error al cargar los datos del almacenamiento local')
     }
-  }
+  }, [])
 
   // ✅ FUNCIÓN PARA MANEJAR CAMBIOS EN EL FORMULARIO
   const handleInputChange = (e) => {
@@ -199,7 +199,7 @@ export default function MiPerfilCandidato() {
     try {
       const candidateId = localStorage.getItem('candidateId')
       
-      const response = await axios.post(`${API_BASE_URL}/candidates/validate-password`, {
+      const response = await api.post(`/candidates/validate-password`, {
         candidateId: parseInt(candidateId),
         password: formData.currentPassword
       })
@@ -330,8 +330,8 @@ export default function MiPerfilCandidato() {
         return
       }
 
-      const response = await axios.patch(
-        `${API_BASE_URL}/candidates/${candidateId}`,
+      const response = await api.patch(
+        `/candidates/${candidateId}`,
         updateData,
         {
           headers: {
@@ -413,7 +413,7 @@ export default function MiPerfilCandidato() {
       const candidateId = localStorage.getItem('candidateId')
       
       // Validar contraseña
-      const response = await axios.post(`${API_BASE_URL}/candidates/validate-password`, {
+      const response = await api.post(`/candidates/validate-password`, {
         candidateId: parseInt(candidateId),
         password: withdrawPassword
       })
@@ -424,8 +424,8 @@ export default function MiPerfilCandidato() {
       }
 
       // Realizar el retiro de la elección
-      const withdrawResponse = await axios.patch(
-        `${API_BASE_URL}/candidates/${candidateId}/withdraw-election`
+      const withdrawResponse = await api.patch(
+        `/candidates/${candidateId}/withdraw-election`
       )
 
       console.log('✅ Retiro exitoso:', withdrawResponse.data)
@@ -482,8 +482,8 @@ export default function MiPerfilCandidato() {
       const formData = new FormData()
       formData.append('photo', file)
 
-      const response = await axios.post(
-        `${API_BASE_URL}/candidates/${candidateId}/photo`,
+      const response = await api.post(
+        `/candidates/${candidateId}/photo`,
         formData,
         {
           headers: {
@@ -492,7 +492,7 @@ export default function MiPerfilCandidato() {
         }
       )
 
-      const newPhotoUrl = `${API_BASE_URL}${response.data.foto_candidate}?t=${Date.now()}`
+  const newPhotoUrl = buildPhotoUrl(response.data.foto_candidate)
       
       setProfile(prev => ({
         ...prev,
@@ -533,7 +533,7 @@ export default function MiPerfilCandidato() {
         return
       }
 
-      await axios.delete(`${API_BASE_URL}/candidates/${candidateId}/photo`)
+  await api.delete(`/candidates/${candidateId}/photo`)
 
       setProfile(prev => ({
         ...prev,
@@ -595,7 +595,10 @@ export default function MiPerfilCandidato() {
   }
 
   useEffect(() => {
-    loadCandidateProfile()
+    if (!initialLoadRef.current) {
+      initialLoadRef.current = true
+      loadCandidateProfile()
+    }
   }, [loadCandidateProfile])
 
   const handleRetry = () => {
@@ -875,7 +878,7 @@ export default function MiPerfilCandidato() {
                 <div className="space-y-6">
                   {/* ✅ CORREO ELECTRÓNICO - SEPARADO */}
                   <div className="bg-white p-5 rounded-lg border-2 border-dashed border-blue-300 shadow-sm">
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                    <label className="text-sm font-bold text-gray-700 mb-3 flex items-center">
                       <FaEnvelope className="inline mr-2 text-blue-600" />
                       Correo Electrónico
                     </label>
@@ -904,7 +907,7 @@ export default function MiPerfilCandidato() {
                     <div className="space-y-6">
                       {/* ✅ CONTRASEÑA ACTUAL - SEPARADO */}
                       <div className="bg-white p-5 rounded-lg border-2 border-dashed border-orange-300 shadow-sm">
-                        <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                        <label className="text-sm font-bold text-gray-700 mb-3 flex items-center">
                           <FaLock className="inline mr-2 text-orange-600" />
                           Contraseña Actual
                         </label>
@@ -929,7 +932,7 @@ export default function MiPerfilCandidato() {
 
                       {/* ✅ NUEVA CONTRASEÑA - SEPARADO */}
                       <div className="bg-white p-5 rounded-lg border-2 border-dashed border-green-300 shadow-sm">
-                        <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                        <label className="text-sm font-bold text-gray-700 mb-3 flex items-center">
                           <FaLock className="inline mr-2 text-green-600" />
                           Nueva Contraseña
                         </label>
@@ -954,7 +957,7 @@ export default function MiPerfilCandidato() {
 
                       {/* ✅ CONFIRMAR CONTRASEÑA - SEPARADO */}
                       <div className="bg-white p-5 rounded-lg border-2 border-dashed border-purple-300 shadow-sm">
-                        <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                        <label className="text-sm font-bold text-gray-700 mb-3 flex items-center">
                           <FaLock className="inline mr-2 text-purple-600" />
                           Confirmar Nueva Contraseña
                         </label>

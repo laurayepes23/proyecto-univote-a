@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Navbar_admin from '../components/Navbar_admin'
 import Footer from '../components/Footer'
-import axios from 'axios'
+import api from '../api/axios'
 import {
   FaEnvelope,
   FaLock,
@@ -33,7 +33,11 @@ const Mi_perfil_admin = () => {
   const [tiempoRestante, setTiempoRestante] = useState(0)
 
   // Cargar datos del administrador y estado de intentos
+  const initialLoadRef = useRef(false)
+
   useEffect(() => {
+    if (initialLoadRef.current) return
+    initialLoadRef.current = true
     const fetchAdminData = async () => {
       try {
         const adminDataString = localStorage.getItem('adminData')
@@ -45,8 +49,8 @@ const Mi_perfil_admin = () => {
         const adminData = JSON.parse(adminDataString)
         const adminId = adminData.id_admin
 
-        const response = await axios.get(
-          `http://localhost:3000/administrators/${adminId}`
+        const response = await api.get(
+          `/administrators/${adminId}`
         )
         const data = response.data
 
@@ -126,8 +130,8 @@ const Mi_perfil_admin = () => {
       const adminData = JSON.parse(adminDataString)
       const adminId = adminData.id_admin
 
-      const response = await axios.post(
-        `http://localhost:3000/administrators/validate-password`,
+      const response = await api.post(
+        `/administrators/validate-password`,
         {
           adminId: parseInt(adminId),
           password: formData.currentPassword,
@@ -252,8 +256,8 @@ const Mi_perfil_admin = () => {
       setUpdating(true)
 
       // eslint-disable-next-line no-unused-vars
-      const response = await axios.patch(
-        `http://localhost:3000/administrators/${adminId}`,
+      const response = await api.patch(
+        `/administrators/${adminId}`,
         updateData
       )
 

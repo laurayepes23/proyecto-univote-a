@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CardEleccion from "../components/CardEleccion";
 import NavbarVotante from "../components/NavbarVotante";
-import axios from 'axios'; 
+import api from '../api/axios'; 
+import { getPageNumbers } from '../utils/pagination';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 export default function GestionElecciones() {
@@ -21,7 +22,7 @@ export default function GestionElecciones() {
   useEffect(() => {
     const fetchElecciones = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/elections');
+  const response = await api.get('/elections');
         const data = response.data;
 
         const eleccionesAdaptadas = data.map(eleccion => ({
@@ -75,23 +76,7 @@ export default function GestionElecciones() {
   };
 
   // Generar números de página para mostrar
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    return pages;
-  };
+  const pages = getPageNumbers(currentPage, totalPages, 5);
 
   const handleVotar = (id) => {
     navigate(`/CandidatosVotante/${id}`);
@@ -183,7 +168,7 @@ export default function GestionElecciones() {
                   </>
                 )}
 
-                {getPageNumbers().map(page => (
+                {pages.map(page => (
                   <button
                     key={page}
                     onClick={() => goToPage(page)}

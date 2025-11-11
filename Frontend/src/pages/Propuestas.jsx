@@ -2,9 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import NavbarVotante from "../components/NavbarVotante";
-import axios from "axios";
-
-const API_BASE_URL = "http://localhost:3000";
+import api from "../api/axios";
 
 export default function Propuestas() {
   const { id } = useParams(); // Obtiene el ID del candidato de la URL
@@ -16,27 +14,16 @@ export default function Propuestas() {
   // Función para obtener la URL completa de la foto
   const getCandidatePhoto = (candidato) => {
     if (!candidato?.foto_candidate) return '/img/default-avatar.png';
-    
-    let fotoUrl = candidato.foto_candidate;
-    
-    // Si ya es una URL completa
-    if (fotoUrl.startsWith('http')) {
-      return fotoUrl;
-    }
-    // Si es una ruta relativa que empieza con /
-    else if (fotoUrl.startsWith('/')) {
-      return `${API_BASE_URL}${fotoUrl}`;
-    }
-    // Si es solo el nombre del archivo
-    else {
-      return `${API_BASE_URL}/uploads/candidatos/${fotoUrl}`;
-    }
+    const fotoUrl = candidato.foto_candidate;
+    if (fotoUrl.startsWith('http')) return fotoUrl;
+    if (fotoUrl.startsWith('/')) return fotoUrl;
+    return `/uploads/candidatos/${fotoUrl}`;
   };
 
   useEffect(() => {
     const fetchCandidatoYPropuestas = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/candidates/${id}/proposals`);
+  const response = await api.get(`/candidates/${id}/proposals`);
         
         setCandidato(response.data);
         setPropuestas(response.data.proposals || []);

@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Navbar_admin from "../components/Navbar_admin";
 import Footer from "../components/Footer";
-import axios from "axios";
-
-const API_BASE_URL = "http://localhost:3000/elections";
+import { getWithCache } from "../api/axios";
 
 const Ver_elecciones = () => {
     const [elecciones, setElecciones] = useState([]);
@@ -19,10 +17,10 @@ const Ver_elecciones = () => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     // Función para obtener las elecciones de la API
-    const fetchElections = async (page = 1) => {
+    const fetchElections = useCallback(async (page = 1) => {
         setLoading(true);
         try {
-            const response = await axios.get(API_BASE_URL);
+            const response = await getWithCache('/elections');
             const allElections = response.data;
             
             setTotalItems(allElections.length);
@@ -40,14 +38,19 @@ const Ver_elecciones = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [itemsPerPage]);
 
     console.log(elecciones);
 
     // Carga las elecciones al montar el componente
+    // Evitar doble llamada inicial por StrictMode en desarrollo
+    const initialFetchRef = useRef(false);
     useEffect(() => {
-        fetchElections();
-    }, []);
+        if (!initialFetchRef.current) {
+            initialFetchRef.current = true;
+            fetchElections();
+        }
+    }, [fetchElections]);
 
     // Funciones de paginación
     const goToPage = (page) => {

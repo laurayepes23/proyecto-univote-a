@@ -1,0 +1,300 @@
+{
+    "info": {
+        "name": "UniVote - Cookie Auth Collection",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": "Colección completa basada en rutas del servidor Nest. Usa cookies HttpOnly (no Authorization). Ejecuta primero Auth → Login para poblar la cookie y luego accede a rutas protegidas."
+    },
+    "item": [
+        {
+            "name": "Root",
+            "item": [
+                {
+                    "name": "GET /",
+                    "request": { "method": "GET", "url": { "raw": "{{base_url}}/", "host": ["{{base_url}}"], "path": [""] } }
+                },
+                {
+                    "name": "GET /saludo",
+                    "request": { "method": "GET", "url": { "raw": "{{base_url}}/saludo", "host": ["{{base_url}}"], "path": ["saludo"] } }
+                }
+            ]
+        },
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Login (unificado)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+                        "body": { "mode": "raw", "raw": "{\n  \"correo\": \"admin@univote.edu\",\n  \"contrasena\": \"password123\"\n}" }
+                    },
+                    "event": [
+                        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                            "pm.test('Status 200', function(){ pm.response.to.have.status(200); });",
+                            "let json={}; try{ json=pm.response.json(); }catch(e){}",
+                            "if (json.user) { pm.collectionVariables.set('user_tipo', json.user.tipo); pm.collectionVariables.set('user_id', json.user.id); }"
+                        ]}}
+                    ]
+                },
+                {
+                    "name": "Profile (GET)",
+                    "request": { "method": "GET", "url": { "raw": "{{base_url}}/auth/profile", "host": ["{{base_url}}"], "path": ["auth","profile"] } }
+                },
+                {
+                    "name": "Logout (GET)",
+                    "request": { "method": "GET", "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth","logout"] } }
+                }
+            ]
+        },
+        {
+            "name": "Voters",
+            "item": [
+                { "name": "POST /voters (crear)",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/voters","host":["{{base_url}}"],"path":["voters"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_voter\": \"Ana\",\n  \"apellido_voter\": \"López\",\n  \"tipo_doc_voter\": \"CC\",\n  \"num_doc_voter\": 2000000002,\n  \"correo_voter\": \"ana.voter@univote.edu\",\n  \"estado_voter\": \"activo\",\n  \"contrasena_voter\": \"password123\",\n  \"roleId\": 1,\n  \"careerId\": 1\n}" }
+                    }},
+                { "name": "POST /voters/login (legacy)",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/voters/login","host":["{{base_url}}"],"path":["voters","login"]},
+                        "body": {"mode":"raw","raw":"{\n  \"correo_voter\": \"ana.voter@univote.edu\",\n  \"contrasena_voter\": \"password123\"\n}" }
+                    }},
+                { "name": "POST /voters/validate-password",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/voters/validate-password","host":["{{base_url}}"],"path":["voters","validate-password"]},
+                        "body": {"mode":"raw","raw":"{\n  \"correo_voter\": \"ana.voter@univote.edu\",\n  \"contrasena_voter\": \"password123\"\n}" }
+                    }},
+                { "name": "GET /voters",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/voters","host":["{{base_url}}"],"path":["voters"]} }},
+                { "name": "GET /voters/:id",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/voters/{{voter_id}}","host":["{{base_url}}"],"path":["voters","{{voter_id}}"]} }},
+                { "name": "PATCH /voters/:id",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/voters/{{voter_id}}","host":["{{base_url}}"],"path":["voters","{{voter_id}}"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_voter\": \"Ana María\"\n}" }
+                    }},
+                { "name": "PATCH /voters/:id/estado",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/voters/{{voter_id}}/estado","host":["{{base_url}}"],"path":["voters","{{voter_id}}","estado"]},
+                        "body": {"mode":"raw","raw":"{\n  \"estado_voter\": \"activo\"\n}" }
+                    }},
+                { "name": "DELETE /voters/:id",
+                    "request": { "method": "DELETE", "url": {"raw":"{{base_url}}/voters/{{voter_id}}","host":["{{base_url}}"],"path":["voters","{{voter_id}}"]} }}
+            ]
+        },
+        {
+            "name": "Administrators",
+            "item": [
+                { "name": "POST /administrators",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/administrators","host":["{{base_url}}"],"path":["administrators"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_admin\": \"Juan\",\n  \"apellido_admin\": \"Pérez\",\n  \"tipo_doc_admin\": \"CC\",\n  \"num_doc_admin\": 1000000001,\n  \"correo_admin\": \"admin@univote.edu\",\n  \"contrasena_admin\": \"password123\"\n}" }
+                    }},
+                { "name": "POST /administrators/login (legacy)",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/administrators/login","host":["{{base_url}}"],"path":["administrators","login"]},
+                        "body": {"mode":"raw","raw":"{\n  \"correo_admin\": \"admin@univote.edu\",\n  \"contrasena_admin\": \"password123\"\n}" }
+                    }},
+                { "name": "POST /administrators/validate-password",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/administrators/validate-password","host":["{{base_url}}"],"path":["administrators","validate-password"]},
+                        "body": {"mode":"raw","raw":"{\n  \"correo_admin\": \"admin@univote.edu\",\n  \"contrasena_admin\": \"password123\"\n}" }
+                    }},
+                { "name": "GET /administrators",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/administrators","host":["{{base_url}}"],"path":["administrators"]} }},
+                { "name": "GET /administrators/:id",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/administrators/{{admin_id}}","host":["{{base_url}}"],"path":["administrators","{{admin_id}}"]} }},
+                { "name": "PATCH /administrators/:id",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/administrators/{{admin_id}}","host":["{{base_url}}"],"path":["administrators","{{admin_id}}"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_admin\": \"Juan Carlos\"\n}" }
+                    }},
+                { "name": "DELETE /administrators/:id",
+                    "request": { "method": "DELETE", "url": {"raw":"{{base_url}}/administrators/{{admin_id}}","host":["{{base_url}}"],"path":["administrators","{{admin_id}}"]} }}
+            ]
+        },
+        {
+            "name": "Candidates",
+            "item": [
+                { "name": "POST /candidates (crear)",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/candidates","host":["{{base_url}}"],"path":["candidates"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_candidate\": \"Luis\",\n  \"apellido_candidate\": \"Gómez\",\n  \"tipo_doc_candidate\": \"CC\",\n  \"num_doc_candidate\": 3000000003,\n  \"correo_candidate\": \"luis.cand@univote.edu\",\n  \"estado_candidate\": \"aprobado\",\n  \"contrasena_candidate\": \"password123\",\n  \"roleId\": 1,\n  \"careerId\": 1\n}" }
+                    }},
+                { "name": "POST /candidates/register",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/candidates/register","host":["{{base_url}}"],"path":["candidates","register"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_candidate\": \"Luis\",\n  \"apellido_candidate\": \"Gómez\",\n  \"tipo_doc_candidate\": \"CC\",\n  \"num_doc_candidate\": 3000000003,\n  \"correo_candidate\": \"luis.cand@univote.edu\",\n  \"contrasena_candidate\": \"password123\",\n  \"careerId\": 1\n}" }
+                    }},
+                { "name": "POST /candidates/apply",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/candidates/apply","host":["{{base_url}}"],"path":["candidates","apply"]},
+                        "body": {"mode":"raw","raw":"{\n  \"careerId\": 1\n}" }
+                    }},
+                { "name": "POST /candidates/login (legacy)",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/candidates/login","host":["{{base_url}}"],"path":["candidates","login"]},
+                        "body": {"mode":"raw","raw":"{\n  \"correo_candidate\": \"luis.cand@univote.edu\",\n  \"contrasena_candidate\": \"password123\"\n}" }
+                    }},
+                { "name": "POST /candidates/validate-password",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/candidates/validate-password","host":["{{base_url}}"],"path":["candidates","validate-password"]},
+                        "body": {"mode":"raw","raw":"{\n  \"correo_candidate\": \"luis.cand@univote.edu\",\n  \"contrasena_candidate\": \"password123\"\n}" }
+                    }},
+                { "name": "GET /candidates",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/candidates","host":["{{base_url}}"],"path":["candidates"]} }},
+                { "name": "GET /candidates/:id",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/candidates/{{candidate_id}}","host":["{{base_url}}"],"path":["candidates","{{candidate_id}}"]} }},
+                { "name": "GET /candidates/:id/proposals",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/candidates/{{candidate_id}}/proposals","host":["{{base_url}}"],"path":["candidates","{{candidate_id}}","proposals"]} }},
+                { "name": "PATCH /candidates/:id",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/candidates/{{candidate_id}}","host":["{{base_url}}"],"path":["candidates","{{candidate_id}}"]},
+                        "body": {"mode":"raw","raw":"{\n  \"estado_candidate\": \"aprobado\"\n}" }
+                    }},
+                { "name": "PATCH /candidates/:id/withdraw-election",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/candidates/{{candidate_id}}/withdraw-election","host":["{{base_url}}"],"path":["candidates","{{candidate_id}}","withdraw-election"]},
+                        "body": {"mode":"raw","raw":"{ }" }
+                    }},
+                { "name": "POST /candidates/:id/photo (subir)",
+                    "request": { "method": "POST",
+                        "url": {"raw":"{{base_url}}/candidates/{{candidate_id}}/photo","host":["{{base_url}}"],"path":["candidates","{{candidate_id}}","photo"]},
+                        "body": {"mode":"formdata","formdata":[{"key":"photo","type":"file","src":"/path/a/una/imagen.jpg"}]}
+                    }},
+                { "name": "DELETE /candidates/:id/photo",
+                    "request": { "method": "DELETE",
+                        "url": {"raw":"{{base_url}}/candidates/{{candidate_id}}/photo","host":["{{base_url}}"],"path":["candidates","{{candidate_id}}","photo"]}
+                    }}
+            ]
+        },
+        {
+            "name": "Elections",
+            "item": [
+                { "name": "POST /elections",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/elections","host":["{{base_url}}"],"path":["elections"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_election\": \"Elección General\",\n  \"fecha_inicio\": \"2025-11-10T08:00:00.000Z\",\n  \"fecha_fin\": \"2025-11-10T18:00:00.000Z\",\n  \"estado_election\": \"abierta\"\n}" }
+                    }},
+                { "name": "GET /elections",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/elections","host":["{{base_url}}"],"path":["elections"]} }},
+                { "name": "GET /elections/:id",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/elections/{{election_id}}","host":["{{base_url}}"],"path":["elections","{{election_id}}"]} }},
+                { "name": "PATCH /elections/:id",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/elections/{{election_id}}","host":["{{base_url}}"],"path":["elections","{{election_id}}"]},
+                        "body": {"mode":"raw","raw":"{\n  \"estado_election\": \"cerrada\"\n}" }
+                    }},
+                { "name": "DELETE /elections/:id",
+                    "request": { "method": "DELETE", "url": {"raw":"{{base_url}}/elections/{{election_id}}","host":["{{base_url}}"],"path":["elections","{{election_id}}"]} }},
+                { "name": "PUT /elections/iniciar/:id",
+                    "request": { "method": "PUT", "url": {"raw":"{{base_url}}/elections/iniciar/{{election_id}}","host":["{{base_url}}"],"path":["elections","iniciar","{{election_id}}"]} }},
+                { "name": "PUT /elections/cerrar/:id",
+                    "request": { "method": "PUT", "url": {"raw":"{{base_url}}/elections/cerrar/{{election_id}}","host":["{{base_url}}"],"path":["elections","cerrar","{{election_id}}"]} }},
+                { "name": "GET /elections/results",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/elections/results","host":["{{base_url}}"],"path":["elections","results"]} }}
+            ]
+        },
+        {
+            "name": "Proposals",
+            "item": [
+                { "name": "POST /proposals",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/proposals","host":["{{base_url}}"],"path":["proposals"]},
+                        "body": {"mode":"raw","raw":"{\n  \"titulo_proposal\": \"Transparencia\",\n  \"descripcion_proposal\": \"Más transparencia en procesos\",\n  \"estado_proposal\": \"activa\",\n  \"candidateId\": 1\n}" }
+                    }},
+                { "name": "GET /proposals",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/proposals","host":["{{base_url}}"],"path":["proposals"]} }},
+                { "name": "GET /proposals/public",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/proposals/public","host":["{{base_url}}"],"path":["proposals","public"]} }},
+                { "name": "GET /proposals/list",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/proposals/list","host":["{{base_url}}"],"path":["proposals","list"]} }},
+                { "name": "GET /proposals/owner/:candidateId",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/proposals/owner/{{candidate_id}}","host":["{{base_url}}"],"path":["proposals","owner","{{candidate_id}}"]} }},
+                { "name": "GET /proposals/:id",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/proposals/{{proposal_id}}","host":["{{base_url}}"],"path":["proposals","{{proposal_id}}"]} }},
+                { "name": "PATCH /proposals/:id",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/proposals/{{proposal_id}}","host":["{{base_url}}"],"path":["proposals","{{proposal_id}}"]},
+                        "body": {"mode":"raw","raw":"{\n  \"estado_proposal\": \"inactiva\"\n}" }
+                    }},
+                { "name": "DELETE /proposals/:id",
+                    "request": { "method": "DELETE", "url": {"raw":"{{base_url}}/proposals/{{proposal_id}}","host":["{{base_url}}"],"path":["proposals","{{proposal_id}}"]} }}
+            ]
+        },
+        {
+            "name": "Votes",
+            "item": [
+                { "name": "POST /votes (emitir)",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/votes","host":["{{base_url}}"],"path":["votes"]},
+                        "body": {"mode":"raw","raw":"{\n  \"candidateId\": 1,\n  \"electionId\": 1\n}" }
+                    }},
+                { "name": "GET /votes",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/votes","host":["{{base_url}}"],"path":["votes"]} }}
+            ]
+        },
+        {
+            "name": "Roles",
+            "item": [
+                { "name": "POST /roles",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/roles","host":["{{base_url}}"],"path":["roles"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_role\": \"votante\"\n}" }
+                    }},
+                { "name": "GET /roles",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/roles","host":["{{base_url}}"],"path":["roles"]} }},
+                { "name": "GET /roles/:id",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/roles/{{role_id}}","host":["{{base_url}}"],"path":["roles","{{role_id}}"]} }},
+                { "name": "PATCH /roles/:id",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/roles/{{role_id}}","host":["{{base_url}}"],"path":["roles","{{role_id}}"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_role\": \"candidato\"\n}" }
+                    }},
+                { "name": "DELETE /roles/:id",
+                    "request": { "method": "DELETE", "url": {"raw":"{{base_url}}/roles/{{role_id}}","host":["{{base_url}}"],"path":["roles","{{role_id}}"]} }}
+            ]
+        },
+        {
+            "name": "Careers",
+            "item": [
+                { "name": "POST /careers",
+                    "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/careers","host":["{{base_url}}"],"path":["careers"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_career\": \"Ingeniería\"\n}" }
+                    }},
+                { "name": "GET /careers",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/careers","host":["{{base_url}}"],"path":["careers"]} }},
+                { "name": "GET /careers/:id",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/careers/{{career_id}}","host":["{{base_url}}"],"path":["careers","{{career_id}}"]} }},
+                { "name": "PATCH /careers/:id",
+                    "request": { "method": "PATCH", "header": [{"key":"Content-Type","value":"application/json"}],
+                        "url": {"raw":"{{base_url}}/careers/{{career_id}}","host":["{{base_url}}"],"path":["careers","{{career_id}}"]},
+                        "body": {"mode":"raw","raw":"{\n  \"nombre_career\": \"Sistemas\"\n}" }
+                    }},
+                { "name": "DELETE /careers/:id",
+                    "request": { "method": "DELETE", "url": {"raw":"{{base_url}}/careers/{{career_id}}","host":["{{base_url}}"],"path":["careers","{{career_id}}"]} }}
+            ]
+        },
+        {
+            "name": "Results",
+            "item": [
+                { "name": "GET /results",
+                    "request": { "method": "GET", "url": {"raw":"{{base_url}}/results","host":["{{base_url}}"],"path":["results"]} }}
+            ]
+        }
+    ],
+    "variable": [
+        { "key": "base_url", "value": "http://localhost:3000" },
+        { "key": "user_tipo", "value": "" },
+        { "key": "user_id", "value": "" },
+        { "key": "voter_id", "value": "1" },
+        { "key": "admin_id", "value": "1" },
+        { "key": "candidate_id", "value": "1" },
+        { "key": "election_id", "value": "1" },
+        { "key": "proposal_id", "value": "1" },
+        { "key": "role_id", "value": "1" },
+        { "key": "career_id", "value": "1" }
+    ]
+}

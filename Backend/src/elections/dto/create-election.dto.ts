@@ -1,7 +1,9 @@
 // src/elections/dto/create-election.dto.ts
-import { IsString, IsNotEmpty, IsNumber, IsDate } from 'class-validator';
+import { IsString, IsNotEmpty, IsDate, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
+// Nota: Eliminamos id_admin del DTO para que el backend lo derive del usuario autenticado.
+// También hacemos opcional estado_election y por defecto será 'Programada' en el servicio.
 export class CreateElectionDto {
     @IsString()
     @IsNotEmpty()
@@ -18,10 +20,6 @@ export class CreateElectionDto {
     fecha_fin: Date;
 
     @IsString()
-    @IsNotEmpty()
-    estado_election: string;
-
-    @IsNumber()
-    @IsNotEmpty()
-    id_admin: number;
+    @IsOptional()
+    estado_election?: string;
 }

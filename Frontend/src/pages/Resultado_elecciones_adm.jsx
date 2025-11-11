@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Navbar_admin from "../components/Navbar_admin";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { getWithCache } from "../api/axios";
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 
-const API_BASE_URL = "http://localhost:3000/elections/results";
 
 const Resultado_elecciones_adm = () => {
     // Estado para almacenar los resultados de la API
@@ -22,10 +21,10 @@ const Resultado_elecciones_adm = () => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     // Función para obtener los resultados de las elecciones de la API
-    const fetchResults = async (page = 1) => {
+    const fetchResults = useCallback(async (page = 1) => {
         setLoading(true);
         try {
-            const response = await axios.get(API_BASE_URL);
+            const response = await getWithCache('/elections/results');
             console.log("Datos recibidos del backend:", response.data);
             const allElections = response.data;
             
@@ -44,11 +43,16 @@ const Resultado_elecciones_adm = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [itemsPerPage]);
 
+    // Evitar doble llamada inicial por StrictMode
+    const initialFetchRef = useRef(false);
     useEffect(() => {
-        fetchResults();
-    }, []);
+        if (!initialFetchRef.current) {
+            initialFetchRef.current = true;
+            fetchResults();
+        }
+    }, [fetchResults]);
 
     // Funciones de paginación
     const goToPage = (page) => {
@@ -175,7 +179,7 @@ const Resultado_elecciones_adm = () => {
     const generarPDFTodas = async () => {
         try {
             // Obtener todas las elecciones para el reporte general
-            const response = await axios.get(API_BASE_URL);
+            const response = await getWithCache('/elections/results');
             const todasLasElecciones = response.data;
 
             const doc = new jsPDF();

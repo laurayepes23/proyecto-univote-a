@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import NavbarVotante from "../components/NavbarVotante";
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'; 
-import axios from "axios";
+import api from "../api/axios";
 
 export default function ResultadosVotante() {
   const [elecciones, setElecciones] = useState([]);
@@ -15,7 +15,7 @@ export default function ResultadosVotante() {
         setCargando(true);
         setError(null);
         
-        const response = await axios.get("http://localhost:3000/elections/results");
+  const response = await api.get("/elections/results");
         const data = response.data;
 
         const eleccionesFinalizadas = data.filter(

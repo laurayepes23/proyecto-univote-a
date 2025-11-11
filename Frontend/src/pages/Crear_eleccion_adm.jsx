@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Navbar_admin from "../components/Navbar_admin";
 import Footer from "../components/Footer";
-import axios from "axios";
-
-// Ajusta esta URL para que apunte a tu endpoint de elecciones en el backend
-const API_BASE_URL = "http://localhost:3000/elections";
+import api, { getWithCache, invalidateCacheByPrefix } from "../api/axios";
+import { getPageNumbers } from "../utils/pagination";
 
 const Crear_eleccion_adm = () => {
     // Estado para almacenar las elecciones de la base de datos
@@ -29,10 +27,10 @@ const Crear_eleccion_adm = () => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     // Función para obtener las elecciones de la API
-    const fetchElections = async (page = 1) => {
+    const fetchElections = useCallback(async (page = 1) => {
         setLoading(true);
         try {
-            const response = await axios.get(API_BASE_URL);
+            const response = await getWithCache('/elections');
             const allElections = response.data;
             
             setTotalItems(allElections.length);
@@ -50,12 +48,17 @@ const Crear_eleccion_adm = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [itemsPerPage]);
 
     // Carga las elecciones al montar el componente
+    // Evitar doble llamada en StrictMode (montaje doble en desarrollo)
+    const initialFetchRef = useRef(false);
     useEffect(() => {
-        fetchElections();
-    }, []);
+        if (!initialFetchRef.current) {
+            initialFetchRef.current = true;
+            fetchElections();
+        }
+    }, [fetchElections]);
 
     // Función para obtener la fecha y hora actual en formato para datetime-local
     const getCurrentDateTime = () => {
@@ -139,12 +142,14 @@ const Crear_eleccion_adm = () => {
                 nombre_election: formData.nombre,
                 fecha_inicio: fechaInicioISO,
                 fecha_fin: fechaFinISO,
-                estado_election: "Programada",
-                id_admin: 1, 
+                // estado_election es opcional; el backend usará 'Programada' por defecto
             };
 
-            const response = await axios.post(API_BASE_URL, dataToSend);
+            const response = await api.post('/elections', dataToSend);
             console.log('✅ Respuesta del servidor:', response.data);
+
+            // invalidar cache y refrescar
+            invalidateCacheByPrefix('/elections');
 
             await fetchElections(currentPage);
 
@@ -187,23 +192,7 @@ const Crear_eleccion_adm = () => {
     };
 
     // Generar números de página para mostrar
-    const getPageNumbers = () => {
-        const pages = [];
-        const maxVisiblePages = 5;
-        
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-        
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-        
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-        
-        return pages;
-    };
+    const pages = getPageNumbers(currentPage, totalPages, 5);
 
     // Función para formatear fecha de manera robusta
     const formatDate = (dateString) => {
@@ -482,7 +471,7 @@ const Crear_eleccion_adm = () => {
                                         </>
                                     )}
 
-                                    {getPageNumbers().map(page => (
+                                    {pages.map(page => (
                                         <button
                                             key={page}
                                             onClick={() => goToPage(page)}

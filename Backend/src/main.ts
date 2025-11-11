@@ -5,13 +5,21 @@ import { BigIntInterceptor } from './interceptors/bigint.interceptor';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  // Seguridad: Helmet (cabeceras) y cookies
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
+  app.use(cookieParser());
+
   // 1. Habilitar CORS para permitir peticiones desde el frontend
   app.enableCors({
-    origin: 'http://localhost:5173', // URL del frontend
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173', // URL del frontend (puede configurarse con CORS_ORIGIN)
     credentials: true, // Permitir cookies y autenticación
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Métodos permitidos
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'], // Headers permitidos

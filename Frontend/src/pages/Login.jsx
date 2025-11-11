@@ -17,88 +17,30 @@ export default function Login() {
         setSuccess("");
 
         try {
-            // Intento 1: Iniciar sesión como candidato
-            const candidateResponse = await api.post('/candidates/login', {
-                correo_candidate: correo,
-                contrasena_candidate: contrasena
-            });
-            console.log("Inicio de sesión de candidato exitoso:", candidateResponse.data);
-            
-            // GUARDAR INFORMACIÓN DEL CANDIDATO EN LOCALSTORAGE
-            localStorage.setItem('candidateData', JSON.stringify(candidateResponse.data));
-            localStorage.setItem('candidateId', candidateResponse.data.id_candidate);
-            localStorage.setItem('candidateName', `${candidateResponse.data.nombre_candidate} ${candidateResponse.data.apellido_candidate}`);
-            localStorage.setItem('userRole', 'candidate');
-            
+            // Login unificado al backend JWT
+            const { data } = await api.post('/auth/login', { correo, contrasena });
+
+            // Guardar solo usuario (token en cookie HttpOnly)
+            localStorage.setItem('user', JSON.stringify(data.user));
+
             setSuccess("¡Inicio de sesión exitoso!");
-            navigate('/candidato');
-            return;
 
-        } catch (candidateError) {
-            console.log("❌ Error login candidato:", candidateError.response?.data);
-        }
-
-        try {
-            // Intento 2: Iniciar sesión como votante
-            const voterResponse = await api.post('/voters/login', {
-                correo_voter: correo,
-                contrasena_voter: contrasena
-            });
-            console.log("Inicio de sesión de votante exitoso:", voterResponse.data);
-            
-            // ✅ CORRECCIÓN: Verificar la estructura real de la respuesta
-            const voterData = voterResponse.data.voter || voterResponse.data;
-            console.log("📊 Datos del votante:", voterData);
-            
-            // ✅ CORRECCIÓN: Guardar el ID correctamente
-            localStorage.setItem('voterData', JSON.stringify(voterData));
-            localStorage.setItem('voterId', voterData.id_voter.toString());
-            localStorage.setItem('voterName', `${voterData.nombre_voter} ${voterData.apellido_voter}`);
-            localStorage.setItem('userRole', 'voter');
-            
-            // ✅ DEBUG: Verificar que se guardó correctamente
-            console.log("🔍 DEBUG - voterId guardado:", localStorage.getItem('voterId'));
-            console.log("🔍 DEBUG - userRole guardado:", localStorage.getItem('userRole'));
-            
-            setSuccess("¡Inicio de sesión exitoso!");
-            navigate('/votante');
-            return;
-
-        } catch (voterError) {
-            console.log("❌ Error login votante:", voterError.response?.data);
-        }
-
-        try {
-            // Intento 3: Iniciar sesión como administrador
-            const adminResponse = await api.post('/administrators/login', {
-                correo_admin: correo,
-                contrasena_admin: contrasena
-            });
-            console.log("Inicio de sesión de administrador exitoso:", adminResponse.data);
-            
-            // GUARDAR INFORMACIÓN DEL ADMINISTRADOR EN LOCALSTORAGE
-            localStorage.setItem('adminData', JSON.stringify(adminResponse.data));
-            localStorage.setItem('adminId', adminResponse.data.id_admin);
-            localStorage.setItem('adminName', `${adminResponse.data.nombre_admin} ${adminResponse.data.apellido_admin}`);
-            localStorage.setItem('userRole', 'admin');
-            
-            setSuccess("¡Inicio de sesión exitoso!");
-            navigate('/administrador');
-            return;
-        } catch (adminError) {
-            // Si los tres intentos fallan, mostramos un error genérico
-            const errorMessage = adminError.response?.data?.message || "Correo o contraseña incorrectos.";
+            // Redirigir según tipo de usuario
+            const tipo = data.user?.tipo;
+            if (tipo === 'administrador') {
+                navigate('/Administrador');
+            } else if (tipo === 'votante') {
+                navigate('/Votante');
+            } else if (tipo === 'candidato') {
+                navigate('/Candidato');
+            } else {
+                navigate('/');
+            }
+        } catch (err) {
+            const errorMessage = err?.response?.data?.message || 'Correo o contraseña incorrectos.';
             setError(errorMessage);
-            console.error("Error al iniciar sesión:", errorMessage);
-            
-            // Limpiar localStorage en caso de error
-            localStorage.removeItem('candidateData');
-            localStorage.removeItem('candidateId');
-            localStorage.removeItem('voterData');
-            localStorage.removeItem('voterId');
-            localStorage.removeItem('adminData');
-            localStorage.removeItem('adminId');
-            localStorage.removeItem('userRole');
+            // Limpiar por si quedó algo
+            localStorage.removeItem('user');
         }
     };
 

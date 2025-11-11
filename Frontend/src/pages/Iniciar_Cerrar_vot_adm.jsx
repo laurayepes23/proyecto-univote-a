@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useCallback } from "react";
+import api from "../api/axios";
 import Navbar_admin from "../components/Navbar_admin";
 
 const Iniciar_Cerrar_vot_adm = () => {
@@ -15,23 +15,15 @@ const Iniciar_Cerrar_vot_adm = () => {
   // Calcular el número total de páginas
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  useEffect(() => {
-    fetchElections();
-  }, []);
-
-  const fetchElections = async (page = 1) => {
+  const fetchElections = useCallback(async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:3000/elections");
+      const response = await api.get("/elections");
       const allElections = response.data;
-      
       setTotalItems(allElections.length);
-      
-      // Paginación en el frontend
       const startIndex = (page - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
       const paginatedElections = allElections.slice(startIndex, endIndex);
-      
       setElecciones(paginatedElections);
       setCurrentPage(page);
       setError(null);
@@ -41,7 +33,11 @@ const Iniciar_Cerrar_vot_adm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemsPerPage]);
+
+  useEffect(() => {
+    fetchElections();
+  }, [fetchElections]);
 
   // Funciones de paginación
   const goToPage = (page) => {
@@ -83,21 +79,28 @@ const Iniciar_Cerrar_vot_adm = () => {
 
   const iniciarEleccion = async (id) => {
     try {
-      await axios.put(`http://localhost:3000/elections/iniciar/${id}`);
-      fetchElections(currentPage); // Recargar la lista de elecciones manteniendo la página actual
+      // Optimista: actualizar estado local antes de refetch
+      setElecciones(prev => prev.map(e => e.id_election === id ? { ...e, estado_election: 'Activa' } : e));
+      await api.put(`/elections/iniciar/${id}`);
+      // Refetch diferido para no generar ráfaga inmediata
+      setTimeout(() => fetchElections(currentPage), 250);
     } catch (err) {
       setError("Error al iniciar la elección.");
       console.error(err);
+      // Revertir si falla
+      fetchElections(currentPage);
     }
   };
 
   const cerrarEleccion = async (id) => {
     try {
-      await axios.put(`http://localhost:3000/elections/cerrar/${id}`);
-      fetchElections(currentPage); // Recargar la lista de elecciones manteniendo la página actual
+      setElecciones(prev => prev.map(e => e.id_election === id ? { ...e, estado_election: 'Finalizada' } : e));
+      await api.put(`/elections/cerrar/${id}`);
+      setTimeout(() => fetchElections(currentPage), 250);
     } catch (err) {
       setError("Error al cerrar la elección.");
       console.error(err);
+      fetchElections(currentPage);
     }
   };
 

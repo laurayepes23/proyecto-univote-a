@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateElectionDto } from './dto/create-election.dto';
 import { UpdateElectionDto } from './dto/update-election.dto';
@@ -35,27 +35,47 @@ export class ElectionsService {
     return results;
   }
 
-  async create(createElectionDto: CreateElectionDto) {
-    // Desestructuramos el DTO para separar el id_admin del resto de los datos.
-    const { id_admin, ...electionData } = createElectionDto;
+  async create(createElectionDto: CreateElectionDto, user: any) {
+    // Validaciones de negocio adicionales para evitar errores 500 silenciosos.
+    const { fecha_inicio, fecha_fin } = createElectionDto;
 
-    // Llama a Prisma con la estructura de datos anidada correcta.
-    return this.prisma.election.create({
-      data: {
-        ...electionData, 
-        administrador: {
-          connect: {
-            id_admin: id_admin, 
+    if (fecha_fin <= fecha_inicio) {
+      throw new BadRequestException('fecha_fin debe ser posterior a fecha_inicio');
+    }
+
+    const estado = createElectionDto.estado_election?.trim() || 'Programada';
+
+    // Derivamos el administrador del usuario autenticado.
+    const adminId = parseInt(user.id, 10);
+    if (isNaN(adminId)) {
+      throw new BadRequestException('Administrador inválido en el contexto de autenticación');
+    }
+
+    try {
+      return await this.prisma.election.create({
+        data: {
+          nombre_election: createElectionDto.nombre_election,
+          fecha_inicio: createElectionDto.fecha_inicio,
+          fecha_fin: createElectionDto.fecha_fin,
+          estado_election: estado,
+          administrador: {
+            connect: { id_admin: adminId },
           },
         },
-      },
-      include: {
-        administrador: true,
-        candidates: true,
-        voters: true,
-        result: true
+        include: {
+          administrador: true,
+          candidates: true,
+          voters: true,
+          result: true,
+        },
+      });
+    } catch (error: any) {
+      // Prisma lanza errores de integridad (FK) o validación que convertimos a 400/422 explícitos si es posible.
+      if (error.code === 'P2003') {
+        throw new BadRequestException('No se pudo asociar la elección al administrador (FK inválida)');
       }
-    });
+      throw error; // Se propagará y Nest lo convertirá a 500 con mensaje genérico si es desconocido.
+    }
   }
 
   async findAll() {

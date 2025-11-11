@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import NavbarCandidato from "../components/NavbarCandidato";
 import { FaCalendarAlt, FaCheckCircle, FaExclamationCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -39,7 +39,7 @@ export default function PostularseElecciones() {
         }
 
         // Cargar elecciones
-        const response = await axios.get('http://localhost:3000/elections');
+  const response = await api.get('/elections');
         
         // Filtrar solo elecciones programadas
         const eleccionesProgramadas = response.data.filter(
@@ -123,7 +123,7 @@ export default function PostularseElecciones() {
     setMensaje({ texto: '', tipo: '' });
 
     try {
-      const response = await axios.post('http://localhost:3000/candidates/apply', {
+      const response = await api.post('/candidates/apply', {
         candidateId: candidateInfo.id_candidate,
         electionId: electionId,
       });
@@ -140,7 +140,7 @@ export default function PostularseElecciones() {
       }
 
       // Recargar las elecciones para reflejar el cambio
-      const electionsResponse = await axios.get('http://localhost:3000/elections');
+  const electionsResponse = await api.get('/elections');
       const eleccionesProgramadas = electionsResponse.data.filter(
         election => election.estado_election === "Programada"
       );
