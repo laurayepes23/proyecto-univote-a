@@ -11,9 +11,24 @@ import { RolesModule } from './role/role.module';
 import { CareersModule } from './careers/careers.module';
 import { ProposalsModule } from './proposals/proposals.module';
 import { ResultsModule } from './results/results.module';
+import { ContactModule } from './contact/contact.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
-  imports: [VotersModule, AdministratorsModule, PrismaModule, CandidatesModule, VotesModule, ElectionsModule, RolesModule, CareersModule, ProposalsModule, ResultsModule],
+  imports: [
+    VotersModule, 
+    AdministratorsModule, 
+    PrismaModule, 
+    CandidatesModule, 
+    VotesModule, 
+    ElectionsModule, 
+    RolesModule, 
+    CareersModule, 
+    ProposalsModule, 
+    ResultsModule,
+    ContactModule,
+    EmailModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

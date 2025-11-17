@@ -12,6 +12,10 @@ const NavbarCandidato = () => {
     navigate('/login')
   }
 
+  const handleGoBack = () => {
+    navigate(-1) // Esto lleva a la página anterior
+  }
+
   return (
     <nav className="fixed top-0 w-full bg-blue-900 text-white flex items-center justify-between px-5 h-24 z-50">
       <Link to="/Candidato">
@@ -28,12 +32,38 @@ const NavbarCandidato = () => {
           menuOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       >
+        {/* Botón Atrás */}
+        <li className="md:px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800">
+          <button
+            onClick={handleGoBack}
+            className="flex items-center gap-2 w-full text-left hover:text-blue-300 transition"
+            title="Volver a la página anterior"
+          >
+            <svg 
+              className="w-5 h-5" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+              />
+            </svg>
+            <span>Atrás</span>
+          </button>
+        </li>
+
+        {/* Inicio */}
         <li
           className="md:px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800"
           onClick={() => setMenuOpen(false)}
         >
-          <Link to="/Candidato">Inicio</Link>
+          <Link to="/Candidato" className="hover:text-blue-300 transition">Inicio</Link>
         </li>
+
         {/* Consultar Funciones */}
         <li className="cursor-pointer hover:text-blue-300 transition">
           <Link to="/ConsultarFunciones">Consultar Funciones</Link>

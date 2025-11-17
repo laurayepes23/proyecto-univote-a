@@ -9,11 +9,22 @@ const Ver_elecciones = () => {
     const [elecciones, setElecciones] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [message, setMessage] = useState(null);
+
+    // Estados para la modal
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Estados para la paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [totalItems, setTotalItems] = useState(0);
+
+    // Estado para los datos del formulario
+    const [formData, setFormData] = useState({
+        nombre: "",
+        fechaInicio: "",
+        fechaFin: "",
+    });
 
     // Calcular el número total de páginas
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -48,6 +59,137 @@ const Ver_elecciones = () => {
     useEffect(() => {
         fetchElections();
     }, []);
+
+    // Función para abrir la modal
+    const openModal = () => {
+        setIsModalOpen(true);
+        setMessage(null);
+        setFormData({
+            nombre: "",
+            fechaInicio: "",
+            fechaFin: "",
+        });
+    };
+
+    // Función para cerrar la modal
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setMessage(null);
+    };
+
+    // Función para obtener la fecha y hora actual en formato para datetime-local
+    const getCurrentDateTime = () => {
+        const now = new Date();
+        // Añadir un minuto extra para evitar problemas con el segundo actual
+        now.setMinutes(now.getMinutes() + 1);
+        return now.toISOString().slice(0, 16);
+    };
+
+    // Maneja cambios en los inputs
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        
+        if (name === "fechaInicio" || name === "fechaFin") {
+            const selectedDate = new Date(value);
+            const now = new Date();
+            
+            // Validar que la fecha no sea pasada
+            if (selectedDate < now) {
+                setMessage("❌ No puedes seleccionar una fecha y hora pasada.");
+                return;
+            }
+            
+            // Si es fecha de inicio, validar que fecha fin sea posterior
+            if (name === "fechaInicio" && formData.fechaFin) {
+                const fechaFin = new Date(formData.fechaFin);
+                if (selectedDate >= fechaFin) {
+                    setMessage("❌ La fecha de inicio debe ser anterior a la fecha de fin.");
+                    return;
+                }
+            }
+            
+            // Si es fecha fin, validar que sea posterior a fecha inicio
+            if (name === "fechaFin" && formData.fechaInicio) {
+                const fechaInicio = new Date(formData.fechaInicio);
+                if (selectedDate <= fechaInicio) {
+                    setMessage("❌ La fecha de fin debe ser posterior a la fecha de inicio.");
+                    return;
+                }
+            }
+            
+            setMessage(null); // Limpiar mensaje de error si la validación pasa
+        }
+        
+        setFormData({ ...formData, [name]: value });
+    };
+
+    // Maneja el envío del formulario para crear una nueva elección
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setMessage(null);
+
+        // Validaciones adicionales antes de enviar
+        const fechaInicio = new Date(formData.fechaInicio);
+        const fechaFin = new Date(formData.fechaFin);
+        const now = new Date();
+
+        if (fechaInicio < now) {
+            setMessage("❌ La fecha de inicio no puede ser una fecha pasada.");
+            return;
+        }
+
+        if (fechaFin <= fechaInicio) {
+            setMessage("❌ La fecha de fin debe ser posterior a la fecha de inicio.");
+            return;
+        }
+
+        try {
+            // Formatear fechas correctamente para el backend
+            const fechaInicioISO = new Date(formData.fechaInicio).toISOString();
+            const fechaFinISO = new Date(formData.fechaFin).toISOString();
+
+            console.log('📤 Enviando datos:', {
+                nombre_election: formData.nombre,
+                fecha_inicio: fechaInicioISO,
+                fecha_fin: fechaFinISO,
+                estado_election: "Programada"
+            });
+
+            const dataToSend = {
+                nombre_election: formData.nombre,
+                fecha_inicio: fechaInicioISO,
+                fecha_fin: fechaFinISO,
+                estado_election: "Programada",
+                id_admin: 1, 
+            };
+
+            const response = await axios.post(API_BASE_URL, dataToSend);
+            console.log('✅ Respuesta del servidor:', response.data);
+
+            await fetchElections(currentPage);
+
+            setMessage("✅ Elección creada correctamente.");
+            
+            // Resetear formulario y cerrar modal después de 2 segundos
+            setTimeout(() => {
+                setFormData({
+                    nombre: "",
+                    fechaInicio: "",
+                    fechaFin: "",
+                });
+                closeModal();
+            }, 2000);
+
+        } catch (err) {
+            console.error("Error al crear la elección:", err);
+            if (err.response) {
+                console.error('Detalles del error:', err.response.data);
+                setMessage(`❌ Error: ${err.response.data.message || 'No se pudo crear la elección'}`);
+            } else {
+                setMessage("❌ Error al crear la elección. Por favor, intente de nuevo.");
+            }
+        }
+    };
 
     // Funciones de paginación
     const goToPage = (page) => {
@@ -174,9 +316,19 @@ const Ver_elecciones = () => {
 
             {/* Contenido */}
             <div className="pt-24 px-6 pb-6">
-                <h1 className="text-3xl font-bold mb-6 text-center text-blue-900">
-                    Lista de Elecciones
-                </h1>
+                <div className="flex justify-between items-center mb-6 max-w-6xl mx-auto">
+                    <h1 className="text-3xl font-bold text-blue-900">
+                        Lista de Elecciones
+                    </h1>
+                    
+                    {/* Botón para abrir modal */}
+                    <button
+                        onClick={openModal}
+                        className="bg-blue-700 hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-lg transition duration-300 shadow-lg"
+                    >
+                        + Crear Elección
+                    </button>
+                </div>
 
                 {/* Información de paginación */}
                 <div className="flex justify-between items-center mb-4 max-w-6xl mx-auto">
@@ -319,6 +471,123 @@ const Ver_elecciones = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modal para crear elección */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        {/* Header del modal */}
+                        <div className="bg-blue-900 text-white p-6 rounded-t-lg">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl font-bold">Crear Nueva Elección</h2>
+                                <button
+                                    onClick={closeModal}
+                                    className="text-white hover:text-gray-300 text-2xl font-bold"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Contenido del modal */}
+                        <div className="p-6">
+                            {/* Mensaje de estado (éxito/error) */}
+                            {message && (
+                                <div className={`mb-4 p-3 rounded-lg font-bold ${
+                                    message.startsWith("✅") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                }`}>
+                                    {message}
+                                </div>
+                            )}
+
+                            {/* Formulario */}
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-semibold mb-2">
+                                        Nombre de la elección
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="nombre"
+                                        value={formData.nombre}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                                        placeholder="Ej: Elección de Personero 2025"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">
+                                            Fecha y hora de inicio
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            name="fechaInicio"
+                                            value={formData.fechaInicio}
+                                            onChange={handleChange}
+                                            min={getCurrentDateTime()}
+                                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Mínimo: {getCurrentDateTime().replace('T', ' ')}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-semibold mb-2">
+                                            Fecha y hora de cierre
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            name="fechaFin"
+                                            value={formData.fechaFin}
+                                            onChange={handleChange}
+                                            min={formData.fechaInicio || getCurrentDateTime()}
+                                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Debe ser posterior al inicio
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Estado fijo - solo lectura */}
+                                <div className="mb-6">
+                                    <label className="block text-gray-700 font-semibold mb-2">
+                                        Estado
+                                    </label>
+                                    <div className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700">
+                                        Programada
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Todas las elecciones nuevas se crean con estado "Programada"
+                                    </p>
+                                </div>
+
+                                {/* Botones del modal */}
+                                <div className="flex justify-end space-x-4">
+                                    <button
+                                        type="button"
+                                        onClick={closeModal}
+                                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-6 py-2 bg-blue-700 text-white rounded-lg font-bold hover:bg-blue-900 transition"
+                                    >
+                                        Crear Elección
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

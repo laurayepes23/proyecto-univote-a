@@ -6,6 +6,7 @@ const Iniciar_Cerrar_vot_adm = () => {
   const [elecciones, setElecciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [info, setInfo] = useState(null);
 
   // Estados para la paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,7 +23,8 @@ const Iniciar_Cerrar_vot_adm = () => {
   const fetchElections = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:3000/elections");
+      // Usar el nuevo endpoint que incluye el conteo de candidatos
+      const response = await axios.get("http://localhost:3000/elections/with-candidate-count");
       const allElections = response.data;
       
       setTotalItems(allElections.length);
@@ -40,6 +42,28 @@ const Iniciar_Cerrar_vot_adm = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Cargar estadísticas para una elección específica (para el modal de detalles)
+  const loadElectionStats = async (electionId) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/elections/stats/${electionId}`);
+      return response.data;
+    } catch (err) {
+      console.error("Error al cargar estadísticas:", err);
+      return null;
+    }
+  };
+
+  // Verificar si se puede iniciar una elección
+  const checkCanStartElection = async (electionId) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/elections/can-start-simple/${electionId}`);
+      return response.data;
+    } catch (err) {
+      console.error("Error al verificar elección:", err);
+      return { canStart: false, message: "Error al verificar la elección" };
     }
   };
 
@@ -81,23 +105,69 @@ const Iniciar_Cerrar_vot_adm = () => {
     return pages;
   };
 
-  const iniciarEleccion = async (id) => {
+  const iniciarEleccion = async (id, nombreEleccion, candidateCount) => {
     try {
+      // Primero verificar si se puede iniciar
+      const validation = await checkCanStartElection(id);
+      
+      if (!validation.canStart) {
+        setError(validation.message || "No se puede iniciar la elección.");
+        return;
+      }
+
+      // Mostrar confirmación
+      const confirmar = window.confirm(
+        `¿Está seguro de que desea iniciar la elección "${nombreEleccion}"?\n\n` +
+        `Candidatos registrados: ${candidateCount}\n\n` +
+        `Se agregará automáticamente "Voto en Blanco" como opción.`
+      );
+
+      if (!confirmar) return;
+
       await axios.put(`http://localhost:3000/elections/iniciar/${id}`);
-      fetchElections(currentPage); // Recargar la lista de elecciones manteniendo la página actual
+      setInfo(`Elección "${nombreEleccion}" iniciada correctamente. Voto en Blanco agregado automáticamente.`);
+      fetchElections(currentPage);
+      
+      // Limpiar mensaje después de 5 segundos
+      setTimeout(() => setInfo(null), 5000);
     } catch (err) {
-      setError("Error al iniciar la elección.");
+      const errorMessage = err.response?.data?.message || "Error al iniciar la elección.";
+      setError(errorMessage);
       console.error(err);
     }
   };
 
-  const cerrarEleccion = async (id) => {
+  const cerrarEleccion = async (id, nombreEleccion) => {
     try {
+      const confirmar = window.confirm(`¿Está seguro de que desea cerrar la elección "${nombreEleccion}"?`);
+      if (!confirmar) return;
+
       await axios.put(`http://localhost:3000/elections/cerrar/${id}`);
-      fetchElections(currentPage); // Recargar la lista de elecciones manteniendo la página actual
+      setInfo(`Elección "${nombreEleccion}" cerrada correctamente.`);
+      fetchElections(currentPage);
+      
+      // Limpiar mensaje después de 5 segundos
+      setTimeout(() => setInfo(null), 5000);
     } catch (err) {
       setError("Error al cerrar la elección.");
       console.error(err);
+    }
+  };
+
+  // Función para ver detalles de la elección
+  const verDetallesEleccion = async (id, nombreEleccion, candidateCount) => {
+    try {
+      const validation = await checkCanStartElection(id);
+      const stats = await loadElectionStats(id);
+      
+      const mensaje = validation.canStart 
+        ? `✅ La elección "${nombreEleccion}" puede iniciarse.\n\n• Candidatos: ${candidateCount}\n• Votantes: ${stats?.totalVoters || 0}\n• Votos: ${stats?.totalVotes || 0}\n\nSe agregará "Voto en Blanco" automáticamente.`
+        : `❌ No se puede iniciar la elección "${nombreEleccion}".\n\nRazón: ${validation.message}\n\nCandidatos registrados: ${candidateCount}`;
+      
+      alert(mensaje);
+    } catch (err) {
+      console.error("Error al ver detalles:", err);
+      alert("Error al cargar los detalles de la elección.");
     }
   };
 
@@ -118,7 +188,7 @@ const Iniciar_Cerrar_vot_adm = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-xl font-semibold text-gray-700">Cargando...</p>
+        <p className="text-xl font-semibold text-gray-700">Cargando elecciones...</p>
       </div>
     );
   }
@@ -126,9 +196,17 @@ const Iniciar_Cerrar_vot_adm = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-xl font-semibold text-red-600">
-          Error: {error}.
-        </p>
+        <div className="text-center">
+          <p className="text-xl font-semibold text-red-600 mb-4">
+            Error: {error}
+          </p>
+          <button 
+            onClick={() => fetchElections(1)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Reintentar
+          </button>
+        </div>
       </div>
     );
   }
@@ -140,6 +218,26 @@ const Iniciar_Cerrar_vot_adm = () => {
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-900">
           Gestión de Elecciones
         </h1>
+
+        {/* Mensajes de información */}
+        {info && (
+          <div className="max-w-4xl mx-auto mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            {info}
+          </div>
+        )}
+
+        {/* Mensajes de error */}
+        {error && (
+          <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+            <button 
+              onClick={() => setError(null)}
+              className="float-right text-red-800 font-bold"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* Información de paginación */}
         <div className="flex justify-between items-center mb-4 max-w-4xl mx-auto">
@@ -171,9 +269,17 @@ const Iniciar_Cerrar_vot_adm = () => {
         </div>
 
         {elecciones.length === 0 ? (
-          <p className="text-gray-600 text-center">
-            No hay elecciones registradas para gestionar.
-          </p>
+          <div className="max-w-4xl mx-auto text-center py-8">
+            <p className="text-gray-600 text-lg mb-4">
+              No hay elecciones registradas para gestionar.
+            </p>
+            <button 
+              onClick={() => fetchElections(1)}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Recargar
+            </button>
+          </div>
         ) : (
           <div className="max-w-4xl mx-auto">
             <div className="overflow-x-auto">
@@ -183,39 +289,78 @@ const Iniciar_Cerrar_vot_adm = () => {
                     <th className="p-3 border text-center">ID</th>
                     <th className="p-3 border text-center">Nombre</th>
                     <th className="p-3 border text-center">Estado</th>
+                    <th className="p-3 border text-center">Candidatos</th>
                     <th className="p-3 border text-center">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {elecciones.map((eleccion) => (
-                    <tr key={eleccion.id_election} className="hover:bg-gray-100 text-center">
-                      <td className="p-3 border">{eleccion.id_election}</td>
-                      <td className="p-3 border font-medium">{eleccion.nombre_election}</td>
-                      <td className="p-3 border">
-                        <span className={getEstadoColor(eleccion.estado_election)}>
-                          {eleccion.estado_election}
-                        </span>
-                      </td>
-                      <td className="p-3 border">
-                        {eleccion.estado_election === "Activa" ? (
-                          <button
-                            onClick={() => cerrarEleccion(eleccion.id_election)}
-                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition mx-1 font-medium"
-                          >
-                            Cerrar
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => iniciarEleccion(eleccion.id_election)}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition mx-1 font-medium"
-                            disabled={eleccion.estado_election === "Finalizada"}
-                          >
-                            Iniciar
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {elecciones.map((eleccion) => {
+                    const realCandidates = eleccion.realCandidatesCount || 0;
+                    
+                    return (
+                      <tr key={eleccion.id_election} className="hover:bg-gray-100 text-center">
+                        <td className="p-3 border">{eleccion.id_election}</td>
+                        <td className="p-3 border font-medium">{eleccion.nombre_election}</td>
+                        <td className="p-3 border">
+                          <span className={getEstadoColor(eleccion.estado_election)}>
+                            {eleccion.estado_election}
+                          </span>
+                        </td>
+                        <td className="p-3 border">
+                          <div className="flex flex-col items-center">
+                            <span className={`font-semibold ${
+                              realCandidates > 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {realCandidates}
+                            </span>
+                            <small className="text-gray-500">candidatos</small>
+                          </div>
+                        </td>
+                        <td className="p-3 border">
+                          <div className="flex flex-col space-y-2">
+                            {eleccion.estado_election === "Activa" ? (
+                              <button
+                                onClick={() => cerrarEleccion(eleccion.id_election, eleccion.nombre_election)}
+                                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition font-medium"
+                              >
+                                Cerrar Elección
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => iniciarEleccion(eleccion.id_election, eleccion.nombre_election, realCandidates)}
+                                className={`px-4 py-2 rounded-lg transition font-medium ${
+                                  eleccion.estado_election === "Finalizada"
+                                    ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                                    : realCandidates === 0
+                                    ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                                    : "bg-green-600 text-white hover:bg-green-700"
+                                }`}
+                                disabled={eleccion.estado_election === "Finalizada"}
+                                title={
+                                  eleccion.estado_election === "Finalizada" 
+                                    ? "Elección finalizada" 
+                                    : realCandidates === 0
+                                    ? "No hay candidatos registrados"
+                                    : "Iniciar elección"
+                                }
+                              >
+                                {realCandidates === 0 && eleccion.estado_election !== "Finalizada" 
+                                  ? "Sin Candidatos" 
+                                  : "Iniciar Elección"
+                                }
+                              </button>
+                            )}
+                            <button
+                              onClick={() => verDetallesEleccion(eleccion.id_election, eleccion.nombre_election, realCandidates)}
+                              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition font-medium text-sm"
+                            >
+                              Ver Detalles
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -288,6 +433,17 @@ const Iniciar_Cerrar_vot_adm = () => {
             )}
           </div>
         )}
+
+        {/* Información del sistema */}
+        <div className="max-w-4xl mx-auto mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="font-semibold text-blue-800 mb-2">Información del Sistema:</h3>
+          <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
+            <li>Para iniciar una elección debe haber al menos 1 candidato registrado</li>
+            <li>El sistema agregará automáticamente "Voto en Blanco" al iniciar la elección</li>
+            <li>Use el botón "Ver Detalles" para verificar el estado de cada elección</li>
+            <li>Las elecciones sin candidatos se muestran en amarillo</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

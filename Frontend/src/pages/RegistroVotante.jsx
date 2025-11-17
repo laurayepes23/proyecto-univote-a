@@ -22,6 +22,12 @@ export default function RegistroVotante() {
     const [fieldErrors, setFieldErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
 
+    // Constantes para los límites
+    const MAX_NOMBRE = 20;
+    const MAX_APELLIDO = 20;
+    const MAX_DOCUMENTO = 20;
+    const MAX_CONTRASENA = 20;
+
     useEffect(() => {
         const fetchCareers = async () => {
             try {
@@ -74,6 +80,10 @@ export default function RegistroVotante() {
             errors.push("Mínimo 8 caracteres");
         }
         
+        if (password.length > MAX_CONTRASENA) {
+            errors.push(`Máximo ${MAX_CONTRASENA} caracteres`);
+        }
+        
         if (!/(?=.*[a-z])/.test(password)) {
             errors.push("Al menos una minúscula");
         }
@@ -99,6 +109,10 @@ export default function RegistroVotante() {
             return "El documento debe tener mínimo 10 dígitos";
         }
         
+        if (docNumber.length > MAX_DOCUMENTO) {
+            return `El documento no puede tener más de ${MAX_DOCUMENTO} caracteres`;
+        }
+        
         if (!/^\d+$/.test(docNumber)) {
             return "Solo se permiten números";
         }
@@ -107,9 +121,13 @@ export default function RegistroVotante() {
     };
 
     // Función para validar nombre y apellido - SIN CARACTERES ESPECIALES
-    const validateName = (name, fieldName) => {
+    const validateName = (name, fieldName, maxLength) => {
         if (!name.trim()) {
             return `El ${fieldName} es requerido`;
+        }
+        
+        if (name.length > maxLength) {
+            return `El ${fieldName} no puede tener más de ${maxLength} caracteres`;
         }
         
         // Solo permite letras, espacios y vocales con acento
@@ -135,14 +153,16 @@ export default function RegistroVotante() {
     };
 
     // Función para limpiar y formatear nombre y apellido
-    const cleanName = (str) => {
+    const cleanName = (str, maxLength) => {
         if (!str) return '';
         // Remover caracteres especiales, números y múltiples espacios
-        return str
+        const cleaned = str
             .replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '') // Remover caracteres no permitidos
             .replace(/\s{2,}/g, ' ') // Reemplazar múltiples espacios por uno solo
             .trim() // Eliminar espacios al inicio y final
-            .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()); // Capitalizar
+            .substring(0, maxLength); // Limitar a la longitud máxima
+        
+        return cleaned.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()); // Capitalizar
     };
 
     // Función para limpiar correo
@@ -156,17 +176,29 @@ export default function RegistroVotante() {
         return `${cleanLocalPart}@${domain}`.toLowerCase();
     };
 
+    // Función para limpiar documento (solo números)
+    const cleanDocument = (doc) => {
+        if (!doc) return '';
+        // Solo permitir números y limitar longitud
+        return doc.replace(/\D/g, '').substring(0, MAX_DOCUMENTO);
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         let processedValue = value;
 
         // Aplicar transformaciones según el campo
-        if (name === 'nombre_voter' || name === 'apellido_voter') {
-            processedValue = cleanName(value);
-        }
-        
-        if (name === 'correo_voter') {
+        if (name === 'nombre_voter') {
+            processedValue = cleanName(value, MAX_NOMBRE);
+        } else if (name === 'apellido_voter') {
+            processedValue = cleanName(value, MAX_APELLIDO);
+        } else if (name === 'num_doc_voter') {
+            processedValue = cleanDocument(value);
+        } else if (name === 'correo_voter') {
             processedValue = cleanEmail(value);
+        } else if (name === 'contrasena_voter') {
+            // Limitar longitud de contraseña
+            processedValue = value.substring(0, MAX_CONTRASENA);
         }
 
         setFormData({ ...formData, [name]: processedValue });
@@ -180,10 +212,10 @@ export default function RegistroVotante() {
         
         switch (fieldName) {
             case 'nombre_voter':
-                errors.nombre_voter = validateName(value, 'nombre');
+                errors.nombre_voter = validateName(value, 'nombre', MAX_NOMBRE);
                 break;
             case 'apellido_voter':
-                errors.apellido_voter = validateName(value, 'apellido');
+                errors.apellido_voter = validateName(value, 'apellido', MAX_APELLIDO);
                 break;
             case 'tipo_doc_voter':
                 errors.tipo_doc_voter = !value ? "El tipo de documento es requerido" : null;
@@ -210,8 +242,8 @@ export default function RegistroVotante() {
     const validateForm = () => {
         const errors = {};
         
-        errors.nombre_voter = validateName(formData.nombre_voter, 'nombre');
-        errors.apellido_voter = validateName(formData.apellido_voter, 'apellido');
+        errors.nombre_voter = validateName(formData.nombre_voter, 'nombre', MAX_NOMBRE);
+        errors.apellido_voter = validateName(formData.apellido_voter, 'apellido', MAX_APELLIDO);
         errors.tipo_doc_voter = !formData.tipo_doc_voter ? "El tipo de documento es requerido" : null;
         errors.num_doc_voter = validateDocumentNumber(formData.num_doc_voter);
         errors.correo_voter = validateEmail(formData.correo_voter);
@@ -317,7 +349,9 @@ export default function RegistroVotante() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Nombre */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Nombre ({formData.nombre_voter.length}/{MAX_NOMBRE})
+                                    </label>
                                     <input
                                         type="text"
                                         name="nombre_voter"
@@ -326,7 +360,7 @@ export default function RegistroVotante() {
                                         required
                                         className={getInputClassName('nombre_voter')}
                                         placeholder="Ej: María (solo letras)"
-                                        maxLength={50}
+                                        maxLength={MAX_NOMBRE}
                                     />
                                     {fieldErrors.nombre_voter && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.nombre_voter}</p>
@@ -335,7 +369,9 @@ export default function RegistroVotante() {
 
                                 {/* Apellido */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Apellido</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Apellido ({formData.apellido_voter.length}/{MAX_APELLIDO})
+                                    </label>
                                     <input
                                         type="text"
                                         name="apellido_voter"
@@ -344,7 +380,7 @@ export default function RegistroVotante() {
                                         required
                                         className={getInputClassName('apellido_voter')}
                                         placeholder="Ej: González (solo letras)"
-                                        maxLength={50}
+                                        maxLength={MAX_APELLIDO}
                                     />
                                     {fieldErrors.apellido_voter && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.apellido_voter}</p>
@@ -373,17 +409,18 @@ export default function RegistroVotante() {
 
                                 {/* Número de Documento */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Número de Documento</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Número de Documento ({formData.num_doc_voter.length}/{MAX_DOCUMENTO})
+                                    </label>
                                     <input
-                                        type="number"
+                                        type="text"
                                         name="num_doc_voter"
                                         value={formData.num_doc_voter}
                                         onChange={handleChange}
                                         required
                                         className={getInputClassName('num_doc_voter')}
-                                        placeholder="Mínimo 10 dígitos"
-                                        min="1000000000"
-                                        max="999999999999999"
+                                        placeholder="Mínimo 10 dígitos, solo números"
+                                        maxLength={MAX_DOCUMENTO}
                                     />
                                     {fieldErrors.num_doc_voter && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.num_doc_voter}</p>
@@ -410,7 +447,9 @@ export default function RegistroVotante() {
 
                                 {/* Contraseña con ojito */}
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Contraseña ({formData.contrasena_voter.length}/{MAX_CONTRASENA})
+                                    </label>
                                     <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -420,7 +459,7 @@ export default function RegistroVotante() {
                                             required
                                             className={`${getInputClassName('contrasena_voter')} pr-10`}
                                             placeholder="Mínimo 8 caracteres con mayúscula, minúscula, número y carácter especial"
-                                            maxLength={50}
+                                            maxLength={MAX_CONTRASENA}
                                         />
                                         <button
                                             type="button"
@@ -445,7 +484,7 @@ export default function RegistroVotante() {
                                         </p>
                                     )}
                                     <p className="text-gray-500 text-xs mt-1">
-                                        La contraseña debe tener: mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
+                                        La contraseña debe tener: mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial. Máximo {MAX_CONTRASENA} caracteres.
                                     </p>
                                 </div>
 

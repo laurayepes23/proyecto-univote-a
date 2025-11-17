@@ -1,7 +1,7 @@
 import React from 'react';
 import NavbarCandidato from "../components/NavbarCandidato"; 
 import Footer from "../components/Footer";
-import { FaBullhorn, FaUserTie, FaTasks, FaLightbulb } from "react-icons/fa";
+import { FaBullhorn, FaTasks, FaLightbulb } from "react-icons/fa";
 
 export default function Candidato() {
   return (
@@ -41,24 +41,7 @@ export default function Candidato() {
             </a>
           </div>
 
-          {/* Tarjeta 2: Consultar Cargos */}
-          <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:scale-105">
-            <FaUserTie className="text-blue-900 w-16 h-16 mb-4 mx-auto" />
-            <h3 className="text-xl font-bold text-gray-800 mb-3">
-              Consultar cargos disponibles
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Conoce los roles a los que puedes aspirar en cada elección.
-            </p>
-            <a
-              href="/ConsultarCargosCandidato"
-              className="inline-block bg-blue-900 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-800 transition"
-            >
-              Ver cargos
-            </a>
-          </div>
-
-          {/* Tarjeta 3: Consultar Funciones */}
+          {/* Tarjeta 2: Consultar Funciones */}
           <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:scale-105">
             <FaTasks className="text-blue-900 w-16 h-16 mb-4 mx-auto" />
             <h3 className="text-xl font-bold text-gray-800 mb-3">
@@ -75,7 +58,7 @@ export default function Candidato() {
             </a>
           </div>
 
-          {/* Tarjeta 4: Crear Propuestas */}
+          {/* Tarjeta 3: Crear Propuestas */}
           <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:scale-105">
             <FaLightbulb className="text-blue-900 w-16 h-16 mb-4 mx-auto" />
             <h3 className="text-xl font-bold text-gray-800 mb-3">

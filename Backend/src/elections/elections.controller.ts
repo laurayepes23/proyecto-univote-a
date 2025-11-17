@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, BadRequestException } from '@nestjs/common';
 import { ElectionsService } from './elections.service';
 import { CreateElectionDto } from './dto/create-election.dto';
 import { UpdateElectionDto } from './dto/update-election.dto';
@@ -7,12 +7,10 @@ import { UpdateElectionDto } from './dto/update-election.dto';
 export class ElectionsController {
   constructor(private readonly electionsService: ElectionsService) {}
   
-  // --- NUEVO ENDPOINT PARA LOS RESULTADOS ---
   @Get('results')
   getResults() {
     return this.electionsService.getResults();
   }
-
 
   @Post()
   create(@Body() createElectionDto: CreateElectionDto) {
@@ -22,6 +20,16 @@ export class ElectionsController {
   @Get()
   findAll() {
     return this.electionsService.findAll();
+  }
+
+  // NUEVO: Endpoint que incluye el conteo de candidatos
+  @Get('with-candidate-count')
+  async findAllWithCandidateCount() {
+    try {
+      return await this.electionsService.getElectionsWithCandidateCount();
+    } catch (error) {
+      throw new BadRequestException('Error al cargar las elecciones con conteo de candidatos');
+    }
   }
 
   @Get(':id')
@@ -39,15 +47,85 @@ export class ElectionsController {
     return this.electionsService.remove(+id);
   }
   
-  // Nuevo endpoint para iniciar una elección
-  @Put('iniciar/:id')
-  iniciar(@Param('id') id: string) {
-    return this.electionsService.updateStatus(+id, 'Activa');
+  // Nuevo endpoint para verificar si se puede iniciar una elección
+  @Get('can-start/:id')
+  async canStart(@Param('id') id: string) {
+    try {
+      const validation = await this.electionsService.canStartElection(+id);
+      return validation;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
-  // Nuevo endpoint para cerrar una elección
+  // Endpoint simplificado para verificar inicio
+  @Get('can-start-simple/:id')
+  async canStartSimple(@Param('id') id: string) {
+    try {
+      return await this.electionsService.canStartSimple(+id);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  // Nuevo endpoint para obtener estadísticas
+  @Get('stats/:id')
+  async getStats(@Param('id') id: string) {
+    try {
+      return await this.electionsService.getElectionStats(+id);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  // Endpoint para obtener conteo de candidatos
+  @Get('candidates-count/:id')
+  async getCandidatesCount(@Param('id') id: string) {
+    try {
+      const count = await this.electionsService.getElectionCandidatesCount(+id);
+      return { count };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  // Endpoint para agregar voto en blanco manualmente
+  @Post('add-blank-vote/:id')
+  async addBlankVote(@Param('id') id: string) {
+    try {
+      return await this.electionsService.addBlankVoteToElection(+id);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  // Endpoint para iniciar una elección
+  @Put('iniciar/:id')
+  async iniciar(@Param('id') id: string) {
+    try {
+      const result = await this.electionsService.updateStatus(+id, 'Activa');
+      return {
+        success: true,
+        message: 'Elección iniciada correctamente. Voto en Blanco agregado automáticamente.',
+        data: result
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  // Endpoint para cerrar una elección
   @Put('cerrar/:id')
-  cerrar(@Param('id') id: string) {
-    return this.electionsService.updateStatus(+id, 'Finalizada');
+  async cerrar(@Param('id') id: string) {
+    try {
+      const result = await this.electionsService.updateStatus(+id, 'Finalizada');
+      return {
+        success: true,
+        message: 'Elección finalizada correctamente.',
+        data: result
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }

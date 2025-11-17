@@ -15,4 +15,9 @@ export class UpdateCandidateDto {
   @IsString()
   @MinLength(6)
   contrasena_candidate?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['CC', 'TI', 'CE'])
+  tipo_doc_candidate?: string;
 }

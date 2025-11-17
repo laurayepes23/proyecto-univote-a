@@ -1,5 +1,5 @@
 // src/administrators/dto/update-administrator.dto.ts
-import { IsString, IsOptional, IsEmail, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsEmail, MinLength, IsIn } from 'class-validator';
 
 export class UpdateAdministratorDto {
   @IsOptional()
@@ -12,6 +12,7 @@ export class UpdateAdministratorDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['CC', 'TI', 'CE'])
   tipo_doc_admin?: string;
 
   @IsOptional()

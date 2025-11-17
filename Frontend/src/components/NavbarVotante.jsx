@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-const Navbar_admin = () => {
+const Navbar_Votante = () => {
   const [menuOpen, setMenuOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const navigate = useNavigate()
@@ -10,6 +10,10 @@ const Navbar_admin = () => {
     localStorage.removeItem('token')
     console.log('Sesión cerrada')
     navigate('/login')
+  }
+
+  const handleGoBack = () => {
+    navigate(-1) // Esto lleva a la página anterior
   }
 
   return (
@@ -29,12 +33,38 @@ const Navbar_admin = () => {
           menuOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       >
+        {/* Botón Atrás */}
+        <li className="md:px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800">
+          <button
+            onClick={handleGoBack}
+            className="flex items-center gap-2 w-full text-left hover:text-blue-300 transition"
+            title="Volver a la página anterior"
+          >
+            <svg 
+              className="w-5 h-5" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+              />
+            </svg>
+            <span>Atrás</span>
+          </button>
+        </li>
+
+        {/* Inicio */}
         <li
           className="md:px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800"
           onClick={() => setMenuOpen(false)}
         >
-          <Link to="/Votante">Inicio</Link>
+          <Link to="/Votante" className="hover:text-blue-300 transition">Inicio</Link>
         </li>
+
         {/* Elecciones Disponibles */}
         <li className="cursor-pointer hover:text-blue-300 transition">
           <Link to="/EleccionesVotante">Elecciones Disponibles</Link>
@@ -88,4 +118,4 @@ const Navbar_admin = () => {
   )
 }
 
-export default Navbar_admin
+export default Navbar_Votante

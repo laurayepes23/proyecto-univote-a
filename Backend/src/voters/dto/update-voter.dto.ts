@@ -15,4 +15,10 @@ export class UpdateVoterDto {
   @IsString()
   @IsIn(['Activo', 'Inactivo'], { message: 'El estado debe ser "Activo" o "Inactivo"' })
   estado_voter?: string;
+
+  // ✅ AGREGAR ESTE CAMPO
+  @IsOptional()
+  @IsString()
+  @IsIn(['CC', 'TI', 'CE'], { message: 'El tipo de documento debe ser CC, TI o CE' })
+  tipo_doc_voter?: string;
 }

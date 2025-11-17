@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import NavbarCandidato from "../components/NavbarCandidato";
 import Footer from "../components/Footer";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaRegLightbulb, FaExclamationTriangle, FaSave, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaEdit, FaTrashAlt, FaPlusCircle, FaRegLightbulb, FaExclamationTriangle, FaSave, FaTimes, FaChevronLeft, FaChevronRight, FaExclamationCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -18,6 +18,10 @@ export default function GestionarPropuestas() {
         descripcion_proposal: '',
         estado_proposal: 'Activa'
     });
+
+    // Estados para la confirmación de eliminación
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [proposalToDelete, setProposalToDelete] = useState(null);
 
     // Estados para la paginación
     const [currentPage, setCurrentPage] = useState(1);
@@ -110,20 +114,35 @@ export default function GestionarPropuestas() {
         navigate("/CrearPropuesta");
     };
 
-    const handleDeleteProposal = async (id) => {
-        if (window.confirm("¿Estás seguro de que deseas eliminar esta propuesta?")) {
-            try {
-                await api.delete(`/proposals/${id}`);
-                // Recargar las propuestas para mantener la paginación correcta
-                await fetchProposals(currentPage);
-                setSuccess('Propuesta eliminada correctamente');
-                
-                setTimeout(() => setSuccess(''), 3000);
-            } catch (error) {
-                console.error("Error al eliminar propuesta:", error);
-                setError('Error al eliminar la propuesta. Inténtalo de nuevo.');
-                setTimeout(() => setError(''), 3000);
-            }
+    // Mostrar modal de confirmación de eliminación
+    const handleShowDeleteModal = (proposal) => {
+        setProposalToDelete(proposal);
+        setShowDeleteModal(true);
+    };
+
+    // Cerrar modal de confirmación
+    const handleCloseDeleteModal = () => {
+        setShowDeleteModal(false);
+        setProposalToDelete(null);
+    };
+
+    // Confirmar eliminación
+    const handleConfirmDelete = async () => {
+        if (!proposalToDelete) return;
+
+        try {
+            await api.delete(`/proposals/${proposalToDelete.id_proposal}`);
+            // Recargar las propuestas para mantener la paginación correcta
+            await fetchProposals(currentPage);
+            setSuccess('Propuesta eliminada correctamente');
+            setShowDeleteModal(false);
+            setProposalToDelete(null);
+            
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (error) {
+            console.error("Error al eliminar propuesta:", error);
+            setError('Error al eliminar la propuesta. Inténtalo de nuevo.');
+            setTimeout(() => setError(''), 3000);
         }
     };
 
@@ -420,7 +439,7 @@ export default function GestionarPropuestas() {
                                                     Editar
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteProposal(proposal.id_proposal)}
+                                                    onClick={() => handleShowDeleteModal(proposal)}
                                                     className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-colors flex items-center justify-center"
                                                 >
                                                     <FaTrashAlt className="mr-2" />
@@ -502,6 +521,59 @@ export default function GestionarPropuestas() {
                     </>
                 )}
             </main>
+
+            {/* Modal de confirmación de eliminación */}
+            {showDeleteModal && proposalToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full transform transition-all">
+                        {/* Header del modal */}
+                        <div className="flex items-center p-6 border-b border-gray-200">
+                            <div className="flex-shrink-0">
+                                <FaExclamationCircle className="text-red-500 text-2xl" />
+                            </div>
+                            <div className="ml-4">
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                    Confirmar Eliminación
+                                </h3>
+                            </div>
+                        </div>
+
+                        {/* Contenido del modal */}
+                        <div className="p-6">
+                            <p className="text-gray-600 mb-2">
+                                ¿Estás seguro de que deseas eliminar la siguiente propuesta?
+                            </p>
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                                <h4 className="font-semibold text-red-800 text-sm mb-1">
+                                    Propuesta a eliminar:
+                                </h4>
+                                <p className="text-red-700 font-medium">
+                                    {proposalToDelete.titulo_proposal}
+                                </p>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                                Esta acción no se puede deshacer. La propuesta se eliminará permanentemente.
+                            </p>
+                        </div>
+
+                        {/* Footer del modal */}
+                        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+                            <button
+                                onClick={handleCloseDeleteModal}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                                Sí, Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

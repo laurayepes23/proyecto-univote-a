@@ -11,6 +11,12 @@ import {
   FaPen,
   FaExclamationTriangle,
   FaClock,
+  FaEye,
+  FaEyeSlash,
+  FaCheck,
+  FaTimes,
+  FaExclamationCircle,
+  FaCheckCircle
 } from 'react-icons/fa'
 
 const Mi_perfil_admin = () => {
@@ -18,19 +24,170 @@ const Mi_perfil_admin = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     correo: '',
+    tipo_doc_admin: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   })
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
-  const [success, setSuccess] = useState('')
-  const [error, setError] = useState('')
+
+  // Estados para visibilidad de contraseñas
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Estados para modales
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   // Estados para el límite de intentos
   const [intentos, setIntentos] = useState(0)
   const [bloqueado, setBloqueado] = useState(false)
   const [tiempoRestante, setTiempoRestante] = useState(0)
+
+  // Estados para validación de contraseña segura
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    minLength: false,
+    hasLowercase: false,
+    hasUppercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+    maxLength: true
+  })
+
+  // ✅ VALIDAR CONTRASEÑA SEGURA EN TIEMPO REAL
+  useEffect(() => {
+    if (formData.newPassword) {
+      const password = formData.newPassword;
+      setPasswordRequirements({
+        minLength: password.length >= 8,
+        hasLowercase: /[a-z]/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasNumber: /[0-9]/.test(password),
+        hasSpecialChar: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+        maxLength: password.length <= 20
+      });
+    } else {
+      setPasswordRequirements({
+        minLength: false,
+        hasLowercase: false,
+        hasUppercase: false,
+        hasNumber: false,
+        hasSpecialChar: false,
+        maxLength: true
+      });
+    }
+  }, [formData.newPassword]);
+
+  // ✅ FUNCIÓN PARA VALIDAR CONTRASEÑA SEGURA
+  const validateSecurePassword = (password) => {
+    const errors = [];
+    
+    if (password.length < 8) {
+      errors.push("Mínimo 8 caracteres");
+    }
+    
+    if (password.length > 20) {
+      errors.push("Máximo 20 caracteres");
+    }
+    
+    if (!/(?=.*[a-z])/.test(password)) {
+      errors.push("Al menos una minúscula");
+    }
+    
+    if (!/(?=.*[A-Z])/.test(password)) {
+      errors.push("Al menos una mayúscula");
+    }
+    
+    if (!/(?=.*\d)/.test(password)) {
+      errors.push("Al menos un número");
+    }
+    
+    if (!/(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/.test(password)) {
+      errors.push("Al menos un carácter especial");
+    }
+    
+    return errors.length > 0 ? errors.join(", ") : null;
+  };
+
+  // ✅ FUNCIÓN PARA VALIDAR QUE NO SEA LA MISMA CONTRASEÑA
+  const validateSamePassword = async () => {
+    if (!formData.newPassword || !formData.currentPassword) {
+      return true; // No validar si no hay contraseñas
+    }
+
+    try {
+      const adminDataString = localStorage.getItem('adminData')
+      const adminData = JSON.parse(adminDataString)
+      const adminId = adminData.id_admin
+
+      const response = await axios.post(
+        `http://localhost:3000/administrators/validate-password`,
+        {
+          adminId: parseInt(adminId),
+          password: formData.newPassword,
+        }
+      )
+
+      // Si la nueva contraseña es válida contra la actual, significa que son iguales
+      if (response.data.valid) {
+        return false; // Son la misma contraseña
+      }
+      
+      return true; // No son la misma contraseña
+    } catch (error) {
+      console.error('Error validando misma contraseña:', error)
+      return true; // En caso de error, permitir continuar
+    }
+  };
+
+  // ✅ FUNCIÓN PARA MOSTRAR MODAL DE ÉXITO
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setShowSuccessModal(true);
+  };
+
+  // ✅ FUNCIÓN PARA MOSTRAR MODAL DE ERROR
+  const showErrorMessage = (message) => {
+    setErrorMessage(message);
+    setShowErrorModal(true);
+  };
+
+  // ✅ COMPONENTE PARA MOSTRAR REQUISITOS DE CONTRASEÑA
+  const PasswordRequirements = () => (
+    <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <p className="text-sm font-semibold text-gray-700 mb-2">Requisitos de la contraseña:</p>
+      <div className="space-y-1 text-xs">
+        <div className={`flex items-center ${passwordRequirements.minLength ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.minLength ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Mínimo 8 caracteres
+        </div>
+        <div className={`flex items-center ${passwordRequirements.maxLength ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.maxLength ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Máximo 20 caracteres ({formData.newPassword.length}/20)
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasLowercase ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasLowercase ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos una letra minúscula
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasUppercase ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasUppercase ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos una letra mayúscula
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasNumber ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos un número
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasSpecialChar ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos un carácter especial (!@#$%^&* etc.)
+        </div>
+      </div>
+    </div>
+  );
 
   // Cargar datos del administrador y estado de intentos
   useEffect(() => {
@@ -62,6 +219,7 @@ const Mi_perfil_admin = () => {
         setPerfil(formattedProfile)
         setFormData({
           correo: data.correo_admin,
+          tipo_doc_admin: data.tipo_doc_admin,
           currentPassword: '',
           newPassword: '',
           confirmPassword: '',
@@ -82,7 +240,7 @@ const Mi_perfil_admin = () => {
         }
       } catch (error) {
         console.error('Error al cargar el perfil:', error)
-        setError(error.message || 'No se pudieron cargar los datos del perfil.')
+        showErrorMessage(error.message || 'No se pudieron cargar los datos del perfil.')
       } finally {
         setLoading(false)
       }
@@ -113,9 +271,16 @@ const Mi_perfil_admin = () => {
 
   // Manejar cambios en el formulario
   const handleChange = (e) => {
+    const { name, value } = e.target
+    
+    // Limitar la longitud de la contraseña a 20 caracteres
+    if (name === 'newPassword' && value.length > 20) {
+      return;
+    }
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     })
   }
 
@@ -150,7 +315,7 @@ const Mi_perfil_admin = () => {
   // Validar formulario completo con límite de intentos
   const validateForm = async () => {
     if (bloqueado) {
-      setError(`Debes esperar ${formatearTiempo(tiempoRestante)} antes de intentar cambiar la contraseña nuevamente.`)
+      showErrorMessage(`Debes esperar ${formatearTiempo(tiempoRestante)} antes de intentar cambiar la contraseña nuevamente.`)
       return false
     }
 
@@ -160,23 +325,29 @@ const Mi_perfil_admin = () => {
       localStorage.setItem('tiempoBloqueoContrasena', tiempoBloqueo.toString())
       setBloqueado(true)
       setTiempoRestante(30 * 60 * 1000)
-      setError('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
+      showErrorMessage('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
       return false
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     if (!formData.correo || !emailRegex.test(formData.correo.trim())) {
-      setError(
+      showErrorMessage(
         'Por favor ingresa un email válido (ejemplo: usuario@dominio.com)'
       )
+      return false
+    }
+
+    // Validar tipo de documento
+    if (!formData.tipo_doc_admin) {
+      showErrorMessage('Por favor selecciona un tipo de documento')
       return false
     }
 
     // Si se intenta cambiar la contraseña, validar contraseña actual
     if (formData.newPassword || formData.confirmPassword) {
       if (!formData.currentPassword) {
-        setError(
+        showErrorMessage(
           'Debes ingresar tu contraseña actual para cambiar la contraseña'
         )
         return false
@@ -193,20 +364,29 @@ const Mi_perfil_admin = () => {
           localStorage.setItem('tiempoBloqueoContrasena', tiempoBloqueo.toString())
           setBloqueado(true)
           setTiempoRestante(30 * 60 * 1000)
-          setError('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
+          showErrorMessage('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
         } else {
-          setError(`Contraseña actual incorrecta. Intentos restantes: ${3 - nuevosIntentos}`)
+          showErrorMessage(`Contraseña actual incorrecta. Intentos restantes: ${3 - nuevosIntentos}`)
         }
         return false
       }
 
-      if (formData.newPassword.length < 6) {
-        setError('La nueva contraseña debe tener al menos 6 caracteres')
+      // Validar que no sea la misma contraseña
+      const isDifferentPassword = await validateSamePassword()
+      if (!isDifferentPassword) {
+        showErrorMessage('No puedes usar la misma contraseña actual. Por favor, elige una contraseña diferente.')
+        return false
+      }
+
+      // Validar contraseña segura
+      const passwordError = validateSecurePassword(formData.newPassword)
+      if (passwordError) {
+        showErrorMessage(`La nueva contraseña no cumple con los requisitos: ${passwordError}`)
         return false
       }
 
       if (formData.newPassword !== formData.confirmPassword) {
-        setError('Las nuevas contraseñas no coinciden')
+        showErrorMessage('Las nuevas contraseñas no coinciden')
         return false
       }
     }
@@ -214,11 +394,10 @@ const Mi_perfil_admin = () => {
     return true
   }
 
-  // Guardar cambios - SOLO CORREO Y CONTRASEÑA
+  // Guardar cambios - CORREO, TIPO DOCUMENTO Y CONTRASEÑA
   const handleSaveChanges = async () => {
     try {
-      setError('')
-      setSuccess('')
+      setUpdating(true)
 
       const adminDataString = localStorage.getItem('adminData')
       const adminData = JSON.parse(adminDataString)
@@ -228,9 +407,17 @@ const Mi_perfil_admin = () => {
         return
       }
 
-      // ✅ PREPARAR DATOS - SOLO CORREO Y CONTRASEÑA
-      const updateData = {
-        correo_admin: formData.correo.trim(),
+      // ✅ PREPARAR DATOS - CORREO, TIPO DOCUMENTO Y CONTRASEÑA
+      const updateData = {}
+
+      // Solo enviar correo si cambió
+      if (formData.correo.trim() !== perfil.correo) {
+        updateData.correo_admin = formData.correo.trim()
+      }
+
+      // Solo enviar tipo de documento si cambió
+      if (formData.tipo_doc_admin !== perfil.tipoDoc) {
+        updateData.tipo_doc_admin = formData.tipo_doc_admin
       }
 
       // ✅ AGREGAR CONTRASEÑA SOLO SI SE PROPORCIONÓ UNA NUEVA
@@ -240,27 +427,34 @@ const Mi_perfil_admin = () => {
 
       // ✅ VERIFICAR SI HAY CAMBIOS REALES
       const hasEmailChanged = formData.correo.trim() !== perfil.correo
+      const hasTipoDocumentoChanged = formData.tipo_doc_admin !== perfil.tipoDoc
       const hasPasswordChanged = formData.newPassword.length > 0
 
-      if (!hasEmailChanged && !hasPasswordChanged) {
-        setError('No hay cambios que guardar')
+      if (!hasEmailChanged && !hasTipoDocumentoChanged && !hasPasswordChanged) {
+        showErrorMessage('No hay cambios que guardar')
         return
       }
 
       console.log('📤 Enviando actualización:', updateData)
 
-      setUpdating(true)
+      // ✅ ENVIAR SOLO SI HAY DATOS PARA ACTUALIZAR
+      if (Object.keys(updateData).length === 0) {
+        showErrorMessage('No hay cambios que guardar')
+        return
+      }
 
-      // eslint-disable-next-line no-unused-vars
       const response = await axios.patch(
         `http://localhost:3000/administrators/${adminId}`,
         updateData
       )
 
+      console.log('✅ Perfil actualizado con éxito:', response.data)
+
       // ✅ ACTUALIZAR ESTADO
       setPerfil((prev) => ({
         ...prev,
         correo: formData.correo,
+        tipoDoc: formData.tipo_doc_admin
       }))
 
       // ✅ RESETEAR CAMPOS DE CONTRASEÑA Y CONTADOR DE INTENTOS
@@ -271,22 +465,27 @@ const Mi_perfil_admin = () => {
         confirmPassword: '',
       }))
 
+      // ✅ RESETEAR VISIBILIDAD DE CONTRASEÑAS
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
+
       // ✅ RESETEAR INTENTOS EN ÉXITO
       setIntentos(0)
       localStorage.removeItem('intentosCambioContrasena')
       localStorage.removeItem('tiempoBloqueoContrasena')
 
       setIsEditing(false)
-      setSuccess('¡Perfil actualizado con éxito!')
+      showSuccessMessage('¡Perfil actualizado con éxito!')
 
       // ✅ ACTUALIZAR LOCALSTORAGE
       const updatedAdminData = {
         ...adminData,
         correo_admin: formData.correo.trim(),
+        tipo_doc_admin: formData.tipo_doc_admin
       }
       localStorage.setItem('adminData', JSON.stringify(updatedAdminData))
 
-      setTimeout(() => setSuccess(''), 5000)
     } catch (error) {
       console.error('Error actualizando perfil:', error)
       let errorMessage = 'Error al actualizar el perfil'
@@ -305,7 +504,7 @@ const Mi_perfil_admin = () => {
         errorMessage = error.message || 'Error de conexión'
       }
 
-      setError(errorMessage)
+      showErrorMessage(errorMessage)
     } finally {
       setUpdating(false)
     }
@@ -315,12 +514,14 @@ const Mi_perfil_admin = () => {
     setIsEditing(false)
     setFormData({
       correo: perfil?.correo || '',
+      tipo_doc_admin: perfil?.tipoDoc || '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     })
-    setError('')
-    setSuccess('')
+    setShowCurrentPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
   }
 
   const handleStartEditing = () => {
@@ -331,8 +532,6 @@ const Mi_perfil_admin = () => {
       newPassword: '',
       confirmPassword: '',
     }))
-    setError('')
-    setSuccess('')
   }
 
   if (loading) {
@@ -359,7 +558,7 @@ const Mi_perfil_admin = () => {
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-6">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <p className="text-red-600 text-lg mb-4">{error}</p>
+            <p className="text-red-600 text-lg mb-4">Error al cargar el perfil</p>
             <button 
               onClick={() => window.location.reload()}
               className="w-full px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors"
@@ -377,22 +576,6 @@ const Mi_perfil_admin = () => {
     <div className="min-h-screen flex flex-col bg-blue-50 text-gray-800">
       <Navbar_admin />
       <div className="h-20"></div>
-
-      {success && (
-        <div className="max-w-4xl mx-auto w-full px-8 mt-10">
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
-            <p>{success}</p>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="max-w-4xl mx-auto w-full px-8">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            <p>{error}</p>
-          </div>
-        </div>
-      )}
 
       <main className="flex-grow max-w-4xl mx-auto p-8 w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
@@ -460,9 +643,26 @@ const Mi_perfil_admin = () => {
                       <p className="text-xs font-bold text-gray-500 mb-1">Nombre Completo</p>
                       <p className="font-semibold text-gray-800 text-lg">{perfil.nombre} {perfil.apellido}</p>
                     </div>
+                    
+                    {/* Tipo de Documento - Ahora editable */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                       <p className="text-xs font-bold text-gray-500 mb-1">Tipo de Documento</p>
-                      <p className="font-semibold text-gray-800 text-lg">{perfil.tipoDoc}</p>
+                      {isEditing ? (
+                        <select
+                          name="tipo_doc_admin"
+                          value={formData.tipo_doc_admin}
+                          onChange={handleChange}
+                          className="w-full font-semibold text-gray-800 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          disabled={bloqueado}
+                        >
+                          <option value="">Seleccione tipo</option>
+                          <option value="CC">Cédula de Ciudadanía</option>
+                          <option value="TI">Tarjeta de Identidad</option>
+                          <option value="CE">Cédula de Extranjería</option>
+                        </select>
+                      ) : (
+                        <p className="font-semibold text-gray-800 text-lg">{perfil.tipoDoc}</p>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -518,15 +718,24 @@ const Mi_perfil_admin = () => {
                           Contraseña Actual
                         </label>
                         <div className="space-y-2">
-                          <input
-                            type="password"
-                            name="currentPassword"
-                            value={formData.currentPassword}
-                            onChange={handleChange}
-                            className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            placeholder="Ingresa tu contraseña actual"
-                            disabled={bloqueado}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showCurrentPassword ? "text" : "password"}
+                              name="currentPassword"
+                              value={formData.currentPassword}
+                              onChange={handleChange}
+                              className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all pr-10"
+                              placeholder="Ingresa tu contraseña actual"
+                              disabled={bloqueado}
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            >
+                              {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           <p className="text-xs text-orange-600 font-medium">
                             {bloqueado 
                               ? 'Campo bloqueado temporalmente' 
@@ -543,21 +752,34 @@ const Mi_perfil_admin = () => {
                           Nueva Contraseña
                         </label>
                         <div className="space-y-2">
-                          <input
-                            type="password"
-                            name="newPassword"
-                            value={formData.newPassword}
-                            onChange={handleChange}
-                            className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                            placeholder="Dejar en blanco para no cambiar"
-                            disabled={bloqueado}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showNewPassword ? "text" : "password"}
+                              name="newPassword"
+                              value={formData.newPassword}
+                              onChange={handleChange}
+                              className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all pr-10"
+                              placeholder="Ingresa nueva contraseña segura"
+                              disabled={bloqueado}
+                              maxLength={20}
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                            >
+                              {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           <p className="text-xs text-gray-500">
                             {bloqueado 
                               ? 'Cambio de contraseña bloqueado temporalmente' 
-                              : 'Mínimo 6 caracteres. Campo opcional.'
+                              : 'La contraseña debe cumplir con todos los requisitos de seguridad'
                             }
                           </p>
+                          
+                          {/* Mostrar requisitos de contraseña cuando se esté escribiendo */}
+                          {formData.newPassword && <PasswordRequirements />}
                         </div>
                       </div>
 
@@ -568,15 +790,24 @@ const Mi_perfil_admin = () => {
                           Confirmar Nueva Contraseña
                         </label>
                         <div className="space-y-2">
-                          <input
-                            type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            placeholder="Confirmar nueva contraseña"
-                            disabled={bloqueado}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showConfirmPassword ? "text" : "password"}
+                              name="confirmPassword"
+                              value={formData.confirmPassword}
+                              onChange={handleChange}
+                              className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-10"
+                              placeholder="Confirmar nueva contraseña"
+                              disabled={bloqueado}
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           <p className="text-xs text-gray-500">
                             {bloqueado 
                               ? 'Campo bloqueado temporalmente' 
@@ -616,6 +847,45 @@ const Mi_perfil_admin = () => {
           )}
         </div>
       </main>
+
+      {/* Modal de éxito para cambios generales */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaCheckCircle className="text-green-600 text-2xl" />
+            </div>
+            <h3 className="text-xl font-bold text-green-600 mb-2">¡Éxito!</h3>
+            <p className="text-gray-600 mb-6">{successMessage}</p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de error para cambios generales */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaExclamationCircle className="text-red-600 text-2xl" />
+            </div>
+            <h3 className="text-xl font-bold text-red-600 mb-2">Error</h3>
+            <p className="text-gray-600 mb-6 whitespace-pre-line">{errorMessage}</p>
+            <button
+              onClick={() => setShowErrorModal(false)}
+              className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

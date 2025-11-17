@@ -26,6 +26,12 @@ export default function RegistroCandidato() {
     const [uploading, setUploading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    // Constantes para los límites
+    const MAX_NOMBRE = 20;
+    const MAX_APELLIDO = 20;
+    const MAX_DOCUMENTO = 20;
+    const MAX_CONTRASENA = 20;
+
     useEffect(() => {
         const fetchRelations = async () => {
             try {
@@ -48,14 +54,16 @@ export default function RegistroCandidato() {
     }, []);
 
     // Función para limpiar y formatear nombre y apellido
-    const cleanName = (str) => {
+    const cleanName = (str, maxLength) => {
         if (!str) return '';
         // Remover caracteres especiales, números y múltiples espacios
-        return str
+        const cleaned = str
             .replace(/[^A-Za-zÁáÉéÍíÓóÚúÑñ\s]/g, '') // Remover caracteres no permitidos
             .replace(/\s{2,}/g, ' ') // Reemplazar múltiples espacios por uno solo
             .trim() // Eliminar espacios al inicio y final
-            .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()); // Capitalizar
+            .substring(0, maxLength); // Limitar a la longitud máxima
+        
+        return cleaned.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()); // Capitalizar
     };
 
     // Función para limpiar correo
@@ -67,6 +75,13 @@ export default function RegistroCandidato() {
         
         const cleanLocalPart = localPart.replace(/[<>{}[\]\\|`~!@#$%^&*()=+';?]/g, '');
         return `${cleanLocalPart}@${domain}`.toLowerCase();
+    };
+
+    // Función para limpiar documento (solo números)
+    const cleanDocument = (doc) => {
+        if (!doc) return '';
+        // Solo permitir números y limitar longitud
+        return doc.replace(/\D/g, '').substring(0, MAX_DOCUMENTO);
     };
 
     // Función para validar correo institucional - SIN CARACTERES ESPECIALES PELIGROSOS
@@ -99,6 +114,10 @@ export default function RegistroCandidato() {
             errors.push("Mínimo 8 caracteres");
         }
         
+        if (password.length > MAX_CONTRASENA) {
+            errors.push(`Máximo ${MAX_CONTRASENA} caracteres`);
+        }
+        
         if (!/(?=.*[a-z])/.test(password)) {
             errors.push("Al menos una minúscula");
         }
@@ -123,6 +142,10 @@ export default function RegistroCandidato() {
             return "El documento debe tener mínimo 10 dígitos";
         }
         
+        if (docNumber.length > MAX_DOCUMENTO) {
+            return `El documento no puede tener más de ${MAX_DOCUMENTO} caracteres`;
+        }
+        
         if (!/^\d+$/.test(docNumber)) {
             return "Solo se permiten números";
         }
@@ -131,9 +154,13 @@ export default function RegistroCandidato() {
     };
 
     // Función para validar nombre y apellido - SIN CARACTERES ESPECIALES
-    const validateName = (name, fieldName) => {
+    const validateName = (name, fieldName, maxLength) => {
         if (!name.trim()) {
             return `El ${fieldName} es requerido`;
+        }
+        
+        if (name.length > maxLength) {
+            return `El ${fieldName} no puede tener más de ${maxLength} caracteres`;
         }
         
         // Solo permite letras, espacios y vocales con acento
@@ -180,12 +207,17 @@ export default function RegistroCandidato() {
         let processedValue = value;
 
         // Aplicar transformaciones según el campo
-        if (name === 'nombre_candidate' || name === 'apellido_candidate') {
-            processedValue = cleanName(value);
-        }
-        
-        if (name === 'correo_candidate') {
+        if (name === 'nombre_candidate') {
+            processedValue = cleanName(value, MAX_NOMBRE);
+        } else if (name === 'apellido_candidate') {
+            processedValue = cleanName(value, MAX_APELLIDO);
+        } else if (name === 'num_doc_candidate') {
+            processedValue = cleanDocument(value);
+        } else if (name === 'correo_candidate') {
             processedValue = cleanEmail(value);
+        } else if (name === 'contrasena_candidate') {
+            // Limitar longitud de contraseña
+            processedValue = value.substring(0, MAX_CONTRASENA);
         }
 
         setFormData({ ...formData, [name]: processedValue });
@@ -218,10 +250,10 @@ export default function RegistroCandidato() {
         
         switch (fieldName) {
             case 'nombre_candidate':
-                errors.nombre_candidate = validateName(value, 'nombre');
+                errors.nombre_candidate = validateName(value, 'nombre', MAX_NOMBRE);
                 break;
             case 'apellido_candidate':
-                errors.apellido_candidate = validateName(value, 'apellido');
+                errors.apellido_candidate = validateName(value, 'apellido', MAX_APELLIDO);
                 break;
             case 'tipo_doc_candidate':
                 errors.tipo_doc_candidate = !value ? "El tipo de documento es requerido" : null;
@@ -248,8 +280,8 @@ export default function RegistroCandidato() {
     const validateForm = () => {
         const errors = {};
         
-        errors.nombre_candidate = validateName(formData.nombre_candidate, 'nombre');
-        errors.apellido_candidate = validateName(formData.apellido_candidate, 'apellido');
+        errors.nombre_candidate = validateName(formData.nombre_candidate, 'nombre', MAX_NOMBRE);
+        errors.apellido_candidate = validateName(formData.apellido_candidate, 'apellido', MAX_APELLIDO);
         errors.tipo_doc_candidate = !formData.tipo_doc_candidate ? "El tipo de documento es requerido" : null;
         errors.num_doc_candidate = validateDocumentNumber(formData.num_doc_candidate);
         errors.correo_candidate = validateEmail(formData.correo_candidate);
@@ -383,7 +415,9 @@ export default function RegistroCandidato() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Nombre ({formData.nombre_candidate.length}/{MAX_NOMBRE})
+                                    </label>
                                     <input
                                         type="text"
                                         name="nombre_candidate"
@@ -392,7 +426,7 @@ export default function RegistroCandidato() {
                                         required
                                         className={getInputClassName('nombre_candidate')}
                                         placeholder="Ej: Carlos (solo letras)"
-                                        maxLength={50}
+                                        maxLength={MAX_NOMBRE}
                                     />
                                     {fieldErrors.nombre_candidate && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.nombre_candidate}</p>
@@ -400,7 +434,9 @@ export default function RegistroCandidato() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Apellido</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Apellido ({formData.apellido_candidate.length}/{MAX_APELLIDO})
+                                    </label>
                                     <input
                                         type="text"
                                         name="apellido_candidate"
@@ -409,7 +445,7 @@ export default function RegistroCandidato() {
                                         required
                                         className={getInputClassName('apellido_candidate')}
                                         placeholder="Ej: Rodríguez (solo letras)"
-                                        maxLength={50}
+                                        maxLength={MAX_APELLIDO}
                                     />
                                     {fieldErrors.apellido_candidate && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.apellido_candidate}</p>
@@ -436,17 +472,18 @@ export default function RegistroCandidato() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Número de Documento</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Número de Documento ({formData.num_doc_candidate.length}/{MAX_DOCUMENTO})
+                                    </label>
                                     <input
-                                        type="number"
+                                        type="text"
                                         name="num_doc_candidate"
                                         value={formData.num_doc_candidate}
                                         onChange={handleChange}
                                         required
                                         className={getInputClassName('num_doc_candidate')}
-                                        placeholder="Mínimo 10 dígitos"
-                                        min="1000000000"
-                                        max="999999999999999"
+                                        placeholder="Mínimo 10 dígitos, solo números"
+                                        maxLength={MAX_DOCUMENTO}
                                     />
                                     {fieldErrors.num_doc_candidate && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.num_doc_candidate}</p>
@@ -472,7 +509,9 @@ export default function RegistroCandidato() {
 
                                 {/* Contraseña con ojito */}
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Contraseña ({formData.contrasena_candidate.length}/{MAX_CONTRASENA})
+                                    </label>
                                     <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -482,7 +521,7 @@ export default function RegistroCandidato() {
                                             required
                                             className={`${getInputClassName('contrasena_candidate')} pr-10`}
                                             placeholder="Mínimo 8 caracteres con mayúscula, minúscula, número y carácter especial"
-                                            maxLength={50}
+                                            maxLength={MAX_CONTRASENA}
                                         />
                                         <button
                                             type="button"
@@ -507,7 +546,7 @@ export default function RegistroCandidato() {
                                         </p>
                                     )}
                                     <p className="text-gray-500 text-xs mt-1">
-                                        La contraseña debe tener: mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial.
+                                        La contraseña debe tener: mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial. Máximo {MAX_CONTRASENA} caracteres.
                                     </p>
                                 </div>
 

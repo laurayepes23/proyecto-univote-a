@@ -13,7 +13,13 @@ import {
   FaUniversity,
   FaVoteYea,
   FaExclamationTriangle,
-  FaClock
+  FaClock,
+  FaEye,
+  FaEyeSlash,
+  FaCheck,
+  FaTimes,
+  FaExclamationCircle,
+  FaCheckCircle
 } from 'react-icons/fa'
 
 const API_BASE_URL = 'http://localhost:3000'
@@ -24,19 +30,169 @@ export default function MiPerfilVotante() {
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
+    tipo_doc_voter: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   })
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+
+  // Estados para visibilidad de contraseñas
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Estados para modales
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   // Estados para el límite de intentos
   const [intentos, setIntentos] = useState(0)
   const [bloqueado, setBloqueado] = useState(false)
   const [tiempoRestante, setTiempoRestante] = useState(0)
+
+  // Estados para validación de contraseña segura
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    minLength: false,
+    hasLowercase: false,
+    hasUppercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+    maxLength: true
+  })
+
+  // ✅ VALIDAR CONTRASEÑA SEGURA EN TIEMPO REAL
+  useEffect(() => {
+    if (formData.newPassword) {
+      const password = formData.newPassword;
+      setPasswordRequirements({
+        minLength: password.length >= 8,
+        hasLowercase: /[a-z]/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasNumber: /[0-9]/.test(password),
+        hasSpecialChar: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+        maxLength: password.length <= 20
+      });
+    } else {
+      setPasswordRequirements({
+        minLength: false,
+        hasLowercase: false,
+        hasUppercase: false,
+        hasNumber: false,
+        hasSpecialChar: false,
+        maxLength: true
+      });
+    }
+  }, [formData.newPassword]);
+
+  // ✅ FUNCIÓN PARA VALIDAR CONTRASEÑA SEGURA
+  const validateSecurePassword = (password) => {
+    const errors = [];
+    
+    if (password.length < 8) {
+      errors.push("Mínimo 8 caracteres");
+    }
+    
+    if (password.length > 20) {
+      errors.push("Máximo 20 caracteres");
+    }
+    
+    if (!/(?=.*[a-z])/.test(password)) {
+      errors.push("Al menos una minúscula");
+    }
+    
+    if (!/(?=.*[A-Z])/.test(password)) {
+      errors.push("Al menos una mayúscula");
+    }
+    
+    if (!/(?=.*\d)/.test(password)) {
+      errors.push("Al menos un número");
+    }
+    
+    if (!/(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/.test(password)) {
+      errors.push("Al menos un carácter especial");
+    }
+    
+    return errors.length > 0 ? errors.join(", ") : null;
+  };
+
+  // ✅ FUNCIÓN PARA VALIDAR QUE NO SEA LA MISMA CONTRASEÑA
+  const validateSamePassword = async () => {
+    if (!formData.newPassword || !formData.currentPassword) {
+      return true; // No validar si no hay contraseñas
+    }
+
+    try {
+      const voterId = localStorage.getItem('voterId')
+      const parsedVoterId = parseInt(voterId)
+
+      const response = await axios.post(
+        `${API_BASE_URL}/voters/validate-password`,
+        {
+          voterId: parsedVoterId,
+          password: formData.newPassword,
+        }
+      )
+
+      // Si la nueva contraseña es válida contra la actual, significa que son iguales
+      if (response.data.valid) {
+        return false; // Son la misma contraseña
+      }
+      
+      return true; // No son la misma contraseña
+    } catch (error) {
+      console.error('Error validando misma contraseña:', error)
+      return true; // En caso de error, permitir continuar
+    }
+  };
+
+  // ✅ FUNCIÓN PARA MOSTRAR MODAL DE ÉXITO
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setShowSuccessModal(true);
+  };
+
+  // ✅ FUNCIÓN PARA MOSTRAR MODAL DE ERROR
+  const showErrorMessage = (message) => {
+    setErrorMessage(message);
+    setShowErrorModal(true);
+  };
+
+  // ✅ COMPONENTE PARA MOSTRAR REQUISITOS DE CONTRASEÑA
+  const PasswordRequirements = () => (
+    <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <p className="text-sm font-semibold text-gray-700 mb-2">Requisitos de la contraseña:</p>
+      <div className="space-y-1 text-xs">
+        <div className={`flex items-center ${passwordRequirements.minLength ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.minLength ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Mínimo 8 caracteres
+        </div>
+        <div className={`flex items-center ${passwordRequirements.maxLength ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.maxLength ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Máximo 20 caracteres ({formData.newPassword.length}/20)
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasLowercase ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasLowercase ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos una letra minúscula
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasUppercase ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasUppercase ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos una letra mayúscula
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasNumber ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos un número
+        </div>
+        <div className={`flex items-center ${passwordRequirements.hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
+          {passwordRequirements.hasSpecialChar ? <FaCheck className="mr-2" /> : <FaTimes className="mr-2" />}
+          Al menos un carácter especial (!@#$%^&* etc.)
+        </div>
+      </div>
+    </div>
+  );
 
   // ✅ DEBUG: Verificar localStorage al cargar el componente
   useEffect(() => {
@@ -89,7 +245,6 @@ export default function MiPerfilVotante() {
   const loadVoterProfile = useCallback(async () => {
     try {
       setLoading(true)
-      setError('')
 
       const voterId = localStorage.getItem('voterId')
       const userRole = localStorage.getItem('userRole')
@@ -101,13 +256,13 @@ export default function MiPerfilVotante() {
       console.log('voterData:', localStorage.getItem('voterData'));
 
       if (userRole !== 'voter') {
-        setError('No tienes permisos para acceder a esta página. Debes iniciar sesión como votante.')
+        showErrorMessage('No tienes permisos para acceder a esta página. Debes iniciar sesión como votante.')
         setLoading(false)
         return
       }
 
       if (!voterId || voterId === 'undefined' || voterId === 'null') {
-        setError('ID de votante no encontrado. Por favor, inicia sesión nuevamente.')
+        showErrorMessage('ID de votante no encontrado. Por favor, inicia sesión nuevamente.')
         setLoading(false)
         return
       }
@@ -115,7 +270,7 @@ export default function MiPerfilVotante() {
       // ✅ VALIDAR QUE EL ID SEA UN NÚMERO VÁLIDO
       const parsedVoterId = parseInt(voterId)
       if (isNaN(parsedVoterId) || parsedVoterId <= 0) {
-        setError('ID de votante inválido. Por favor, inicia sesión nuevamente.')
+        showErrorMessage('ID de votante inválido. Por favor, inicia sesión nuevamente.')
         setLoading(false)
         return
       }
@@ -144,6 +299,7 @@ export default function MiPerfilVotante() {
       setProfile(profileData)
       setFormData({
         email: profileData.correo,
+        tipo_doc_voter: profileData.tipo_documento,
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -162,7 +318,7 @@ export default function MiPerfilVotante() {
                           err.response?.data?.error || 
                           'Error al cargar el perfil. Por favor, intenta nuevamente.'
       
-      setError(errorMessage)
+      showErrorMessage(errorMessage)
       loadFromLocalStorage()
     } finally {
       setLoading(false)
@@ -191,23 +347,30 @@ export default function MiPerfilVotante() {
         setProfile(profileData)
         setFormData({
           email: profileData.correo,
+          tipo_doc_voter: profileData.tipo_documento,
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
         })
-        setError('Perfil cargado desde caché local. Algunos datos pueden no estar actualizados.')
+        showErrorMessage('Perfil cargado desde caché local. Algunos datos pueden no estar actualizados.')
       } else {
-        setError('No se encontraron datos del votante. Por favor, inicia sesión nuevamente.')
+        showErrorMessage('No se encontraron datos del votante. Por favor, inicia sesión nuevamente.')
       }
     } catch (error) {
       console.error('Error loading from localStorage:', error)
-      setError('Error al cargar los datos del almacenamiento local')
+      showErrorMessage('Error al cargar los datos del almacenamiento local')
     }
   }
 
   // ✅ FUNCIÓN PARA MANEJAR CAMBIOS EN EL FORMULARIO
   const handleInputChange = (e) => {
     const { name, value } = e.target
+    
+    // Limitar la longitud de la contraseña a 20 caracteres
+    if (name === 'newPassword' && value.length > 20) {
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -220,13 +383,13 @@ export default function MiPerfilVotante() {
       const voterId = localStorage.getItem('voterId')
       
       if (!voterId) {
-        setError('No se encontró el ID del votante')
+        showErrorMessage('No se encontró el ID del votante')
         return false
       }
 
       const parsedVoterId = parseInt(voterId)
       if (isNaN(parsedVoterId)) {
-        setError('ID de votante inválido')
+        showErrorMessage('ID de votante inválido')
         return false
       }
 
@@ -240,7 +403,7 @@ export default function MiPerfilVotante() {
       return response.data.valid
     } catch (error) {
       console.error('Error validando contraseña:', error)
-      setError('Error al validar la contraseña actual')
+      showErrorMessage('Error al validar la contraseña actual')
       return false
     }
   }
@@ -254,7 +417,7 @@ export default function MiPerfilVotante() {
   // ✅ FUNCIÓN PARA VALIDAR FORMULARIO COMPLETO CON LÍMITE DE INTENTOS
   const validateForm = async () => {
     if (bloqueado) {
-      setError(`Debes esperar ${formatearTiempo(tiempoRestante)} antes de intentar cambiar la contraseña nuevamente.`)
+      showErrorMessage(`Debes esperar ${formatearTiempo(tiempoRestante)} antes de intentar cambiar la contraseña nuevamente.`)
       return false
     }
 
@@ -264,21 +427,27 @@ export default function MiPerfilVotante() {
       localStorage.setItem('tiempoBloqueoContrasenaVotante', tiempoBloqueo.toString())
       setBloqueado(true)
       setTiempoRestante(30 * 60 * 1000)
-      setError('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
+      showErrorMessage('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
       return false
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     
     if (!formData.email || !emailRegex.test(formData.email.trim())) {
-      setError('Por favor ingresa un email válido (ejemplo: usuario@dominio.com)')
+      showErrorMessage('Por favor ingresa un email válido (ejemplo: usuario@dominio.com)')
+      return false
+    }
+
+    // Validar tipo de documento
+    if (!formData.tipo_doc_voter) {
+      showErrorMessage('Por favor selecciona un tipo de documento')
       return false
     }
 
     // Si se intenta cambiar la contraseña, validar contraseña actual
     if (formData.newPassword || formData.confirmPassword) {
       if (!formData.currentPassword) {
-        setError('Debes ingresar tu contraseña actual para cambiar la contraseña')
+        showErrorMessage('Debes ingresar tu contraseña actual para cambiar la contraseña')
         return false
       }
 
@@ -294,20 +463,29 @@ export default function MiPerfilVotante() {
           localStorage.setItem('tiempoBloqueoContrasenaVotante', tiempoBloqueo.toString())
           setBloqueado(true)
           setTiempoRestante(30 * 60 * 1000)
-          setError('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
+          showErrorMessage('Has excedido el número máximo de intentos. Intenta nuevamente en 30 minutos.')
         } else {
-          setError(`Contraseña actual incorrecta. Intentos restantes: ${3 - nuevosIntentos}`)
+          showErrorMessage(`Contraseña actual incorrecta. Intentos restantes: ${3 - nuevosIntentos}`)
         }
         return false
       }
 
-      if (formData.newPassword.length < 6) {
-        setError('La nueva contraseña debe tener al menos 6 caracteres')
+      // Validar que no sea la misma contraseña
+      const isDifferentPassword = await validateSamePassword()
+      if (!isDifferentPassword) {
+        showErrorMessage('No puedes usar la misma contraseña actual. Por favor, elige una contraseña diferente.')
+        return false
+      }
+
+      // Validar contraseña segura
+      const passwordError = validateSecurePassword(formData.newPassword)
+      if (passwordError) {
+        showErrorMessage(`La nueva contraseña no cumple con los requisitos: ${passwordError}`)
         return false
       }
 
       if (formData.newPassword !== formData.confirmPassword) {
-        setError('Las nuevas contraseñas no coinciden')
+        showErrorMessage('Las nuevas contraseñas no coinciden')
         return false
       }
     }
@@ -315,22 +493,21 @@ export default function MiPerfilVotante() {
     return true
   }
 
-  // ✅ FUNCIÓN PARA GUARDAR CAMBIOS
+  // ✅ FUNCIÓN PARA GUARDAR CAMBIOS - CORREO, TIPO DOCUMENTO Y CONTRASEÑA
   const handleSaveChanges = async () => {
     try {
-      setError('')
-      setSuccess('')
-      
+      setUpdating(true)
+
       const voterId = localStorage.getItem('voterId')
       
       if (!voterId) {
-        setError('Error: No se encontró el ID del votante')
+        showErrorMessage('Error: No se encontró el ID del votante')
         return
       }
 
       const parsedVoterId = parseInt(voterId)
       if (isNaN(parsedVoterId)) {
-        setError('ID de votante inválido')
+        showErrorMessage('ID de votante inválido')
         return
       }
 
@@ -338,7 +515,7 @@ export default function MiPerfilVotante() {
         return
       }
 
-      // ✅ PREPARAR DATOS CON LOS NOMBRES EXACTOS QUE ESPERA EL DTO
+      // ✅ PREPARAR DATOS - CORREO, TIPO DOCUMENTO Y CONTRASEÑA
       const updateData = {}
 
       // Solo enviar correo si cambió
@@ -346,23 +523,33 @@ export default function MiPerfilVotante() {
         updateData.correo_voter = formData.email.trim()
       }
 
-      // Solo enviar contraseña si se proporcionó una nueva
+      // Solo enviar tipo de documento si cambió
+      if (formData.tipo_doc_voter !== profile.tipo_documento) {
+        updateData.tipo_doc_voter = formData.tipo_doc_voter
+      }
+
+      // ✅ AGREGAR CONTRASEÑA SOLO SI SE PROPORCIONÓ UNA NUEVA
       if (formData.newPassword) {
         updateData.contrasena_voter = formData.newPassword
       }
 
-      // Verificar si hay cambios reales
+      // ✅ VERIFICAR SI HAY CAMBIOS REALES
       const hasEmailChanged = formData.email.trim() !== profile.correo
+      const hasTipoDocumentoChanged = formData.tipo_doc_voter !== profile.tipo_documento
       const hasPasswordChanged = formData.newPassword.length > 0
 
-      if (!hasEmailChanged && !hasPasswordChanged) {
-        setError('No hay cambios que guardar')
+      if (!hasEmailChanged && !hasTipoDocumentoChanged && !hasPasswordChanged) {
+        showErrorMessage('No hay cambios que guardar')
         return
       }
 
       console.log('📤 Enviando actualización:', updateData)
 
-      setUpdating(true)
+      // ✅ ENVIAR SOLO SI HAY DATOS PARA ACTUALIZAR
+      if (Object.keys(updateData).length === 0) {
+        showErrorMessage('No hay cambios que guardar')
+        return
+      }
 
       const response = await axios.patch(
         `${API_BASE_URL}/voters/${parsedVoterId}`,
@@ -380,9 +567,10 @@ export default function MiPerfilVotante() {
       setProfile((prev) => ({
         ...prev,
         correo: formData.email,
+        tipo_documento: formData.tipo_doc_voter
       }))
 
-      // ✅ RESETEAR CAMPOS Y CONTADOR DE INTENTOS
+      // ✅ RESETEAR CAMPOS DE CONTRASEÑA Y CONTADOR DE INTENTOS
       setFormData(prev => ({
         ...prev,
         currentPassword: '',
@@ -390,22 +578,26 @@ export default function MiPerfilVotante() {
         confirmPassword: ''
       }))
 
+      // ✅ RESETEAR VISIBILIDAD DE CONTRASEÑAS
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
+
       // ✅ RESETEAR INTENTOS EN ÉXITO
       setIntentos(0)
       localStorage.removeItem('intentosCambioContrasenaVotante')
       localStorage.removeItem('tiempoBloqueoContrasenaVotante')
 
       setIsEditing(false)
-      setSuccess('¡Perfil actualizado con éxito!')
+      showSuccessMessage('¡Perfil actualizado con éxito!')
       
       // ✅ ACTUALIZAR LOCALSTORAGE
       const updatedVoterData = {
         ...JSON.parse(localStorage.getItem('voterData') || '{}'),
-        correo_voter: formData.email.trim()
+        correo_voter: formData.email.trim(),
+        tipo_doc_voter: formData.tipo_doc_voter
       }
       localStorage.setItem('voterData', JSON.stringify(updatedVoterData))
-      
-      setTimeout(() => setSuccess(''), 3000)
       
     } catch (error) {
       console.error('❌ Error actualizando perfil:', error)
@@ -428,7 +620,7 @@ export default function MiPerfilVotante() {
         errorMessage = error.message || 'Error de conexión'
       }
       
-      setError(errorMessage)
+      showErrorMessage(errorMessage)
     } finally {
       setUpdating(false)
     }
@@ -438,39 +630,39 @@ export default function MiPerfilVotante() {
     setIsEditing(false)
     setFormData({
       email: profile?.correo || '',
+      tipo_doc_voter: profile?.tipo_documento || '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     })
-    setError('')
-    setSuccess('')
+    setShowCurrentPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
   }
 
   const handleStartEditing = () => {
     setIsEditing(true)
     setFormData({
       email: profile?.correo || '',
+      tipo_doc_voter: profile?.tipo_documento || '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     })
-    setError('')
-    setSuccess('')
   }
-
-  useEffect(() => {
-    loadVoterProfile()
-  }, [loadVoterProfile])
 
   const handleRetry = () => {
     console.log('🔄 Reintentando cargar perfil...');
-    setError('')
     setLoading(true)
     
     // ✅ LIMPIAR CACHE Y RECARGAR
     localStorage.removeItem('voterData');
     loadVoterProfile();
   }
+
+  useEffect(() => {
+    loadVoterProfile()
+  }, [loadVoterProfile])
 
   if (loading) {
     return (
@@ -488,7 +680,7 @@ export default function MiPerfilVotante() {
     )
   }
 
-  if (error && !profile) {
+  if (!profile) {
     return (
       <div className="min-h-screen flex flex-col bg-blue-50 text-gray-800">
         <NavbarVotante />
@@ -496,7 +688,7 @@ export default function MiPerfilVotante() {
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-6">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <p className="text-red-600 text-lg mb-4">{error}</p>
+            <p className="text-red-600 text-lg mb-4">Error al cargar el perfil</p>
             <div className="space-y-3">
               <button 
                 onClick={handleRetry}
@@ -522,22 +714,6 @@ export default function MiPerfilVotante() {
     <div className="min-h-screen flex flex-col bg-blue-50 text-gray-800">
       <NavbarVotante />
       <div className="h-20"></div>
-
-      {success && (
-        <div className="max-w-4xl mx-auto w-full px-8 mt-10">
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
-            <p>{success}</p>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="max-w-4xl mx-auto w-full px-8">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            <p>{error}</p>
-          </div>
-        </div>
-      )}
 
       <main className="flex-grow max-w-4xl mx-auto p-8 w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
@@ -605,10 +781,28 @@ export default function MiPerfilVotante() {
                       <p className="text-xs font-bold text-gray-500 mb-1">Nombre Completo</p>
                       <p className="font-semibold text-gray-800 text-lg">{profile.nombre} {profile.apellido}</p>
                     </div>
+                    
+                    {/* Tipo de Documento - Ahora editable */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                       <p className="text-xs font-bold text-gray-500 mb-1">Tipo de Documento</p>
-                      <p className="font-semibold text-gray-800 text-lg">{profile.tipo_documento}</p>
+                      {isEditing ? (
+                        <select
+                          name="tipo_doc_voter"
+                          value={formData.tipo_doc_voter}
+                          onChange={handleInputChange}
+                          className="w-full font-semibold text-gray-800 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          disabled={bloqueado}
+                        >
+                          <option value="">Seleccione tipo</option>
+                          <option value="CC">Cédula de Ciudadanía</option>
+                          <option value="TI">Tarjeta de Identidad</option>
+                          <option value="CE">Cédula de Extranjería</option>
+                        </select>
+                      ) : (
+                        <p className="font-semibold text-gray-800 text-lg">{profile.tipo_documento}</p>
+                      )}
                     </div>
+
                     <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                       <p className="text-xs font-bold text-gray-500 mb-1">Estado</p>
                       <p className="font-semibold text-gray-800 text-lg">{profile.estado}</p>
@@ -675,15 +869,24 @@ export default function MiPerfilVotante() {
                           Contraseña Actual
                         </label>
                         <div className="space-y-2">
-                          <input
-                            type="password"
-                            name="currentPassword"
-                            value={formData.currentPassword}
-                            onChange={handleInputChange}
-                            className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            placeholder="Ingresa tu contraseña actual"
-                            disabled={bloqueado}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showCurrentPassword ? "text" : "password"}
+                              name="currentPassword"
+                              value={formData.currentPassword}
+                              onChange={handleInputChange}
+                              className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all pr-10"
+                              placeholder="Ingresa tu contraseña actual"
+                              disabled={bloqueado}
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            >
+                              {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           <p className="text-xs text-orange-600 font-medium">
                             {bloqueado 
                               ? 'Campo bloqueado temporalmente' 
@@ -695,26 +898,39 @@ export default function MiPerfilVotante() {
 
                       {/* ✅ NUEVA CONTRASEÑA - SEPARADO */}
                       <div className="bg-white p-5 rounded-lg border-2 border-dashed border-green-300 shadow-sm">
-                        <label className="block text-sm font-bold text-gray-700 mb-3 items-center">
+                        <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
                           <FaLock className="inline mr-2 text-green-600" />
                           Nueva Contraseña
                         </label>
                         <div className="space-y-2">
-                          <input
-                            type="password"
-                            name="newPassword"
-                            value={formData.newPassword}
-                            onChange={handleInputChange}
-                            className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                            placeholder="Dejar en blanco para no cambiar"
-                            disabled={bloqueado}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showNewPassword ? "text" : "password"}
+                              name="newPassword"
+                              value={formData.newPassword}
+                              onChange={handleInputChange}
+                              className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all pr-10"
+                              placeholder="Ingresa nueva contraseña segura"
+                              disabled={bloqueado}
+                              maxLength={20}
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                            >
+                              {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           <p className="text-xs text-gray-500">
                             {bloqueado 
                               ? 'Cambio de contraseña bloqueado temporalmente' 
-                              : 'Mínimo 6 caracteres. Campo opcional.'
+                              : 'La contraseña debe cumplir con todos los requisitos de seguridad'
                             }
                           </p>
+                          
+                          {/* Mostrar requisitos de contraseña cuando se esté escribiendo */}
+                          {formData.newPassword && <PasswordRequirements />}
                         </div>
                       </div>
 
@@ -725,15 +941,24 @@ export default function MiPerfilVotante() {
                           Confirmar Nueva Contraseña
                         </label>
                         <div className="space-y-2">
-                          <input
-                            type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                            className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            placeholder="Confirmar nueva contraseña"
-                            disabled={bloqueado}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showConfirmPassword ? "text" : "password"}
+                              name="confirmPassword"
+                              value={formData.confirmPassword}
+                              onChange={handleInputChange}
+                              className="w-full font-semibold text-gray-800 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-10"
+                              placeholder="Confirmar nueva contraseña"
+                              disabled={bloqueado}
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
                           <p className="text-xs text-gray-500">
                             {bloqueado 
                               ? 'Campo bloqueado temporalmente' 
@@ -773,6 +998,45 @@ export default function MiPerfilVotante() {
           )}
         </div>
       </main>
+
+      {/* Modal de éxito para cambios generales */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaCheckCircle className="text-green-600 text-2xl" />
+            </div>
+            <h3 className="text-xl font-bold text-green-600 mb-2">¡Éxito!</h3>
+            <p className="text-gray-600 mb-6">{successMessage}</p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de error para cambios generales */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaExclamationCircle className="text-red-600 text-2xl" />
+            </div>
+            <h3 className="text-xl font-bold text-red-600 mb-2">Error</h3>
+            <p className="text-gray-600 mb-6 whitespace-pre-line">{errorMessage}</p>
+            <button
+              onClick={() => setShowErrorModal(false)}
+              className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

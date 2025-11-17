@@ -39,6 +39,11 @@ export default function CandidatosVotante() {
     }, []);
 
     const getCandidatePhoto = (candidato) => {
+        // Si es Voto en Blanco, usar una imagen específica
+        if (candidato.nombre_candidate === 'Voto en Blanco') {
+            return '/img/blank-vote.png'; // Crea esta imagen o usa una existente
+        }
+        
         if (!candidato.foto_candidate) return '/img/default-avatar.png';
         
         let fotoUrl = candidato.foto_candidate;
@@ -46,11 +51,9 @@ export default function CandidatosVotante() {
         if (fotoUrl.startsWith('http')) {
             return fotoUrl;
         }
-
         else if (fotoUrl.startsWith('/')) {
             return `${API_BASE_URL}${fotoUrl}`;
         }
-        
         else {
             return `${API_BASE_URL}/uploads/candidatos/${fotoUrl}`;
         }
@@ -65,14 +68,23 @@ export default function CandidatosVotante() {
                 const electionData = response.data;
 
                 if (electionData && electionData.candidates) {
-                    const candidatosAprobados = electionData.candidates.filter(
-                        c => c.estado_candidate === 'Aprobado'
+                    // Incluir TODOS los candidatos, incluyendo Voto en Blanco
+                    // Solo excluir candidatos que no estén activos (ajusta según tu lógica de estados)
+                    const candidatosDisponibles = electionData.candidates.filter(
+                        c => c.estado_candidate === 'Aprobado' || 
+                             c.estado_candidate === 'Activo' || 
+                             c.nombre_candidate === 'Voto en Blanco'
                     );
                     
+                    console.log("🔍 Candidatos disponibles:", candidatosDisponibles);
+                    
                     // Agregar URLs completas de fotos a cada candidato
-                    const candidatosConFotos = candidatosAprobados.map(candidato => ({
+                    const candidatosConFotos = candidatosDisponibles.map(candidato => ({
                         ...candidato,
-                        foto_completa: getCandidatePhoto(candidato)
+                        foto_completa: getCandidatePhoto(candidato),
+                        // Asegurar que Voto en Blanco tenga datos completos
+                        partido_candidate: candidato.partido_candidate || 'N/A',
+                        propuestas: candidato.proposals || []
                     }));
                     
                     setTotalItems(candidatosConFotos.length);
@@ -166,7 +178,14 @@ export default function CandidatosVotante() {
 
         try {
             await axios.post(`${API_BASE_URL}/votes`, voteData);
-            alert(`✅ ¡Gracias por votar! Tu voto para ${candidatoSeleccionado.nombre_candidate} ha sido registrado.`);
+            
+            // Mensaje especial para Voto en Blanco
+            if (candidatoSeleccionado.nombre_candidate === 'Voto en Blanco') {
+                alert(`✅ ¡Gracias por votar! Has emitido un Voto en Blanco.`);
+            } else {
+                alert(`✅ ¡Gracias por votar! Tu voto para ${candidatoSeleccionado.nombre_candidate} ha sido registrado.`);
+            }
+            
             setYaVoto(true);
         } catch (error) {
             console.error("Error al registrar el voto:", error.response?.data);
@@ -214,10 +233,20 @@ export default function CandidatosVotante() {
                 Candidatos para: {nombreEleccion}
             </h1>
 
+            {/* Información sobre Voto en Blanco */}
+            <div className="w-full max-w-6xl mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-blue-800 text-sm">
+                        <strong>Nota:</strong> El "Voto en Blanco" es una opción disponible para expresar tu desacuerdo 
+                        con todas las opciones presentadas. Tu voto será contabilizado pero no favorecerá a ningún candidato.
+                    </p>
+                </div>
+            </div>
+
             {/* Información de paginación */}
             <div className="w-full max-w-6xl flex justify-between items-center mb-6">
                 <div className="text-sm text-gray-600">
-                    Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} candidatos aprobados
+                    Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} opciones de voto
                 </div>
                 
                 {/* Selector de items por página */}
@@ -252,7 +281,7 @@ export default function CandidatosVotante() {
             {candidatos.length === 0 ? (
                 <div className="text-center mt-8">
                     <p className="text-gray-600 text-lg">
-                        No hay candidatos aprobados disponibles para esta elección.
+                        No hay opciones de voto disponibles para esta elección.
                     </p>
                 </div>
             ) : (
@@ -264,6 +293,7 @@ export default function CandidatosVotante() {
                                 candidato={candidato}
                                 onVotar={handleVotar}
                                 disabled={yaVoto}
+                                esVotoEnBlanco={candidato.nombre_candidate === 'Voto en Blanco'}
                             />
                         ))}
                     </div>
@@ -342,10 +372,23 @@ export default function CandidatosVotante() {
                 <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 shadow-lg max-w-sm w-full text-center mx-4">
                         <h2 className="text-xl font-bold text-gray-800 mb-4">Confirmar Voto</h2>
-                        <p className="text-gray-600 mb-6">
-                            ¿Estás seguro de que deseas votar por{" "}
-                            <span className="font-semibold">{candidatoSeleccionado.nombre_candidate}</span>?
-                        </p>
+                        
+                        {candidatoSeleccionado.nombre_candidate === 'Voto en Blanco' ? (
+                            <>
+                                <p className="text-gray-600 mb-4">
+                                    ¿Estás seguro de que deseas emitir un <strong>Voto en Blanco</strong>?
+                                </p>
+                                <p className="text-sm text-gray-500 mb-4">
+                                    Esta opción expresa tu desacuerdo con todas las candidaturas presentadas.
+                                </p>
+                            </>
+                        ) : (
+                            <p className="text-gray-600 mb-6">
+                                ¿Estás seguro de que deseas votar por{" "}
+                                <span className="font-semibold">{candidatoSeleccionado.nombre_candidate}</span>?
+                            </p>
+                        )}
+                        
                         <div className="flex justify-between gap-4">
                             <button 
                                 onClick={cancelarVoto} 

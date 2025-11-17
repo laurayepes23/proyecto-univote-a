@@ -21,6 +21,10 @@ const Navbar_admin = () => {
         navigate("/login", { replace: true });
     };
 
+    const handleGoBack = () => {
+        navigate(-1); // Esto lleva a la página anterior
+    };
+
     const closeAllMenus = () => {
         setMenuOpen(false);
         setOpenSubmenu(null);
@@ -54,11 +58,35 @@ const Navbar_admin = () => {
                 className={`md:flex md:items-center md:gap-6 md:static absolute top-24 left-0 w-full md:w-auto bg-blue-900 md:bg-transparent transition-all duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "-translate-x-full"
                     } md:translate-x-0`}
             >
+                {/* Botón Atrás */}
+                <li className="md:px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800 transition-colors duration-200">
+                    <button
+                        onClick={handleGoBack}
+                        className="flex items-center gap-2 w-full text-left hover:text-blue-300 transition"
+                        title="Volver a la página anterior"
+                    >
+                        <svg 
+                            className="w-5 h-5" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                        >
+                            <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+                            />
+                        </svg>
+                        <span>Atrás</span>
+                    </button>
+                </li>
+
                 {/* Inicio - CORREGIDO */}
                 <li className="md:px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800 transition-colors duration-200">
                     <Link 
                         to="/Administrador" 
-                        className="block w-full h-full"
+                        className="block w-full h-full hover:text-blue-300 transition"
                         onClick={closeAllMenus}
                     >
                         Inicio
@@ -70,7 +98,7 @@ const Navbar_admin = () => {
                     className="relative group cursor-pointer px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800 transition-colors duration-200"
                     onClick={() => toggleSubmenu("votantes")}
                 >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between hover:text-blue-300 transition">
                         Gestionar Votantes
                         <span className="ml-1 transform transition-transform duration-200">&#9662;</span>
                     </div>
@@ -95,7 +123,7 @@ const Navbar_admin = () => {
                     className="relative group cursor-pointer px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800 transition-colors duration-200"
                     onClick={() => toggleSubmenu("elecciones")}
                 >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between hover:text-blue-300 transition">
                         Gestionar Elecciones
                         <span className="ml-1 transform transition-transform duration-200">&#9662;</span>
                     </div>
@@ -156,7 +184,7 @@ const Navbar_admin = () => {
                     className="relative group cursor-pointer px-4 py-3 md:py-0 border-b border-blue-800 md:border-none hover:bg-blue-800 transition-colors duration-200"
                     onClick={() => toggleSubmenu("candidatos")}
                 >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between hover:text-blue-300 transition">
                         Gestionar Candidatos
                         <span className="ml-1 transform transition-transform duration-200">&#9662;</span>
                     </div>

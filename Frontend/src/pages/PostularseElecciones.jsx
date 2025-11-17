@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NavbarCandidato from "../components/NavbarCandidato";
-import { FaCalendarAlt, FaCheckCircle, FaExclamationCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheckCircle, FaExclamationCircle, FaChevronLeft, FaChevronRight, FaTimesCircle, FaPlayCircle } from 'react-icons/fa';
 
 export default function PostularseElecciones() {
   const [elecciones, setElecciones] = useState([]);
@@ -17,6 +17,32 @@ export default function PostularseElecciones() {
 
   // Calcular el número total de páginas
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Función para ordenar las elecciones según la lógica requerida
+  const sortElections = (elections, candidateElectionId) => {
+    return elections.sort((a, b) => {
+      // 1. Primero la elección a la que está postulado el candidato
+      if (a.id_election === candidateElectionId) return -1;
+      if (b.id_election === candidateElectionId) return 1;
+      
+      // 2. Orden por estado: Programada -> Activa -> Finalizada
+      const statusOrder = {
+        'Programada': 1,
+        'Activa': 2,
+        'Finalizada': 3
+      };
+      
+      const statusA = statusOrder[a.estado_election] || 4;
+      const statusB = statusOrder[b.estado_election] || 4;
+      
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+      
+      // 3. Si mismo estado, ordenar por fecha de inicio (más reciente primero)
+      return new Date(b.fecha_inicio) - new Date(a.fecha_inicio);
+    });
+  };
 
   // Efecto para cargar la información del candidato y las elecciones
   useEffect(() => {
@@ -38,20 +64,18 @@ export default function PostularseElecciones() {
           return;
         }
 
-        // Cargar elecciones
+        // Cargar todas las elecciones
         const response = await axios.get('http://localhost:3000/elections');
         
-        // Filtrar solo elecciones programadas
-        const eleccionesProgramadas = response.data.filter(
-          election => election.estado_election === "Programada"
-        );
+        // Ordenar las elecciones según la lógica requerida
+        const sortedElections = sortElections(response.data, candidateInfo?.electionId);
         
-        setTotalItems(eleccionesProgramadas.length);
+        setTotalItems(sortedElections.length);
         
         // Paginación en el frontend
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        const paginatedElections = eleccionesProgramadas.slice(startIndex, endIndex);
+        const paginatedElections = sortedElections.slice(startIndex, endIndex);
         
         setElecciones(paginatedElections);
       } catch (error) {
@@ -66,7 +90,7 @@ export default function PostularseElecciones() {
     };
 
     fetchData();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, candidateInfo?.electionId]);
 
   // Funciones de paginación
   const goToPage = (page) => {
@@ -139,17 +163,15 @@ export default function PostularseElecciones() {
         setCandidateInfo(response.data.candidate);
       }
 
-      // Recargar las elecciones para reflejar el cambio
+      // Recargar y reordenar las elecciones para reflejar el cambio
       const electionsResponse = await axios.get('http://localhost:3000/elections');
-      const eleccionesProgramadas = electionsResponse.data.filter(
-        election => election.estado_election === "Programada"
-      );
+      const sortedElections = sortElections(electionsResponse.data, response.data.candidate?.electionId);
       
-      setTotalItems(eleccionesProgramadas.length);
+      setTotalItems(sortedElections.length);
       
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
-      const paginatedElections = eleccionesProgramadas.slice(startIndex, endIndex);
+      const paginatedElections = sortedElections.slice(startIndex, endIndex);
       
       setElecciones(paginatedElections);
 
@@ -169,6 +191,81 @@ export default function PostularseElecciones() {
       }
       
       setMensaje({ texto: errorMessage, tipo: 'error' });
+    }
+  };
+
+  // Función para determinar el texto y estado del botón según la elección y el candidato
+  const getButtonConfig = (eleccion) => {
+    // Si el candidato está postulado a ESTA elección
+    if (candidateInfo?.electionId === eleccion.id_election) {
+      return {
+        text: 'Te postulaste a esta elección',
+        disabled: true,
+        className: 'bg-green-600 text-white font-semibold py-3 px-4 rounded-xl shadow-md cursor-not-allowed',
+        icon: FaCheckCircle
+      };
+    }
+    
+    // Si el candidato está postulado a OTRA elección
+    if (candidateInfo?.electionId && candidateInfo.electionId !== eleccion.id_election) {
+      return {
+        text: 'Esta elección no está disponible porque estás en otra',
+        disabled: true,
+        className: 'bg-gray-400 text-white font-semibold py-3 px-4 rounded-xl shadow-md cursor-not-allowed',
+        icon: FaExclamationCircle
+      };
+    }
+    
+    // Si la elección está Finalizada
+    if (eleccion.estado_election === "Finalizada") {
+      return {
+        text: 'Esta elección ya se Finalizó',
+        disabled: true,
+        className: 'bg-red-400 text-white font-semibold py-3 px-4 rounded-xl shadow-md cursor-not-allowed',
+        icon: FaTimesCircle
+      };
+    }
+    
+    // Si la elección está Activa
+    if (eleccion.estado_election === "Activa") {
+      return {
+        text: 'Esta elección ya inició, no puedes postularte',
+        disabled: true,
+        className: 'bg-orange-400 text-white font-semibold py-3 px-4 rounded-xl shadow-md cursor-not-allowed',
+        icon: FaPlayCircle
+      };
+    }
+    
+    // Si la elección está Programada y el candidato no está postulado a ninguna
+    if (eleccion.estado_election === "Programada" && !candidateInfo?.electionId) {
+      return {
+        text: 'Postularme',
+        disabled: false,
+        className: 'bg-blue-900 text-white font-semibold py-3 px-4 rounded-xl shadow-md hover:bg-blue-800 transition-colors',
+        icon: FaCheckCircle
+      };
+    }
+    
+    // Caso por defecto
+    return {
+      text: 'No disponible',
+      disabled: true,
+      className: 'bg-gray-400 text-white font-semibold py-3 px-4 rounded-xl shadow-md cursor-not-allowed',
+      icon: FaExclamationCircle
+    };
+  };
+
+  // Función para obtener el color del badge según el estado
+  const getStatusBadgeColor = (estado) => {
+    switch (estado) {
+      case 'Programada':
+        return 'bg-blue-100 text-blue-700';
+      case 'Activa':
+        return 'bg-green-100 text-green-700';
+      case 'Finalizada':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   };
 
@@ -217,10 +314,10 @@ export default function PostularseElecciones() {
       <main className="flex-grow max-w-7xl mx-auto p-8 w-full">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-extrabold text-blue-900 mb-4">
-            Postúlate a Elecciones
+            Elecciones Disponibles
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explora las elecciones disponibles y presenta tus propuestas para el futuro de nuestra comunidad.
+            Explora todas las elecciones disponibles y sus estados actuales.
           </p>
         </div>
 
@@ -242,7 +339,7 @@ export default function PostularseElecciones() {
         {/* Información de paginación */}
         <div className="flex justify-between items-center mb-6">
           <div className="text-sm text-gray-600">
-            Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} elecciones programadas
+            Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} elecciones
           </div>
           
           {/* Selector de items por página */}
@@ -283,51 +380,56 @@ export default function PostularseElecciones() {
         ) : elecciones.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-2xl shadow-lg">
             <FaExclamationCircle className="text-gray-400 text-5xl mx-auto mb-4" />
-            <p className="text-xl text-gray-600 mb-4">No hay elecciones programadas disponibles en este momento.</p>
+            <p className="text-xl text-gray-600 mb-4">No hay elecciones disponibles en este momento.</p>
             <p className="text-gray-500">Vuelve a revisar más tarde para nuevas oportunidades.</p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-              {elecciones.map((eleccion) => (
-                <div 
-                  key={eleccion.id_election} 
-                  className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">{eleccion.nombre_election}</h3>
-                    <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full uppercase">
-                      {eleccion.estado_election}
-                    </span>
-                  </div>
-                  
-                  <div className="text-gray-600 space-y-2 mb-4">
-                    <p className="flex items-center">
-                      <FaCalendarAlt className="mr-2 text-blue-500" />
-                      <span className="font-semibold">Inicio:</span> {formatDate(eleccion.fecha_inicio)}
-                    </p>
-                    <p className="flex items-center">
-                      <FaCalendarAlt className="mr-2 text-blue-500" />
-                      <span className="font-semibold">Fin:</span> {formatDate(eleccion.fecha_fin)}
-                    </p>
-                  </div>
-
-                  <p className="text-sm text-gray-500 mb-4">
-                    {eleccion.descripcion_election || 'Sin descripción disponible'}
-                  </p>
-
-                  <button
-                    onClick={() => handlePostularse(eleccion.id_election)}
-                    disabled={candidateInfo?.electionId !== null && candidateInfo?.electionId !== undefined}
-                    className="mt-4 w-full bg-blue-900 text-white font-semibold py-3 px-4 rounded-xl shadow-md hover:bg-blue-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              {elecciones.map((eleccion) => {
+                const buttonConfig = getButtonConfig(eleccion);
+                const IconComponent = buttonConfig.icon;
+                
+                return (
+                  <div 
+                    key={eleccion.id_election} 
+                    className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                   >
-                    <span className="flex items-center justify-center">
-                      <FaCheckCircle className="mr-2" />
-                      {candidateInfo?.electionId ? 'Ya estás postulado' : 'Postularme'}
-                    </span>
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-gray-800">{eleccion.nombre_election}</h3>
+                      <span className={`${getStatusBadgeColor(eleccion.estado_election)} text-xs font-semibold px-3 py-1 rounded-full uppercase`}>
+                        {eleccion.estado_election}
+                      </span>
+                    </div>
+                    
+                    <div className="text-gray-600 space-y-2 mb-4">
+                      <p className="flex items-center">
+                        <FaCalendarAlt className="mr-2 text-blue-500" />
+                        <span className="font-semibold">Inicio:</span> {formatDate(eleccion.fecha_inicio)}
+                      </p>
+                      <p className="flex items-center">
+                        <FaCalendarAlt className="mr-2 text-blue-500" />
+                        <span className="font-semibold">Fin:</span> {formatDate(eleccion.fecha_fin)}
+                      </p>
+                    </div>
+
+                    <p className="text-sm text-gray-500 mb-4">
+                      {eleccion.descripcion_election || 'Sin descripción disponible'}
+                    </p>
+
+                    <button
+                      onClick={() => !buttonConfig.disabled && handlePostularse(eleccion.id_election)}
+                      disabled={buttonConfig.disabled}
+                      className={`mt-4 w-full ${buttonConfig.className}`}
+                    >
+                      <span className="flex items-center justify-center">
+                        <IconComponent className="mr-2" />
+                        {buttonConfig.text}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Controles de paginación */}

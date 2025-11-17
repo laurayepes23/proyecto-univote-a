@@ -272,6 +272,17 @@ export class VotersService {
                 updateData.estado_voter = updateVoterDto.estado_voter;
             }
 
+            // ✅ AGREGAR ESTA SECCIÓN PARA TIPO DE DOCUMENTO
+            if (updateVoterDto.tipo_doc_voter !== undefined) {
+                console.log('📝 Actualizando tipo de documento a:', updateVoterDto.tipo_doc_voter);
+                
+                if (!['CC', 'TI', 'CE'].includes(updateVoterDto.tipo_doc_voter)) {
+                    throw new BadRequestException('El tipo de documento debe ser CC, TI o CE');
+                }
+                
+                updateData.tipo_doc_voter = updateVoterDto.tipo_doc_voter;
+            }
+
             if (Object.keys(updateData).length === 0) {
                 throw new BadRequestException('No se proporcionaron datos para actualizar');
             }
@@ -313,7 +324,8 @@ export class VotersService {
             console.log('✅ Votante actualizado exitosamente:', {
                 id: formattedResult.id_voter,
                 nombre: formattedResult.nombre_voter,
-                estado: formattedResult.estado_voter
+                estado: formattedResult.estado_voter,
+                tipo_documento: formattedResult.tipo_doc_voter
             });
 
             return formattedResult;
@@ -534,6 +546,55 @@ export class VotersService {
                 throw error;
             }
             throw new InternalServerErrorException('Error interno del servidor al buscar votantes por estado');
+        }
+    }
+
+    async findByTipoDocumento(tipoDoc: string) {
+        try {
+            console.log('🔍 Buscando votantes por tipo de documento:', tipoDoc);
+
+            if (!['CC', 'TI', 'CE'].includes(tipoDoc)) {
+                throw new BadRequestException('El tipo de documento debe ser CC, TI o CE');
+            }
+
+            const voters = await this.prisma.voter.findMany({
+                where: { tipo_doc_voter: tipoDoc },
+                include: {
+                    role: {
+                        select: {
+                            id_role: true,
+                            nombre_role: true
+                        }
+                    },
+                    election: {
+                        select: {
+                            id_election: true,
+                            nombre_election: true
+                        }
+                    },
+                    career: {
+                        select: {
+                            id_career: true,
+                            nombre_career: true
+                        }
+                    }
+                },
+                orderBy: { nombre_voter: 'asc' }
+            });
+
+            return voters.map(voter => {
+                const { contrasena_voter, ...voterWithoutPassword } = voter;
+                return {
+                    ...voterWithoutPassword,
+                    num_doc_voter: voterWithoutPassword.num_doc_voter.toString()
+                };
+            });
+        } catch (error) {
+            console.error('❌ Error en VotersService.findByTipoDocumento:', error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Error interno del servidor al buscar votantes por tipo de documento');
         }
     }
 }
