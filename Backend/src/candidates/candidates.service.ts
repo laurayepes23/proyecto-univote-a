@@ -216,39 +216,46 @@ export class CandidatesService {
     const isValid = await bcrypt.compare(password, candidate.contrasena_candidate);
     return { valid: isValid };
   }
+// ✅ MÉTODO: Retirarse de elección (MODIFICADO)
+async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo') {
+  const candidate = await this.prisma.candidate.findUnique({
+    where: { id_candidate: candidateId },
+  });
 
-  // ✅ MÉTODO: Retirarse de elección
-  async withdrawFromElection(candidateId: number) {
-    const candidate = await this.prisma.candidate.findUnique({
+  if (!candidate) {
+    throw new NotFoundException('Candidato no encontrado');
+  }
+
+  if (!candidate.electionId && nuevoEstado === 'Inactivo') {
+    throw new BadRequestException('El candidato no está postulado a ninguna elección');
+  }
+
+  try {
+    const updateData: any = {
+      estado_candidate: nuevoEstado,
+    };
+
+    // Solo limpiamos la elección si el candidato tiene una
+    if (candidate.electionId) {
+      updateData.electionId = null;
+    }
+
+    const updatedCandidate = await this.prisma.candidate.update({
       where: { id_candidate: candidateId },
+      data: updateData,
     });
 
-    if (!candidate) {
-      throw new NotFoundException('Candidato no encontrado');
-    }
-
-    if (!candidate.electionId) {
-      throw new BadRequestException('El candidato no está postulado a ninguna elección');
-    }
-
-    try {
-      const updatedCandidate = await this.prisma.candidate.update({
-        where: { id_candidate: candidateId },
-        data: {
-          electionId: null,
-          estado_candidate: 'Inactivo',
-        },
-      });
-
-      const { contrasena_candidate, ...result } = updatedCandidate;
-      return {
-        message: 'Te has retirado exitosamente de la elección',
-        candidate: result
-      };
-    } catch (error) {
-      throw new BadRequestException('Error al retirarse de la elección: ' + error.message);
-    }
+    const { contrasena_candidate, ...result } = updatedCandidate;
+    return {
+      message: nuevoEstado === 'No Aprobado' 
+        ? 'Candidato rechazado correctamente' 
+        : 'Te has retirado exitosamente de la elección',
+      candidate: result
+    };
+  } catch (error) {
+    throw new BadRequestException('Error al actualizar el candidato: ' + error.message);
   }
+}
 
   async create(createCandidateDto: CreateCandidateDto, foto_candidate?: Express.Multer.File) {
     const numDocBigInt = BigInt(createCandidateDto.num_doc_candidate);

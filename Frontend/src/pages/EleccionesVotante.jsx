@@ -24,15 +24,29 @@ export default function GestionElecciones() {
         const response = await axios.get('http://localhost:3000/elections');
         const data = response.data;
 
-        const eleccionesAdaptadas = data.map(eleccion => ({
-          id: eleccion.id_election,
-          nombre: eleccion.nombre_election,
-          fechaInicio: eleccion.fecha_inicio, 
-          fechaFin: eleccion.fecha_fin,       
-          estado: eleccion.estado_election,
-          imagen: "/img/rector.png", 
-        }));
-        
+        // Filtrar y ordenar elecciones para mostrar primero las disponibles para votar
+        const eleccionesAdaptadas = data
+          .map(eleccion => ({
+            id: eleccion.id_election,
+            nombre: eleccion.nombre_election,
+            fechaInicio: eleccion.fecha_inicio, 
+            fechaFin: eleccion.fecha_fin,       
+            estado: eleccion.estado_election,
+            imagen: "/img/rector.png", 
+          }))
+          // Ordenar: primero las elecciones activas, luego las programadas, luego las finalizadas
+          .sort((a, b) => {
+            // Prioridad: Activa > Programada > Finalizada
+            const priority = { "Activa": 1, "Programada": 2, "Finalizada": 3 };
+            
+            if (priority[a.estado] !== priority[b.estado]) {
+              return priority[a.estado] - priority[b.estado];
+            }
+            
+            // Si tienen el mismo estado, ordenar por fecha de inicio (más reciente primero)
+            return new Date(b.fechaInicio) - new Date(a.fechaInicio);
+          });
+
         setTotalItems(eleccionesAdaptadas.length);
         
         // Paginación en el frontend

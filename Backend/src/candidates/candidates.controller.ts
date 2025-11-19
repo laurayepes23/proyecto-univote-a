@@ -23,7 +23,7 @@ import { multerConfig } from "./upload.config";
 
 @Controller("candidates")
 export class CandidatesController {
-  constructor(private readonly candidatesService: CandidatesService) {}
+  constructor(private readonly candidatesService: CandidatesService) { }
 
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
@@ -102,5 +102,11 @@ export class CandidatesController {
   @HttpCode(HttpStatus.OK)
   async withdrawFromElection(@Param("id", ParseIntPipe) id: number) {
     return this.candidatesService.withdrawFromElection(id);
+  }
+
+  @Patch(":id/reject")
+  @HttpCode(HttpStatus.OK)
+  async rejectCandidate(@Param("id", ParseIntPipe) id: number) {
+    return this.candidatesService.withdrawFromElection(id, 'No Aprobado');
   }
 }

@@ -25,14 +25,14 @@ const Aprobar_Eliminar_cand_admin = () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/candidates`);
       const allCandidates = response.data;
-      
+
       setTotalItems(allCandidates.length);
-      
+
       // Paginación en el frontend
       const startIndex = (page - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
       const paginatedCandidates = allCandidates.slice(startIndex, endIndex);
-      
+
       setCandidatos(paginatedCandidates);
       setCurrentPage(page);
     } catch (err) {
@@ -71,27 +71,27 @@ const Aprobar_Eliminar_cand_admin = () => {
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
+
     return pages;
   };
 
   // Función para obtener la URL completa de la foto
   const getCandidatePhoto = (candidato) => {
     if (!candidato.foto_candidate) return '/img/default-avatar.png';
-    
+
     let fotoUrl = candidato.foto_candidate;
-    
+
     // Si ya es una URL completa
     if (fotoUrl.startsWith('http')) {
       return fotoUrl;
@@ -114,7 +114,7 @@ const Aprobar_Eliminar_cand_admin = () => {
       });
       setMessage("✅ Candidato aprobado correctamente.");
       // Actualiza el estado local para reflejar el cambio instantáneamente
-      setCandidatos(candidatos.map(cand => 
+      setCandidatos(candidatos.map(cand =>
         cand.id_candidate === id_candidate ? { ...cand, estado_candidate: "Aprobado" } : cand
       ));
     } catch (err) {
@@ -123,30 +123,66 @@ const Aprobar_Eliminar_cand_admin = () => {
     }
   };
 
-  // Función para rechazar un candidato
-  const rechazarCandidato = async (id_candidate) => {
+  // Función para rechazar un candidato usando el nuevo endpoint
+  const rechazarCandidato = async (candidato) => {
+    if (!candidato) return;
+
     try {
-      await axios.patch(`${API_BASE_URL}/candidates/${id_candidate}`, {
-        estado_candidate: "No Aprobado",
-      });
-      setMessage("✅ Candidato cambiado a 'No Aprobado' correctamente.");
-      // Actualizamos el estado local
-      setCandidatos(candidatos.map(cand => 
-        cand.id_candidate === id_candidate ? { ...cand, estado_candidate: "No Aprobado" } : cand
+      console.log("Rechazando candidato:", candidato.id_candidate);
+
+      // Usamos el nuevo endpoint reject que limpia la elección y establece estado "No Aprobado"
+      const response = await axios.patch(
+        `${API_BASE_URL}/candidates/${candidato.id_candidate}/reject`
+      );
+
+      console.log("Respuesta del servidor:", response.data);
+
+      setMessage("✅ Candidato rechazado correctamente y retirado de la elección.");
+
+      // Actualizamos el estado local inmediatamente
+      setCandidatos(candidatos.map(cand =>
+        cand.id_candidate === candidato.id_candidate ? {
+          ...cand,
+          estado_candidate: "No Aprobado",
+          id_election: null,
+          election: null
+        } : cand
       ));
+
+      // Recargamos los candidatos para sincronizar
+      setTimeout(() => {
+        fetchCandidatos(currentPage);
+      }, 500);
+
     } catch (err) {
-      console.error("Error al rechazar el candidato:", err);
-      setMessage("❌ Error al rechazar el candidato. Intente de nuevo.");
+      console.error("Error completo al rechazar el candidato:", err);
+      console.error("Detalles del error:", err.response?.data);
+
+      let errorMessage = "❌ Error al rechazar el candidato.";
+      
+      if (err.response?.data?.message) {
+        if (Array.isArray(err.response.data.message)) {
+          errorMessage = "❌ " + err.response.data.message.join(', ');
+        } else {
+          errorMessage = "❌ " + err.response.data.message;
+        }
+      } else if (err.response?.status === 400) {
+        errorMessage = "❌ Error: El candidato no está postulado a ninguna elección.";
+      } else if (err.response?.status === 404) {
+        errorMessage = "❌ Error: Candidato no encontrado.";
+      }
+      
+      setMessage(errorMessage);
     }
   };
 
   // Función para determinar si un botón debe estar deshabilitado
   const isButtonDisabled = (candidato, action) => {
     if (action === 'aprobar') {
-      return candidato.estado_candidate === 'Aprobado' || candidato.estado_candidate === 'No Aprobado';
+      return candidato.estado_candidate === 'Aprobado';
     }
     if (action === 'rechazar') {
-      return candidato.estado_candidate === 'No Aprobado' || candidato.estado_candidate === 'Aprobado';
+      return candidato.estado_candidate === 'No Aprobado';
     }
     return false;
   };
@@ -155,6 +191,7 @@ const Aprobar_Eliminar_cand_admin = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
       {/* Navbar administrador */}
       <Navbar_admin />
+
       {/* Contenido principal */}
       <div className="flex-grow pt-24 px-6 pb-8">
         <h1 className="text-4xl font-extrabold mb-8 text-center text-blue-900">
@@ -164,9 +201,10 @@ const Aprobar_Eliminar_cand_admin = () => {
         {/* Mensaje de estado (éxito/error) */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-xl font-semibold text-center shadow-lg transform transition-all duration-300 ${
-              message.startsWith("✅") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-            }`}
+            className={`mb-6 p-4 rounded-xl font-semibold text-center shadow-lg transform transition-all duration-300 ${message.startsWith("✅") ? "bg-green-100 text-green-700" :
+              message.startsWith("❌") ? "bg-red-100 text-red-700" :
+                "bg-yellow-100 text-yellow-700"
+              }`}
           >
             {message}
           </div>
@@ -177,7 +215,7 @@ const Aprobar_Eliminar_cand_admin = () => {
           <div className="text-sm text-gray-600">
             Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} candidatos
           </div>
-          
+
           {/* Selector de items por página */}
           <div className="flex items-center space-x-2">
             <label htmlFor="itemsPerPage" className="text-sm text-gray-600">
@@ -258,8 +296,8 @@ const Aprobar_Eliminar_cand_admin = () => {
                         <span
                           className={`px-3 py-2 rounded-full text-sm font-bold
                             ${candidato.estado_candidate === "Aprobado" ? "bg-green-100 text-green-800 border border-green-300" :
-                            candidato.estado_candidate === "Pendiente" ? "bg-yellow-100 text-yellow-800 border border-yellow-300" :
-                            "bg-red-100 text-red-800 border border-red-300"}`}
+                              candidato.estado_candidate === "Pendiente" ? "bg-yellow-100 text-yellow-800 border border-yellow-300" :
+                                "bg-red-100 text-red-800 border border-red-300"}`}
                         >
                           {candidato.estado_candidate}
                         </span>
@@ -269,8 +307,8 @@ const Aprobar_Eliminar_cand_admin = () => {
                           <button
                             onClick={() => aprobarCandidato(candidato.id_candidate)}
                             className={`px-4 py-2 rounded-lg transition-colors shadow-md text-sm font-medium w-full sm:w-auto
-                              ${isButtonDisabled(candidato, 'aprobar') 
-                                ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                              ${isButtonDisabled(candidato, 'aprobar')
+                                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                 : 'bg-green-600 text-white hover:bg-green-700'}`}
                             aria-label="Aprobar candidato"
                             disabled={isButtonDisabled(candidato, 'aprobar')}
@@ -278,10 +316,10 @@ const Aprobar_Eliminar_cand_admin = () => {
                             {candidato.estado_candidate === 'Aprobado' ? 'Aprobado' : 'Aprobar'}
                           </button>
                           <button
-                            onClick={() => rechazarCandidato(candidato.id_candidate)}
+                            onClick={() => rechazarCandidato(candidato)}
                             className={`px-4 py-2 rounded-lg transition-colors shadow-md text-sm font-medium w-full sm:w-auto
-                              ${isButtonDisabled(candidato, 'rechazar') 
-                                ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                              ${isButtonDisabled(candidato, 'rechazar')
+                                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                 : 'bg-red-600 text-white hover:bg-red-700'}`}
                             aria-label="Rechazar candidato"
                             disabled={isButtonDisabled(candidato, 'rechazar')}
@@ -302,11 +340,10 @@ const Aprobar_Eliminar_cand_admin = () => {
                 <button
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded ${
-                    currentPage === 1
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 text-white hover:bg-blue-700"
-                  }`}
+                  className={`px-4 py-2 rounded ${currentPage === 1
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-700"
+                    }`}
                 >
                   Anterior
                 </button>
@@ -327,11 +364,10 @@ const Aprobar_Eliminar_cand_admin = () => {
                   <button
                     key={page}
                     onClick={() => goToPage(page)}
-                    className={`px-4 py-2 border rounded ${
-                      currentPage === page
-                        ? "bg-blue-500 text-white border-blue-500"
-                        : "border-gray-300 hover:bg-gray-100"
-                    }`}
+                    className={`px-4 py-2 border rounded ${currentPage === page
+                      ? "bg-blue-500 text-white border-blue-500"
+                      : "border-gray-300 hover:bg-gray-100"
+                      }`}
                   >
                     {page}
                   </button>
@@ -352,11 +388,10 @@ const Aprobar_Eliminar_cand_admin = () => {
                 <button
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded ${
-                    currentPage === totalPages
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 text-white hover:bg-blue-700"
-                  }`}
+                  className={`px-4 py-2 rounded ${currentPage === totalPages
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 text-white hover:bg-blue-700"
+                    }`}
                 >
                   Siguiente
                 </button>
