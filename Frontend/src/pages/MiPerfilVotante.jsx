@@ -1001,7 +1001,7 @@ export default function MiPerfilVotante() {
 
       {/* Modal de éxito para cambios generales */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50,.lkj">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FaCheckCircle className="text-green-600 text-2xl" />

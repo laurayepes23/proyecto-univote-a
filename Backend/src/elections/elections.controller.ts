@@ -37,6 +37,26 @@ export class ElectionsController {
     return this.electionsService.findOne(+id);
   }
 
+  // NUEVO: Endpoint específico para votantes (solo candidatos aprobados con propuestas activas)
+  @Get('for-voter/:id')
+  async findOneForVoter(@Param('id') id: string) {
+    try {
+      return await this.electionsService.findOneWithProposalsForVoter(+id);
+    } catch (error) {
+      throw new BadRequestException('Error al cargar la elección para votante');
+    }
+  }
+
+  // NUEVO: Endpoint para obtener propuestas de una elección
+  @Get('proposals/:id')
+  async getElectionProposals(@Param('id') id: string) {
+    try {
+      return await this.electionsService.getElectionProposals(+id);
+    } catch (error) {
+      throw new BadRequestException('Error al cargar las propuestas de la elección');
+    }
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateElectionDto: UpdateElectionDto) {
     return this.electionsService.update(+id, updateElectionDto);
@@ -126,6 +146,16 @@ export class ElectionsController {
       };
     } catch (error) {
       throw new BadRequestException(error.message);
+    }
+  }
+
+  // Endpoint de debug para verificar candidatos
+  @Get('debug/candidates-count/:id')
+  async debugCandidatesCount(@Param('id') id: string) {
+    try {
+      return await this.electionsService.debugCandidatesCount(+id);
+    } catch (error) {
+      throw new BadRequestException('Error en debug: ' + error.message);
     }
   }
 }

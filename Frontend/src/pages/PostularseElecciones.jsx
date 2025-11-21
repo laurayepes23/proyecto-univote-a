@@ -438,6 +438,7 @@ export default function PostularseElecciones() {
   };
 
   // Función para extraer solo la hora (opcional)
+  // eslint-disable-next-line no-unused-vars
   const formatTime = (dateString) => {
     if (!dateString) return 'Hora no definida';
 
@@ -472,6 +473,7 @@ export default function PostularseElecciones() {
         minute: '2-digit',
         hour12: false
       });
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       return 'Error al formatear hora';
     }

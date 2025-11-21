@@ -1,3 +1,4 @@
+// proposal.controller.ts - ACTUALIZADO
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { ProposalsService } from './proposals.service';
 import { CreateProposalDto } from './dto/create-proposal.dto';
@@ -20,6 +21,18 @@ export class ProposalsController {
   @Get('public')
   findAllPublic() {
     return this.proposalsService.findAllPublic();
+  }
+
+  // ENDPOINT: Propuestas por elección (sin validación de votante)
+  @Get('election/:electionId')
+  findAllByElection(@Param('electionId') electionId: string) {
+    return this.proposalsService.findAllPublicByElection(+electionId);
+  }
+
+  // NUEVO ENDPOINT: Elecciones activas con propuestas
+  @Get('active-elections')
+  getActiveElectionsWithProposals() {
+    return this.proposalsService.getActiveElectionsWithProposals();
   }
 
   @Get('list')

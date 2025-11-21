@@ -80,7 +80,7 @@ const Navbar_Votante = () => {
       <div className="relative flex items-center gap-4">
         {/* Imagen de perfil */}
         <img
-          src="./public/img/mi_perfil.png"
+          src="/public/img/mi_perfil.png"
           alt="Perfil"
           className="h-12 w-12 rounded-full cursor-pointer "
           onClick={() => setProfileOpen(!profileOpen)}

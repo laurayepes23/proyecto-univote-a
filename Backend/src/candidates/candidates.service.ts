@@ -4,20 +4,22 @@ import {
   UnauthorizedException,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { ImageProcessorService } from './image-processor.service';
-import * as bcrypt from 'bcrypt';
-import { CreateCandidateDto } from './dto/create-candidate.dto';
-import { LoginCandidateDto } from './dto/login-candidate.dto';
-import { UpdateCandidateDto } from './dto/update-candidate.dto';
-import { ApplyToElectionDto } from './dto/apply-to-election.dto';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { ImageProcessorService } from "./image-processor.service";
+import { NotificationsService } from "../notications/notifications.service";
+import * as bcrypt from "bcrypt";
+import { CreateCandidateDto } from "./dto/create-candidate.dto";
+import { LoginCandidateDto } from "./dto/login-candidate.dto";
+import { UpdateCandidateDto } from "./dto/update-candidate.dto";
+import { ApplyToElectionDto } from "./dto/apply-to-election.dto";
 
 @Injectable()
 export class CandidatesService {
   constructor(
     private prisma: PrismaService,
-    private imageProcessor: ImageProcessorService
+    private imageProcessor: ImageProcessorService,
+    private notificationsService: NotificationsService
   ) {}
 
   async findOne(id: number) {
@@ -30,30 +32,30 @@ export class CandidatesService {
             nombre_election: true,
             fecha_inicio: true,
             fecha_fin: true,
-            estado_election: true
-          }
+            estado_election: true,
+          },
         },
         career: {
           select: {
             id_career: true,
             nombre_career: true,
-            facultad_career: true
-          }
+            facultad_career: true,
+          },
         },
         role: {
           select: {
             id_role: true,
-            nombre_role: true
-          }
+            nombre_role: true,
+          },
         },
         proposals: {
           select: {
             id_proposal: true,
             titulo_proposal: true,
             descripcion_proposal: true,
-            estado_proposal: true
-          }
-        }
+            estado_proposal: true,
+          },
+        },
       },
     });
 
@@ -64,116 +66,121 @@ export class CandidatesService {
     const { contrasena_candidate, ...result } = candidate;
     return {
       ...result,
-      num_doc_candidate: result.num_doc_candidate.toString()
+      num_doc_candidate: result.num_doc_candidate.toString(),
     };
   }
 
   async applyToElection(applyToElectionDto: ApplyToElectionDto) {
     const { candidateId, electionId } = applyToElectionDto;
 
-    // Verificar que el candidato existe
     const candidate = await this.prisma.candidate.findUnique({
       where: { id_candidate: candidateId },
     });
 
     if (!candidate) {
-      throw new NotFoundException(`El candidato con ID ${candidateId} no fue encontrado.`);
+      throw new NotFoundException(
+        `El candidato con ID ${candidateId} no fue encontrado.`
+      );
     }
 
-    // Verificar que el candidato no está ya postulado a una elección
     if (candidate.electionId) {
-      throw new ConflictException('Ya estás postulado a una elección. No puedes postularte a más de una.');
+      throw new ConflictException(
+        "Ya estás postulado a una elección. No puedes postularte a más de una."
+      );
     }
 
-    // Verificar que la elección existe
     const election = await this.prisma.election.findUnique({
       where: { id_election: electionId },
     });
 
     if (!election) {
-      throw new NotFoundException(`La elección con ID ${electionId} no fue encontrada.`);
+      throw new NotFoundException(
+        `La elección con ID ${electionId} no fue encontrada.`
+      );
     }
 
-    // Verificar que la elección está programada
-    if (election.estado_election !== 'Programada') {
-      throw new BadRequestException('Solo puedes postularte a elecciones programadas');
+    if (election.estado_election !== "Programada") {
+      throw new BadRequestException(
+        "Solo puedes postularte a elecciones programadas"
+      );
     }
 
     try {
-      // Actualizar el candidato conectándolo con la elección
       const updatedCandidate = await this.prisma.candidate.update({
         where: { id_candidate: candidateId },
         data: {
           election: { connect: { id_election: electionId } },
-          estado_candidate: 'Pendiente', 
+          estado_candidate: "Pendiente",
         },
         include: {
           election: {
             select: {
               id_election: true,
               nombre_election: true,
-              estado_election: true
-            }
-          }
-        }
+              estado_election: true,
+            },
+          },
+        },
       });
-      
+
       const { contrasena_candidate, ...result } = updatedCandidate;
       return {
-        message: 'Postulación exitosa. Tu solicitud está pendiente de aprobación.',
-        candidate: result
+        message:
+          "Postulación exitosa. Tu solicitud está pendiente de aprobación.",
+        candidate: result,
       };
-
     } catch (error) {
-      if (error.code === 'P2025') {
-        throw new NotFoundException('Candidato o elección no encontrada');
+      if (error.code === "P2025") {
+        throw new NotFoundException("Candidato o elección no encontrada");
       }
-      throw new BadRequestException('No se pudo completar la postulación: ' + error.message);
+      throw new BadRequestException(
+        "No se pudo completar la postulación: " + error.message
+      );
     }
   }
 
   async findAll() {
     const candidates = await this.prisma.candidate.findMany({
       include: {
-        election: { 
-          select: { 
+        election: {
+          select: {
             id_election: true,
             nombre_election: true,
-            estado_election: true 
-          } 
+            estado_election: true,
+          },
         },
         career: {
           select: {
             nombre_career: true,
-            facultad_career: true
-          }
+            facultad_career: true,
+          },
         },
-        proposals: { 
-          select: { 
+        proposals: {
+          select: {
             id_proposal: true,
             titulo_proposal: true,
-            estado_proposal: true 
-          } 
+            estado_proposal: true,
+          },
         },
       },
     });
-    return candidates.map(c => ({ 
-      ...c, 
-      num_doc_candidate: c.num_doc_candidate.toString() 
+    return candidates.map((c) => ({
+      ...c,
+      num_doc_candidate: c.num_doc_candidate.toString(),
     }));
   }
 
   async findOneWithProposals(id: number) {
     const candidate = await this.prisma.candidate.findUnique({
       where: { id_candidate: id },
-      include: { 
+      include: {
         proposals: true,
         career: {
           select: {
             nombre_career: true,
-            facultad_career: true
-          }
-        }
+            facultad_career: true,
+          },
+        },
       },
     });
 
@@ -187,9 +194,11 @@ export class CandidatesService {
 
   async update(id: number, updateCandidateDto: UpdateCandidateDto) {
     try {
-      // Si se está actualizando la contraseña, hashearla
       if (updateCandidateDto.contrasena_candidate) {
-        updateCandidateDto.contrasena_candidate = await bcrypt.hash(updateCandidateDto.contrasena_candidate, 10);
+        updateCandidateDto.contrasena_candidate = await bcrypt.hash(
+          updateCandidateDto.contrasena_candidate,
+          10
+        );
       }
 
       const updatedCandidate = await this.prisma.candidate.update({
@@ -203,78 +212,175 @@ export class CandidatesService {
     }
   }
 
-  // ✅ MÉTODO: Validar contraseña
   async validatePassword(candidateId: number, password: string) {
     const candidate = await this.prisma.candidate.findUnique({
       where: { id_candidate: candidateId },
     });
 
     if (!candidate) {
-      throw new NotFoundException('Candidato no encontrado');
+      throw new NotFoundException("Candidato no encontrado");
     }
 
-    const isValid = await bcrypt.compare(password, candidate.contrasena_candidate);
+    const isValid = await bcrypt.compare(
+      password,
+      candidate.contrasena_candidate
+    );
     return { valid: isValid };
   }
-// ✅ MÉTODO: Retirarse de elección (MODIFICADO)
-async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo') {
-  const candidate = await this.prisma.candidate.findUnique({
-    where: { id_candidate: candidateId },
-  });
 
-  if (!candidate) {
-    throw new NotFoundException('Candidato no encontrado');
+  async withdrawFromElection(
+    candidateId: number,
+    nuevoEstado: string = "Inactivo"
+  ) {
+    const candidate = await this.prisma.candidate.findUnique({
+      where: { id_candidate: candidateId },
+    });
+
+    if (!candidate) {
+      throw new NotFoundException("Candidato no encontrado");
+    }
+
+    if (!candidate.electionId && nuevoEstado === "Inactivo") {
+      throw new BadRequestException(
+        "El candidato no está postulado a ninguna elección"
+      );
+    }
+
+    try {
+      const updateData: any = {
+        estado_candidate: nuevoEstado,
+      };
+
+      if (candidate.electionId) {
+        updateData.electionId = null;
+      }
+
+      const updatedCandidate = await this.prisma.candidate.update({
+        where: { id_candidate: candidateId },
+        data: updateData,
+      });
+
+      const { contrasena_candidate, ...result } = updatedCandidate;
+      return {
+        message:
+          nuevoEstado === "No Aprobado"
+            ? "Candidato rechazado correctamente"
+            : "Te has retirado exitosamente de la elección",
+        candidate: result,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        "Error al actualizar el candidato: " + error.message
+      );
+    }
   }
 
-  if (!candidate.electionId && nuevoEstado === 'Inactivo') {
-    throw new BadRequestException('El candidato no está postulado a ninguna elección');
-  }
+  async approveCandidate(id_candidate: number) {
+    const candidate = await this.prisma.candidate.findUnique({
+      where: { id_candidate },
+    });
 
-  try {
-    const updateData: any = {
-      estado_candidate: nuevoEstado,
-    };
-
-    // Solo limpiamos la elección si el candidato tiene una
-    if (candidate.electionId) {
-      updateData.electionId = null;
+    if (!candidate) {
+      throw new NotFoundException(
+        `Candidato con ID ${id_candidate} no encontrado.`
+      );
     }
 
     const updatedCandidate = await this.prisma.candidate.update({
-      where: { id_candidate: candidateId },
-      data: updateData,
+      where: { id_candidate },
+      data: { estado_candidate: "Aprobado" },
+      include: {
+        election: {
+          select: {
+            id_election: true,
+            nombre_election: true,
+            estado_election: true,
+          },
+        },
+      },
+    });
+
+    // Crear notificación de aprobación
+    await this.notificationsService.create({
+      id_candidate,
+      titulo: "🎉 Postulación Aprobada",
+      mensaje: `¡Felicidades ${candidate.nombre_candidate}! Tu postulación ha sido aprobada. Ya eres un candidato oficial para la elección.`,
+      tipo: "aprobacion",
     });
 
     const { contrasena_candidate, ...result } = updatedCandidate;
-    return {
-      message: nuevoEstado === 'No Aprobado' 
-        ? 'Candidato rechazado correctamente' 
-        : 'Te has retirado exitosamente de la elección',
-      candidate: result
-    };
-  } catch (error) {
-    throw new BadRequestException('Error al actualizar el candidato: ' + error.message);
+    return result;
   }
-}
 
-  async create(createCandidateDto: CreateCandidateDto, foto_candidate?: Express.Multer.File) {
-    const numDocBigInt = BigInt(createCandidateDto.num_doc_candidate);
-    
-    const existing = await this.prisma.candidate.findFirst({
-      where: { 
-        OR: [
-          { correo_candidate: createCandidateDto.correo_candidate }, 
-          { num_doc_candidate: numDocBigInt }
-        ] 
-      },
+  async rejectCandidate(id_candidate: number, motivo_rechazo: string) {
+    const candidate = await this.prisma.candidate.findUnique({
+      where: { id_candidate },
     });
-    
-    if (existing) {
-      throw new ConflictException('El correo o número de documento ya está registrado.');
+
+    if (!candidate) {
+      throw new NotFoundException(
+        `Candidato con ID ${id_candidate} no encontrado.`
+      );
     }
 
-    const hashedPassword = await bcrypt.hash(createCandidateDto.contrasena_candidate, 10);
-    
+    const updatedCandidate = await this.prisma.candidate.update({
+      where: { id_candidate },
+      data: {
+        estado_candidate: "No Aprobado",
+        motivo_rechazo: motivo_rechazo || "Sin motivo especificado",
+        electionId: null,
+      },
+      include: {
+        election: {
+          select: {
+            id_election: true,
+            nombre_election: true,
+            estado_election: true,
+          },
+        },
+      },
+    });
+
+    // Crear notificación de rechazo
+    await this.notificationsService.create({
+      id_candidate,
+      titulo: "❌ Postulación Rechazada",
+      mensaje: `Tu postulación ha sido rechazada. Motivo: ${
+        motivo_rechazo || "Sin motivo especificado"
+      }. Puedes postularte a otras elecciones disponibles.`,
+      tipo: "rechazo",
+    });
+
+    const { contrasena_candidate, ...result } = updatedCandidate;
+    return result;
+  }
+
+  async create(
+    createCandidateDto: CreateCandidateDto,
+    foto_candidate?: Express.Multer.File
+  ) {
+    const numDocBigInt = BigInt(createCandidateDto.num_doc_candidate);
+
+    const existing = await this.prisma.candidate.findFirst({
+      where: {
+        OR: [
+          { correo_candidate: createCandidateDto.correo_candidate },
+          { num_doc_candidate: numDocBigInt },
+        ],
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        "El correo o número de documento ya está registrado."
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      createCandidateDto.contrasena_candidate,
+      10
+    );
+
     let fotoUrl: string | null = null;
     if (foto_candidate) {
       try {
@@ -284,7 +390,9 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
           createCandidateDto.apellido_candidate
         );
       } catch (error) {
-        throw new BadRequestException('Error al procesar la imagen: ' + error.message);
+        throw new BadRequestException(
+          "Error al procesar la imagen: " + error.message
+        );
       }
     }
 
@@ -295,14 +403,14 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
       num_doc_candidate: numDocBigInt,
       correo_candidate: createCandidateDto.correo_candidate,
       contrasena_candidate: hashedPassword,
-      estado_candidate: 'Inactivo',
+      estado_candidate: "Inactivo",
       foto_candidate: fotoUrl,
       role: {
-        connect: { id_role: createCandidateDto.id_role }
+        connect: { id_role: createCandidateDto.id_role },
       },
       career: {
-        connect: { id_career: createCandidateDto.id_career }
-      }
+        connect: { id_career: createCandidateDto.id_career },
+      },
     };
 
     if (createCandidateDto.id_election) {
@@ -311,13 +419,15 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
       });
 
       if (!election) {
-        throw new NotFoundException(`La elección con ID ${createCandidateDto.id_election} no fue encontrada.`);
+        throw new NotFoundException(
+          `La elección con ID ${createCandidateDto.id_election} no fue encontrada.`
+        );
       }
 
       dataToCreate.election = {
-        connect: { id_election: createCandidateDto.id_election }
+        connect: { id_election: createCandidateDto.id_election },
       };
-      dataToCreate.estado_candidate = 'Pendiente';
+      dataToCreate.estado_candidate = "Pendiente";
     }
 
     const candidate = await this.prisma.candidate.create({
@@ -327,15 +437,15 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
           select: {
             id_election: true,
             nombre_election: true,
-            estado_election: true
-          }
+            estado_election: true,
+          },
         },
         career: {
           select: {
             nombre_career: true,
-            facultad_career: true
-          }
-        }
+            facultad_career: true,
+          },
+        },
       },
     });
 
@@ -349,7 +459,7 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
     });
 
     if (!candidate) {
-      throw new NotFoundException('Candidato no encontrado');
+      throw new NotFoundException("Candidato no encontrado");
     }
 
     try {
@@ -369,11 +479,13 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
       });
 
       return {
-        message: 'Foto subida exitosamente',
+        message: "Foto subida exitosamente",
         foto_candidate: updatedCandidate.foto_candidate,
       };
     } catch (error) {
-      throw new BadRequestException('Error al procesar la imagen: ' + error.message);
+      throw new BadRequestException(
+        "Error al procesar la imagen: " + error.message
+      );
     }
   }
 
@@ -383,11 +495,11 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
     });
 
     if (!candidate) {
-      throw new NotFoundException('Candidato no encontrado');
+      throw new NotFoundException("Candidato no encontrado");
     }
 
     if (!candidate.foto_candidate) {
-      throw new BadRequestException('El candidato no tiene foto');
+      throw new BadRequestException("El candidato no tiene foto");
     }
 
     await this.imageProcessor.deleteImage(candidate.foto_candidate);
@@ -398,7 +510,7 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
     });
 
     return {
-      message: 'Foto eliminada exitosamente',
+      message: "Foto eliminada exitosamente",
     };
   }
 
@@ -409,26 +521,52 @@ async withdrawFromElection(candidateId: number, nuevoEstado: string = 'Inactivo'
         election: {
           select: {
             id_election: true,
-            nombre_election: true
-          }
+            nombre_election: true,
+            estado_election: true,
+          },
         },
         career: {
           select: {
             nombre_career: true,
-            facultad_career: true
-          }
-        }
-      }
+            facultad_career: true,
+          },
+        },
+        role: {
+          select: {
+            id_role: true,
+            nombre_role: true,
+          },
+        },
+      },
     });
-    
-    if (!candidate || !(await bcrypt.compare(loginCandidateDto.contrasena_candidate, candidate.contrasena_candidate))) {
-      throw new UnauthorizedException('Credenciales inválidas');
+
+    if (
+      !candidate ||
+      !(await bcrypt.compare(
+        loginCandidateDto.contrasena_candidate,
+        candidate.contrasena_candidate
+      ))
+    ) {
+      throw new UnauthorizedException("Credenciales inválidas");
+    }
+
+    // Verificar que el candidato esté activo
+    if (candidate.estado_candidate === "Inactivo") {
+      throw new UnauthorizedException(
+        "Tu cuenta está inactiva. Contacta al administrador."
+      );
     }
 
     const { contrasena_candidate, ...result } = candidate;
+
+    // Asegurar que la respuesta tenga una estructura consistente
     return {
-      ...result,
-      num_doc_candidate: result.num_doc_candidate.toString()
+      success: true,
+      message: "Login exitoso",
+      candidate: {
+        ...result,
+        num_doc_candidate: result.num_doc_candidate.toString(),
+      },
     };
   }
 }

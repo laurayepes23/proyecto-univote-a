@@ -58,6 +58,11 @@ export type Result = $Result.DefaultSelection<Prisma.$ResultPayload>
  * 
  */
 export type Role = $Result.DefaultSelection<Prisma.$RolePayload>
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = $Result.DefaultSelection<Prisma.$NotificationPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -266,6 +271,16 @@ export class PrismaClient<
     * ```
     */
   get role(): Prisma.RoleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.notification`: Exposes CRUD operations for the **Notification** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Notifications
+    * const notifications = await prisma.notification.findMany()
+    * ```
+    */
+  get notification(): Prisma.NotificationDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -714,7 +729,8 @@ export namespace Prisma {
     Proposal: 'Proposal',
     Career: 'Career',
     Result: 'Result',
-    Role: 'Role'
+    Role: 'Role',
+    Notification: 'Notification'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -733,7 +749,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "administrador" | "voter" | "election" | "candidate" | "vote" | "proposal" | "career" | "result" | "role"
+      modelProps: "administrador" | "voter" | "election" | "candidate" | "vote" | "proposal" | "career" | "result" | "role" | "notification"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1403,6 +1419,80 @@ export namespace Prisma {
           }
         }
       }
+      Notification: {
+        payload: Prisma.$NotificationPayload<ExtArgs>
+        fields: Prisma.NotificationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.NotificationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NotificationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          findFirst: {
+            args: Prisma.NotificationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NotificationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          findMany: {
+            args: Prisma.NotificationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+          }
+          create: {
+            args: Prisma.NotificationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          createMany: {
+            args: Prisma.NotificationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NotificationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+          }
+          delete: {
+            args: Prisma.NotificationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          update: {
+            args: Prisma.NotificationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          deleteMany: {
+            args: Prisma.NotificationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NotificationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.NotificationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+          }
+          upsert: {
+            args: Prisma.NotificationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          aggregate: {
+            args: Prisma.NotificationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNotification>
+          }
+          groupBy: {
+            args: Prisma.NotificationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<NotificationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NotificationCountArgs<ExtArgs>
+            result: $Utils.Optional<NotificationCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1504,6 +1594,7 @@ export namespace Prisma {
     career?: CareerOmit
     result?: ResultOmit
     role?: RoleOmit
+    notification?: NotificationOmit
   }
 
   /* Types for Logging */
@@ -1649,12 +1740,14 @@ export namespace Prisma {
     candidates: number
     voters: number
     Vote: number
+    proposals: number
   }
 
   export type ElectionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     candidates?: boolean | ElectionCountOutputTypeCountCandidatesArgs
     voters?: boolean | ElectionCountOutputTypeCountVotersArgs
     Vote?: boolean | ElectionCountOutputTypeCountVoteArgs
+    proposals?: boolean | ElectionCountOutputTypeCountProposalsArgs
   }
 
   // Custom InputTypes
@@ -1689,6 +1782,13 @@ export namespace Prisma {
     where?: VoteWhereInput
   }
 
+  /**
+   * ElectionCountOutputType without action
+   */
+  export type ElectionCountOutputTypeCountProposalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProposalWhereInput
+  }
+
 
   /**
    * Count Type CandidateCountOutputType
@@ -1697,11 +1797,13 @@ export namespace Prisma {
   export type CandidateCountOutputType = {
     proposals: number
     votes: number
+    notifications: number
   }
 
   export type CandidateCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     proposals?: boolean | CandidateCountOutputTypeCountProposalsArgs
     votes?: boolean | CandidateCountOutputTypeCountVotesArgs
+    notifications?: boolean | CandidateCountOutputTypeCountNotificationsArgs
   }
 
   // Custom InputTypes
@@ -1727,6 +1829,13 @@ export namespace Prisma {
    */
   export type CandidateCountOutputTypeCountVotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VoteWhereInput
+  }
+
+  /**
+   * CandidateCountOutputType without action
+   */
+  export type CandidateCountOutputTypeCountNotificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NotificationWhereInput
   }
 
 
@@ -4414,6 +4523,7 @@ export namespace Prisma {
     voters?: boolean | Election$votersArgs<ExtArgs>
     result?: boolean | Election$resultArgs<ExtArgs>
     Vote?: boolean | Election$VoteArgs<ExtArgs>
+    proposals?: boolean | Election$proposalsArgs<ExtArgs>
     _count?: boolean | ElectionCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["election"]>
 
@@ -4453,6 +4563,7 @@ export namespace Prisma {
     voters?: boolean | Election$votersArgs<ExtArgs>
     result?: boolean | Election$resultArgs<ExtArgs>
     Vote?: boolean | Election$VoteArgs<ExtArgs>
+    proposals?: boolean | Election$proposalsArgs<ExtArgs>
     _count?: boolean | ElectionCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ElectionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4470,6 +4581,7 @@ export namespace Prisma {
       voters: Prisma.$VoterPayload<ExtArgs>[]
       result: Prisma.$ResultPayload<ExtArgs> | null
       Vote: Prisma.$VotePayload<ExtArgs>[]
+      proposals: Prisma.$ProposalPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id_election: number
@@ -4877,6 +4989,7 @@ export namespace Prisma {
     voters<T extends Election$votersArgs<ExtArgs> = {}>(args?: Subset<T, Election$votersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VoterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     result<T extends Election$resultArgs<ExtArgs> = {}>(args?: Subset<T, Election$resultArgs<ExtArgs>>): Prisma__ResultClient<$Result.GetResult<Prisma.$ResultPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     Vote<T extends Election$VoteArgs<ExtArgs> = {}>(args?: Subset<T, Election$VoteArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    proposals<T extends Election$proposalsArgs<ExtArgs> = {}>(args?: Subset<T, Election$proposalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProposalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5399,6 +5512,30 @@ export namespace Prisma {
   }
 
   /**
+   * Election.proposals
+   */
+  export type Election$proposalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Proposal
+     */
+    select?: ProposalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Proposal
+     */
+    omit?: ProposalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProposalInclude<ExtArgs> | null
+    where?: ProposalWhereInput
+    orderBy?: ProposalOrderByWithRelationInput | ProposalOrderByWithRelationInput[]
+    cursor?: ProposalWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProposalScalarFieldEnum | ProposalScalarFieldEnum[]
+  }
+
+  /**
    * Election without action
    */
   export type ElectionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5455,6 +5592,7 @@ export namespace Prisma {
     estado_candidate: string | null
     foto_candidate: string | null
     contrasena_candidate: string | null
+    motivo_rechazo: string | null
     roleId: number | null
     careerId: number | null
     electionId: number | null
@@ -5470,6 +5608,7 @@ export namespace Prisma {
     estado_candidate: string | null
     foto_candidate: string | null
     contrasena_candidate: string | null
+    motivo_rechazo: string | null
     roleId: number | null
     careerId: number | null
     electionId: number | null
@@ -5485,6 +5624,7 @@ export namespace Prisma {
     estado_candidate: number
     foto_candidate: number
     contrasena_candidate: number
+    motivo_rechazo: number
     roleId: number
     careerId: number
     electionId: number
@@ -5518,6 +5658,7 @@ export namespace Prisma {
     estado_candidate?: true
     foto_candidate?: true
     contrasena_candidate?: true
+    motivo_rechazo?: true
     roleId?: true
     careerId?: true
     electionId?: true
@@ -5533,6 +5674,7 @@ export namespace Prisma {
     estado_candidate?: true
     foto_candidate?: true
     contrasena_candidate?: true
+    motivo_rechazo?: true
     roleId?: true
     careerId?: true
     electionId?: true
@@ -5548,6 +5690,7 @@ export namespace Prisma {
     estado_candidate?: true
     foto_candidate?: true
     contrasena_candidate?: true
+    motivo_rechazo?: true
     roleId?: true
     careerId?: true
     electionId?: true
@@ -5650,6 +5793,7 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate: string | null
     contrasena_candidate: string
+    motivo_rechazo: string | null
     roleId: number
     careerId: number
     electionId: number | null
@@ -5684,6 +5828,7 @@ export namespace Prisma {
     estado_candidate?: boolean
     foto_candidate?: boolean
     contrasena_candidate?: boolean
+    motivo_rechazo?: boolean
     roleId?: boolean
     careerId?: boolean
     electionId?: boolean
@@ -5693,6 +5838,7 @@ export namespace Prisma {
     proposals?: boolean | Candidate$proposalsArgs<ExtArgs>
     result?: boolean | Candidate$resultArgs<ExtArgs>
     votes?: boolean | Candidate$votesArgs<ExtArgs>
+    notifications?: boolean | Candidate$notificationsArgs<ExtArgs>
     _count?: boolean | CandidateCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["candidate"]>
 
@@ -5706,6 +5852,7 @@ export namespace Prisma {
     estado_candidate?: boolean
     foto_candidate?: boolean
     contrasena_candidate?: boolean
+    motivo_rechazo?: boolean
     roleId?: boolean
     careerId?: boolean
     electionId?: boolean
@@ -5724,6 +5871,7 @@ export namespace Prisma {
     estado_candidate?: boolean
     foto_candidate?: boolean
     contrasena_candidate?: boolean
+    motivo_rechazo?: boolean
     roleId?: boolean
     careerId?: boolean
     electionId?: boolean
@@ -5742,12 +5890,13 @@ export namespace Prisma {
     estado_candidate?: boolean
     foto_candidate?: boolean
     contrasena_candidate?: boolean
+    motivo_rechazo?: boolean
     roleId?: boolean
     careerId?: boolean
     electionId?: boolean
   }
 
-  export type CandidateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_candidate" | "nombre_candidate" | "apellido_candidate" | "tipo_doc_candidate" | "num_doc_candidate" | "correo_candidate" | "estado_candidate" | "foto_candidate" | "contrasena_candidate" | "roleId" | "careerId" | "electionId", ExtArgs["result"]["candidate"]>
+  export type CandidateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_candidate" | "nombre_candidate" | "apellido_candidate" | "tipo_doc_candidate" | "num_doc_candidate" | "correo_candidate" | "estado_candidate" | "foto_candidate" | "contrasena_candidate" | "motivo_rechazo" | "roleId" | "careerId" | "electionId", ExtArgs["result"]["candidate"]>
   export type CandidateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     role?: boolean | RoleDefaultArgs<ExtArgs>
     career?: boolean | CareerDefaultArgs<ExtArgs>
@@ -5755,6 +5904,7 @@ export namespace Prisma {
     proposals?: boolean | Candidate$proposalsArgs<ExtArgs>
     result?: boolean | Candidate$resultArgs<ExtArgs>
     votes?: boolean | Candidate$votesArgs<ExtArgs>
+    notifications?: boolean | Candidate$notificationsArgs<ExtArgs>
     _count?: boolean | CandidateCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CandidateIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5777,6 +5927,7 @@ export namespace Prisma {
       proposals: Prisma.$ProposalPayload<ExtArgs>[]
       result: Prisma.$ResultPayload<ExtArgs> | null
       votes: Prisma.$VotePayload<ExtArgs>[]
+      notifications: Prisma.$NotificationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id_candidate: number
@@ -5788,6 +5939,7 @@ export namespace Prisma {
       estado_candidate: string
       foto_candidate: string | null
       contrasena_candidate: string
+      motivo_rechazo: string | null
       roleId: number
       careerId: number
       electionId: number | null
@@ -6191,6 +6343,7 @@ export namespace Prisma {
     proposals<T extends Candidate$proposalsArgs<ExtArgs> = {}>(args?: Subset<T, Candidate$proposalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProposalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     result<T extends Candidate$resultArgs<ExtArgs> = {}>(args?: Subset<T, Candidate$resultArgs<ExtArgs>>): Prisma__ResultClient<$Result.GetResult<Prisma.$ResultPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     votes<T extends Candidate$votesArgs<ExtArgs> = {}>(args?: Subset<T, Candidate$votesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    notifications<T extends Candidate$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, Candidate$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6229,6 +6382,7 @@ export namespace Prisma {
     readonly estado_candidate: FieldRef<"Candidate", 'String'>
     readonly foto_candidate: FieldRef<"Candidate", 'String'>
     readonly contrasena_candidate: FieldRef<"Candidate", 'String'>
+    readonly motivo_rechazo: FieldRef<"Candidate", 'String'>
     readonly roleId: FieldRef<"Candidate", 'Int'>
     readonly careerId: FieldRef<"Candidate", 'Int'>
     readonly electionId: FieldRef<"Candidate", 'Int'>
@@ -6714,6 +6868,30 @@ export namespace Prisma {
   }
 
   /**
+   * Candidate.notifications
+   */
+  export type Candidate$notificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    where?: NotificationWhereInput
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    cursor?: NotificationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
    * Candidate without action
    */
   export type CandidateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6919,7 +7097,7 @@ export namespace Prisma {
     id_vote: number
     fecha_vote: Date
     hora_vote: Date
-    voterId: number
+    voterId: number | null
     candidateId: number | null
     electionId: number | null
     _count: VoteCountAggregateOutputType | null
@@ -6950,7 +7128,7 @@ export namespace Prisma {
     voterId?: boolean
     candidateId?: boolean
     electionId?: boolean
-    voter?: boolean | VoterDefaultArgs<ExtArgs>
+    voter?: boolean | Vote$voterArgs<ExtArgs>
     candidate?: boolean | Vote$candidateArgs<ExtArgs>
     election?: boolean | Vote$electionArgs<ExtArgs>
   }, ExtArgs["result"]["vote"]>
@@ -6962,7 +7140,7 @@ export namespace Prisma {
     voterId?: boolean
     candidateId?: boolean
     electionId?: boolean
-    voter?: boolean | VoterDefaultArgs<ExtArgs>
+    voter?: boolean | Vote$voterArgs<ExtArgs>
     candidate?: boolean | Vote$candidateArgs<ExtArgs>
     election?: boolean | Vote$electionArgs<ExtArgs>
   }, ExtArgs["result"]["vote"]>
@@ -6974,7 +7152,7 @@ export namespace Prisma {
     voterId?: boolean
     candidateId?: boolean
     electionId?: boolean
-    voter?: boolean | VoterDefaultArgs<ExtArgs>
+    voter?: boolean | Vote$voterArgs<ExtArgs>
     candidate?: boolean | Vote$candidateArgs<ExtArgs>
     election?: boolean | Vote$electionArgs<ExtArgs>
   }, ExtArgs["result"]["vote"]>
@@ -6990,17 +7168,17 @@ export namespace Prisma {
 
   export type VoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_vote" | "fecha_vote" | "hora_vote" | "voterId" | "candidateId" | "electionId", ExtArgs["result"]["vote"]>
   export type VoteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    voter?: boolean | VoterDefaultArgs<ExtArgs>
+    voter?: boolean | Vote$voterArgs<ExtArgs>
     candidate?: boolean | Vote$candidateArgs<ExtArgs>
     election?: boolean | Vote$electionArgs<ExtArgs>
   }
   export type VoteIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    voter?: boolean | VoterDefaultArgs<ExtArgs>
+    voter?: boolean | Vote$voterArgs<ExtArgs>
     candidate?: boolean | Vote$candidateArgs<ExtArgs>
     election?: boolean | Vote$electionArgs<ExtArgs>
   }
   export type VoteIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    voter?: boolean | VoterDefaultArgs<ExtArgs>
+    voter?: boolean | Vote$voterArgs<ExtArgs>
     candidate?: boolean | Vote$candidateArgs<ExtArgs>
     election?: boolean | Vote$electionArgs<ExtArgs>
   }
@@ -7008,7 +7186,7 @@ export namespace Prisma {
   export type $VotePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Vote"
     objects: {
-      voter: Prisma.$VoterPayload<ExtArgs>
+      voter: Prisma.$VoterPayload<ExtArgs> | null
       candidate: Prisma.$CandidatePayload<ExtArgs> | null
       election: Prisma.$ElectionPayload<ExtArgs> | null
     }
@@ -7016,7 +7194,7 @@ export namespace Prisma {
       id_vote: number
       fecha_vote: Date
       hora_vote: Date
-      voterId: number
+      voterId: number | null
       candidateId: number | null
       electionId: number | null
     }, ExtArgs["result"]["vote"]>
@@ -7413,7 +7591,7 @@ export namespace Prisma {
    */
   export interface Prisma__VoteClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    voter<T extends VoterDefaultArgs<ExtArgs> = {}>(args?: Subset<T, VoterDefaultArgs<ExtArgs>>): Prisma__VoterClient<$Result.GetResult<Prisma.$VoterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    voter<T extends Vote$voterArgs<ExtArgs> = {}>(args?: Subset<T, Vote$voterArgs<ExtArgs>>): Prisma__VoterClient<$Result.GetResult<Prisma.$VoterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     candidate<T extends Vote$candidateArgs<ExtArgs> = {}>(args?: Subset<T, Vote$candidateArgs<ExtArgs>>): Prisma__CandidateClient<$Result.GetResult<Prisma.$CandidatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     election<T extends Vote$electionArgs<ExtArgs> = {}>(args?: Subset<T, Vote$electionArgs<ExtArgs>>): Prisma__ElectionClient<$Result.GetResult<Prisma.$ElectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -7847,6 +8025,25 @@ export namespace Prisma {
   }
 
   /**
+   * Vote.voter
+   */
+  export type Vote$voterArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Voter
+     */
+    select?: VoterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Voter
+     */
+    omit?: VoterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VoterInclude<ExtArgs> | null
+    where?: VoterWhereInput
+  }
+
+  /**
    * Vote.candidate
    */
   export type Vote$candidateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7918,11 +8115,13 @@ export namespace Prisma {
   export type ProposalAvgAggregateOutputType = {
     id_proposal: number | null
     candidateId: number | null
+    electionId: number | null
   }
 
   export type ProposalSumAggregateOutputType = {
     id_proposal: number | null
     candidateId: number | null
+    electionId: number | null
   }
 
   export type ProposalMinAggregateOutputType = {
@@ -7931,6 +8130,7 @@ export namespace Prisma {
     descripcion_proposal: string | null
     estado_proposal: string | null
     candidateId: number | null
+    electionId: number | null
   }
 
   export type ProposalMaxAggregateOutputType = {
@@ -7939,6 +8139,7 @@ export namespace Prisma {
     descripcion_proposal: string | null
     estado_proposal: string | null
     candidateId: number | null
+    electionId: number | null
   }
 
   export type ProposalCountAggregateOutputType = {
@@ -7947,6 +8148,7 @@ export namespace Prisma {
     descripcion_proposal: number
     estado_proposal: number
     candidateId: number
+    electionId: number
     _all: number
   }
 
@@ -7954,11 +8156,13 @@ export namespace Prisma {
   export type ProposalAvgAggregateInputType = {
     id_proposal?: true
     candidateId?: true
+    electionId?: true
   }
 
   export type ProposalSumAggregateInputType = {
     id_proposal?: true
     candidateId?: true
+    electionId?: true
   }
 
   export type ProposalMinAggregateInputType = {
@@ -7967,6 +8171,7 @@ export namespace Prisma {
     descripcion_proposal?: true
     estado_proposal?: true
     candidateId?: true
+    electionId?: true
   }
 
   export type ProposalMaxAggregateInputType = {
@@ -7975,6 +8180,7 @@ export namespace Prisma {
     descripcion_proposal?: true
     estado_proposal?: true
     candidateId?: true
+    electionId?: true
   }
 
   export type ProposalCountAggregateInputType = {
@@ -7983,6 +8189,7 @@ export namespace Prisma {
     descripcion_proposal?: true
     estado_proposal?: true
     candidateId?: true
+    electionId?: true
     _all?: true
   }
 
@@ -8078,6 +8285,7 @@ export namespace Prisma {
     descripcion_proposal: string
     estado_proposal: string
     candidateId: number
+    electionId: number | null
     _count: ProposalCountAggregateOutputType | null
     _avg: ProposalAvgAggregateOutputType | null
     _sum: ProposalSumAggregateOutputType | null
@@ -8105,7 +8313,9 @@ export namespace Prisma {
     descripcion_proposal?: boolean
     estado_proposal?: boolean
     candidateId?: boolean
+    electionId?: boolean
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+    election?: boolean | Proposal$electionArgs<ExtArgs>
   }, ExtArgs["result"]["proposal"]>
 
   export type ProposalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8114,7 +8324,9 @@ export namespace Prisma {
     descripcion_proposal?: boolean
     estado_proposal?: boolean
     candidateId?: boolean
+    electionId?: boolean
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+    election?: boolean | Proposal$electionArgs<ExtArgs>
   }, ExtArgs["result"]["proposal"]>
 
   export type ProposalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8123,7 +8335,9 @@ export namespace Prisma {
     descripcion_proposal?: boolean
     estado_proposal?: boolean
     candidateId?: boolean
+    electionId?: boolean
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+    election?: boolean | Proposal$electionArgs<ExtArgs>
   }, ExtArgs["result"]["proposal"]>
 
   export type ProposalSelectScalar = {
@@ -8132,23 +8346,28 @@ export namespace Prisma {
     descripcion_proposal?: boolean
     estado_proposal?: boolean
     candidateId?: boolean
+    electionId?: boolean
   }
 
-  export type ProposalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_proposal" | "titulo_proposal" | "descripcion_proposal" | "estado_proposal" | "candidateId", ExtArgs["result"]["proposal"]>
+  export type ProposalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_proposal" | "titulo_proposal" | "descripcion_proposal" | "estado_proposal" | "candidateId" | "electionId", ExtArgs["result"]["proposal"]>
   export type ProposalInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+    election?: boolean | Proposal$electionArgs<ExtArgs>
   }
   export type ProposalIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+    election?: boolean | Proposal$electionArgs<ExtArgs>
   }
   export type ProposalIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+    election?: boolean | Proposal$electionArgs<ExtArgs>
   }
 
   export type $ProposalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Proposal"
     objects: {
       candidate: Prisma.$CandidatePayload<ExtArgs>
+      election: Prisma.$ElectionPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id_proposal: number
@@ -8156,6 +8375,7 @@ export namespace Prisma {
       descripcion_proposal: string
       estado_proposal: string
       candidateId: number
+      electionId: number | null
     }, ExtArgs["result"]["proposal"]>
     composites: {}
   }
@@ -8551,6 +8771,7 @@ export namespace Prisma {
   export interface Prisma__ProposalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     candidate<T extends CandidateDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CandidateDefaultArgs<ExtArgs>>): Prisma__CandidateClient<$Result.GetResult<Prisma.$CandidatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    election<T extends Proposal$electionArgs<ExtArgs> = {}>(args?: Subset<T, Proposal$electionArgs<ExtArgs>>): Prisma__ElectionClient<$Result.GetResult<Prisma.$ElectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8585,6 +8806,7 @@ export namespace Prisma {
     readonly descripcion_proposal: FieldRef<"Proposal", 'String'>
     readonly estado_proposal: FieldRef<"Proposal", 'String'>
     readonly candidateId: FieldRef<"Proposal", 'Int'>
+    readonly electionId: FieldRef<"Proposal", 'Int'>
   }
     
 
@@ -8978,6 +9200,25 @@ export namespace Prisma {
      * Limit how many Proposals to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Proposal.election
+   */
+  export type Proposal$electionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Election
+     */
+    select?: ElectionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Election
+     */
+    omit?: ElectionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ElectionInclude<ExtArgs> | null
+    where?: ElectionWhereInput
   }
 
   /**
@@ -12298,6 +12539,1128 @@ export namespace Prisma {
 
 
   /**
+   * Model Notification
+   */
+
+  export type AggregateNotification = {
+    _count: NotificationCountAggregateOutputType | null
+    _avg: NotificationAvgAggregateOutputType | null
+    _sum: NotificationSumAggregateOutputType | null
+    _min: NotificationMinAggregateOutputType | null
+    _max: NotificationMaxAggregateOutputType | null
+  }
+
+  export type NotificationAvgAggregateOutputType = {
+    id_notification: number | null
+    id_candidate: number | null
+  }
+
+  export type NotificationSumAggregateOutputType = {
+    id_notification: number | null
+    id_candidate: number | null
+  }
+
+  export type NotificationMinAggregateOutputType = {
+    id_notification: number | null
+    id_candidate: number | null
+    titulo: string | null
+    mensaje: string | null
+    tipo: string | null
+    leida: boolean | null
+    fecha_creacion: Date | null
+  }
+
+  export type NotificationMaxAggregateOutputType = {
+    id_notification: number | null
+    id_candidate: number | null
+    titulo: string | null
+    mensaje: string | null
+    tipo: string | null
+    leida: boolean | null
+    fecha_creacion: Date | null
+  }
+
+  export type NotificationCountAggregateOutputType = {
+    id_notification: number
+    id_candidate: number
+    titulo: number
+    mensaje: number
+    tipo: number
+    leida: number
+    fecha_creacion: number
+    _all: number
+  }
+
+
+  export type NotificationAvgAggregateInputType = {
+    id_notification?: true
+    id_candidate?: true
+  }
+
+  export type NotificationSumAggregateInputType = {
+    id_notification?: true
+    id_candidate?: true
+  }
+
+  export type NotificationMinAggregateInputType = {
+    id_notification?: true
+    id_candidate?: true
+    titulo?: true
+    mensaje?: true
+    tipo?: true
+    leida?: true
+    fecha_creacion?: true
+  }
+
+  export type NotificationMaxAggregateInputType = {
+    id_notification?: true
+    id_candidate?: true
+    titulo?: true
+    mensaje?: true
+    tipo?: true
+    leida?: true
+    fecha_creacion?: true
+  }
+
+  export type NotificationCountAggregateInputType = {
+    id_notification?: true
+    id_candidate?: true
+    titulo?: true
+    mensaje?: true
+    tipo?: true
+    leida?: true
+    fecha_creacion?: true
+    _all?: true
+  }
+
+  export type NotificationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Notification to aggregate.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Notifications
+    **/
+    _count?: true | NotificationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: NotificationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: NotificationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: NotificationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: NotificationMaxAggregateInputType
+  }
+
+  export type GetNotificationAggregateType<T extends NotificationAggregateArgs> = {
+        [P in keyof T & keyof AggregateNotification]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNotification[P]>
+      : GetScalarType<T[P], AggregateNotification[P]>
+  }
+
+
+
+
+  export type NotificationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NotificationWhereInput
+    orderBy?: NotificationOrderByWithAggregationInput | NotificationOrderByWithAggregationInput[]
+    by: NotificationScalarFieldEnum[] | NotificationScalarFieldEnum
+    having?: NotificationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: NotificationCountAggregateInputType | true
+    _avg?: NotificationAvgAggregateInputType
+    _sum?: NotificationSumAggregateInputType
+    _min?: NotificationMinAggregateInputType
+    _max?: NotificationMaxAggregateInputType
+  }
+
+  export type NotificationGroupByOutputType = {
+    id_notification: number
+    id_candidate: number
+    titulo: string
+    mensaje: string
+    tipo: string
+    leida: boolean
+    fecha_creacion: Date
+    _count: NotificationCountAggregateOutputType | null
+    _avg: NotificationAvgAggregateOutputType | null
+    _sum: NotificationSumAggregateOutputType | null
+    _min: NotificationMinAggregateOutputType | null
+    _max: NotificationMaxAggregateOutputType | null
+  }
+
+  type GetNotificationGroupByPayload<T extends NotificationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<NotificationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof NotificationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NotificationGroupByOutputType[P]>
+            : GetScalarType<T[P], NotificationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type NotificationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id_notification?: boolean
+    id_candidate?: boolean
+    titulo?: boolean
+    mensaje?: boolean
+    tipo?: boolean
+    leida?: boolean
+    fecha_creacion?: boolean
+    candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["notification"]>
+
+  export type NotificationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id_notification?: boolean
+    id_candidate?: boolean
+    titulo?: boolean
+    mensaje?: boolean
+    tipo?: boolean
+    leida?: boolean
+    fecha_creacion?: boolean
+    candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["notification"]>
+
+  export type NotificationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id_notification?: boolean
+    id_candidate?: boolean
+    titulo?: boolean
+    mensaje?: boolean
+    tipo?: boolean
+    leida?: boolean
+    fecha_creacion?: boolean
+    candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["notification"]>
+
+  export type NotificationSelectScalar = {
+    id_notification?: boolean
+    id_candidate?: boolean
+    titulo?: boolean
+    mensaje?: boolean
+    tipo?: boolean
+    leida?: boolean
+    fecha_creacion?: boolean
+  }
+
+  export type NotificationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_notification" | "id_candidate" | "titulo" | "mensaje" | "tipo" | "leida" | "fecha_creacion", ExtArgs["result"]["notification"]>
+  export type NotificationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+  }
+  export type NotificationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+  }
+  export type NotificationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    candidate?: boolean | CandidateDefaultArgs<ExtArgs>
+  }
+
+  export type $NotificationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Notification"
+    objects: {
+      candidate: Prisma.$CandidatePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id_notification: number
+      id_candidate: number
+      titulo: string
+      mensaje: string
+      tipo: string
+      leida: boolean
+      fecha_creacion: Date
+    }, ExtArgs["result"]["notification"]>
+    composites: {}
+  }
+
+  type NotificationGetPayload<S extends boolean | null | undefined | NotificationDefaultArgs> = $Result.GetResult<Prisma.$NotificationPayload, S>
+
+  type NotificationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<NotificationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: NotificationCountAggregateInputType | true
+    }
+
+  export interface NotificationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Notification'], meta: { name: 'Notification' } }
+    /**
+     * Find zero or one Notification that matches the filter.
+     * @param {NotificationFindUniqueArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends NotificationFindUniqueArgs>(args: SelectSubset<T, NotificationFindUniqueArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Notification that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {NotificationFindUniqueOrThrowArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends NotificationFindUniqueOrThrowArgs>(args: SelectSubset<T, NotificationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Notification that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationFindFirstArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends NotificationFindFirstArgs>(args?: SelectSubset<T, NotificationFindFirstArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Notification that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationFindFirstOrThrowArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends NotificationFindFirstOrThrowArgs>(args?: SelectSubset<T, NotificationFindFirstOrThrowArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Notifications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Notifications
+     * const notifications = await prisma.notification.findMany()
+     * 
+     * // Get first 10 Notifications
+     * const notifications = await prisma.notification.findMany({ take: 10 })
+     * 
+     * // Only select the `id_notification`
+     * const notificationWithId_notificationOnly = await prisma.notification.findMany({ select: { id_notification: true } })
+     * 
+     */
+    findMany<T extends NotificationFindManyArgs>(args?: SelectSubset<T, NotificationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Notification.
+     * @param {NotificationCreateArgs} args - Arguments to create a Notification.
+     * @example
+     * // Create one Notification
+     * const Notification = await prisma.notification.create({
+     *   data: {
+     *     // ... data to create a Notification
+     *   }
+     * })
+     * 
+     */
+    create<T extends NotificationCreateArgs>(args: SelectSubset<T, NotificationCreateArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Notifications.
+     * @param {NotificationCreateManyArgs} args - Arguments to create many Notifications.
+     * @example
+     * // Create many Notifications
+     * const notification = await prisma.notification.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends NotificationCreateManyArgs>(args?: SelectSubset<T, NotificationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Notifications and returns the data saved in the database.
+     * @param {NotificationCreateManyAndReturnArgs} args - Arguments to create many Notifications.
+     * @example
+     * // Create many Notifications
+     * const notification = await prisma.notification.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Notifications and only return the `id_notification`
+     * const notificationWithId_notificationOnly = await prisma.notification.createManyAndReturn({
+     *   select: { id_notification: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends NotificationCreateManyAndReturnArgs>(args?: SelectSubset<T, NotificationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Notification.
+     * @param {NotificationDeleteArgs} args - Arguments to delete one Notification.
+     * @example
+     * // Delete one Notification
+     * const Notification = await prisma.notification.delete({
+     *   where: {
+     *     // ... filter to delete one Notification
+     *   }
+     * })
+     * 
+     */
+    delete<T extends NotificationDeleteArgs>(args: SelectSubset<T, NotificationDeleteArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Notification.
+     * @param {NotificationUpdateArgs} args - Arguments to update one Notification.
+     * @example
+     * // Update one Notification
+     * const notification = await prisma.notification.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends NotificationUpdateArgs>(args: SelectSubset<T, NotificationUpdateArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Notifications.
+     * @param {NotificationDeleteManyArgs} args - Arguments to filter Notifications to delete.
+     * @example
+     * // Delete a few Notifications
+     * const { count } = await prisma.notification.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends NotificationDeleteManyArgs>(args?: SelectSubset<T, NotificationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Notifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Notifications
+     * const notification = await prisma.notification.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends NotificationUpdateManyArgs>(args: SelectSubset<T, NotificationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Notifications and returns the data updated in the database.
+     * @param {NotificationUpdateManyAndReturnArgs} args - Arguments to update many Notifications.
+     * @example
+     * // Update many Notifications
+     * const notification = await prisma.notification.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Notifications and only return the `id_notification`
+     * const notificationWithId_notificationOnly = await prisma.notification.updateManyAndReturn({
+     *   select: { id_notification: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends NotificationUpdateManyAndReturnArgs>(args: SelectSubset<T, NotificationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Notification.
+     * @param {NotificationUpsertArgs} args - Arguments to update or create a Notification.
+     * @example
+     * // Update or create a Notification
+     * const notification = await prisma.notification.upsert({
+     *   create: {
+     *     // ... data to create a Notification
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Notification we want to update
+     *   }
+     * })
+     */
+    upsert<T extends NotificationUpsertArgs>(args: SelectSubset<T, NotificationUpsertArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Notifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationCountArgs} args - Arguments to filter Notifications to count.
+     * @example
+     * // Count the number of Notifications
+     * const count = await prisma.notification.count({
+     *   where: {
+     *     // ... the filter for the Notifications we want to count
+     *   }
+     * })
+    **/
+    count<T extends NotificationCountArgs>(
+      args?: Subset<T, NotificationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NotificationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Notification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends NotificationAggregateArgs>(args: Subset<T, NotificationAggregateArgs>): Prisma.PrismaPromise<GetNotificationAggregateType<T>>
+
+    /**
+     * Group by Notification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends NotificationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: NotificationGroupByArgs['orderBy'] }
+        : { orderBy?: NotificationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, NotificationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNotificationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Notification model
+   */
+  readonly fields: NotificationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Notification.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__NotificationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    candidate<T extends CandidateDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CandidateDefaultArgs<ExtArgs>>): Prisma__CandidateClient<$Result.GetResult<Prisma.$CandidatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Notification model
+   */
+  interface NotificationFieldRefs {
+    readonly id_notification: FieldRef<"Notification", 'Int'>
+    readonly id_candidate: FieldRef<"Notification", 'Int'>
+    readonly titulo: FieldRef<"Notification", 'String'>
+    readonly mensaje: FieldRef<"Notification", 'String'>
+    readonly tipo: FieldRef<"Notification", 'String'>
+    readonly leida: FieldRef<"Notification", 'Boolean'>
+    readonly fecha_creacion: FieldRef<"Notification", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Notification findUnique
+   */
+  export type NotificationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification findUniqueOrThrow
+   */
+  export type NotificationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification findFirst
+   */
+  export type NotificationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Notifications.
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Notifications.
+     */
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
+   * Notification findFirstOrThrow
+   */
+  export type NotificationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Notifications.
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Notifications.
+     */
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
+   * Notification findMany
+   */
+  export type NotificationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notifications to fetch.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Notifications.
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
+   * Notification create
+   */
+  export type NotificationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Notification.
+     */
+    data: XOR<NotificationCreateInput, NotificationUncheckedCreateInput>
+  }
+
+  /**
+   * Notification createMany
+   */
+  export type NotificationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Notifications.
+     */
+    data: NotificationCreateManyInput | NotificationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Notification createManyAndReturn
+   */
+  export type NotificationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * The data used to create many Notifications.
+     */
+    data: NotificationCreateManyInput | NotificationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Notification update
+   */
+  export type NotificationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Notification.
+     */
+    data: XOR<NotificationUpdateInput, NotificationUncheckedUpdateInput>
+    /**
+     * Choose, which Notification to update.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification updateMany
+   */
+  export type NotificationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Notifications.
+     */
+    data: XOR<NotificationUpdateManyMutationInput, NotificationUncheckedUpdateManyInput>
+    /**
+     * Filter which Notifications to update
+     */
+    where?: NotificationWhereInput
+    /**
+     * Limit how many Notifications to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Notification updateManyAndReturn
+   */
+  export type NotificationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * The data used to update Notifications.
+     */
+    data: XOR<NotificationUpdateManyMutationInput, NotificationUncheckedUpdateManyInput>
+    /**
+     * Filter which Notifications to update
+     */
+    where?: NotificationWhereInput
+    /**
+     * Limit how many Notifications to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Notification upsert
+   */
+  export type NotificationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Notification to update in case it exists.
+     */
+    where: NotificationWhereUniqueInput
+    /**
+     * In case the Notification found by the `where` argument doesn't exist, create a new Notification with this data.
+     */
+    create: XOR<NotificationCreateInput, NotificationUncheckedCreateInput>
+    /**
+     * In case the Notification was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<NotificationUpdateInput, NotificationUncheckedUpdateInput>
+  }
+
+  /**
+   * Notification delete
+   */
+  export type NotificationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter which Notification to delete.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification deleteMany
+   */
+  export type NotificationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Notifications to delete
+     */
+    where?: NotificationWhereInput
+    /**
+     * Limit how many Notifications to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Notification without action
+   */
+  export type NotificationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Notification
+     */
+    omit?: NotificationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -12363,6 +13726,7 @@ export namespace Prisma {
     estado_candidate: 'estado_candidate',
     foto_candidate: 'foto_candidate',
     contrasena_candidate: 'contrasena_candidate',
+    motivo_rechazo: 'motivo_rechazo',
     roleId: 'roleId',
     careerId: 'careerId',
     electionId: 'electionId'
@@ -12388,7 +13752,8 @@ export namespace Prisma {
     titulo_proposal: 'titulo_proposal',
     descripcion_proposal: 'descripcion_proposal',
     estado_proposal: 'estado_proposal',
-    candidateId: 'candidateId'
+    candidateId: 'candidateId',
+    electionId: 'electionId'
   };
 
   export type ProposalScalarFieldEnum = (typeof ProposalScalarFieldEnum)[keyof typeof ProposalScalarFieldEnum]
@@ -12419,6 +13784,19 @@ export namespace Prisma {
   };
 
   export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+  export const NotificationScalarFieldEnum: {
+    id_notification: 'id_notification',
+    id_candidate: 'id_candidate',
+    titulo: 'titulo',
+    mensaje: 'mensaje',
+    tipo: 'tipo',
+    leida: 'leida',
+    fecha_creacion: 'fecha_creacion'
+  };
+
+  export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -12503,6 +13881,13 @@ export namespace Prisma {
    * Reference to a field of type 'DateTime[]'
    */
   export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -12701,6 +14086,7 @@ export namespace Prisma {
     voters?: VoterListRelationFilter
     result?: XOR<ResultNullableScalarRelationFilter, ResultWhereInput> | null
     Vote?: VoteListRelationFilter
+    proposals?: ProposalListRelationFilter
   }
 
   export type ElectionOrderByWithRelationInput = {
@@ -12715,6 +14101,7 @@ export namespace Prisma {
     voters?: VoterOrderByRelationAggregateInput
     result?: ResultOrderByWithRelationInput
     Vote?: VoteOrderByRelationAggregateInput
+    proposals?: ProposalOrderByRelationAggregateInput
   }
 
   export type ElectionWhereUniqueInput = Prisma.AtLeast<{
@@ -12732,6 +14119,7 @@ export namespace Prisma {
     voters?: VoterListRelationFilter
     result?: XOR<ResultNullableScalarRelationFilter, ResultWhereInput> | null
     Vote?: VoteListRelationFilter
+    proposals?: ProposalListRelationFilter
   }, "id_election">
 
   export type ElectionOrderByWithAggregationInput = {
@@ -12773,6 +14161,7 @@ export namespace Prisma {
     estado_candidate?: StringFilter<"Candidate"> | string
     foto_candidate?: StringNullableFilter<"Candidate"> | string | null
     contrasena_candidate?: StringFilter<"Candidate"> | string
+    motivo_rechazo?: StringNullableFilter<"Candidate"> | string | null
     roleId?: IntFilter<"Candidate"> | number
     careerId?: IntFilter<"Candidate"> | number
     electionId?: IntNullableFilter<"Candidate"> | number | null
@@ -12782,6 +14171,7 @@ export namespace Prisma {
     proposals?: ProposalListRelationFilter
     result?: XOR<ResultNullableScalarRelationFilter, ResultWhereInput> | null
     votes?: VoteListRelationFilter
+    notifications?: NotificationListRelationFilter
   }
 
   export type CandidateOrderByWithRelationInput = {
@@ -12794,6 +14184,7 @@ export namespace Prisma {
     estado_candidate?: SortOrder
     foto_candidate?: SortOrderInput | SortOrder
     contrasena_candidate?: SortOrder
+    motivo_rechazo?: SortOrderInput | SortOrder
     roleId?: SortOrder
     careerId?: SortOrder
     electionId?: SortOrderInput | SortOrder
@@ -12803,6 +14194,7 @@ export namespace Prisma {
     proposals?: ProposalOrderByRelationAggregateInput
     result?: ResultOrderByWithRelationInput
     votes?: VoteOrderByRelationAggregateInput
+    notifications?: NotificationOrderByRelationAggregateInput
   }
 
   export type CandidateWhereUniqueInput = Prisma.AtLeast<{
@@ -12818,6 +14210,7 @@ export namespace Prisma {
     estado_candidate?: StringFilter<"Candidate"> | string
     foto_candidate?: StringNullableFilter<"Candidate"> | string | null
     contrasena_candidate?: StringFilter<"Candidate"> | string
+    motivo_rechazo?: StringNullableFilter<"Candidate"> | string | null
     roleId?: IntFilter<"Candidate"> | number
     careerId?: IntFilter<"Candidate"> | number
     electionId?: IntNullableFilter<"Candidate"> | number | null
@@ -12827,6 +14220,7 @@ export namespace Prisma {
     proposals?: ProposalListRelationFilter
     result?: XOR<ResultNullableScalarRelationFilter, ResultWhereInput> | null
     votes?: VoteListRelationFilter
+    notifications?: NotificationListRelationFilter
   }, "id_candidate" | "num_doc_candidate" | "correo_candidate">
 
   export type CandidateOrderByWithAggregationInput = {
@@ -12839,6 +14233,7 @@ export namespace Prisma {
     estado_candidate?: SortOrder
     foto_candidate?: SortOrderInput | SortOrder
     contrasena_candidate?: SortOrder
+    motivo_rechazo?: SortOrderInput | SortOrder
     roleId?: SortOrder
     careerId?: SortOrder
     electionId?: SortOrderInput | SortOrder
@@ -12862,6 +14257,7 @@ export namespace Prisma {
     estado_candidate?: StringWithAggregatesFilter<"Candidate"> | string
     foto_candidate?: StringNullableWithAggregatesFilter<"Candidate"> | string | null
     contrasena_candidate?: StringWithAggregatesFilter<"Candidate"> | string
+    motivo_rechazo?: StringNullableWithAggregatesFilter<"Candidate"> | string | null
     roleId?: IntWithAggregatesFilter<"Candidate"> | number
     careerId?: IntWithAggregatesFilter<"Candidate"> | number
     electionId?: IntNullableWithAggregatesFilter<"Candidate"> | number | null
@@ -12874,10 +14270,10 @@ export namespace Prisma {
     id_vote?: IntFilter<"Vote"> | number
     fecha_vote?: DateTimeFilter<"Vote"> | Date | string
     hora_vote?: DateTimeFilter<"Vote"> | Date | string
-    voterId?: IntFilter<"Vote"> | number
+    voterId?: IntNullableFilter<"Vote"> | number | null
     candidateId?: IntNullableFilter<"Vote"> | number | null
     electionId?: IntNullableFilter<"Vote"> | number | null
-    voter?: XOR<VoterScalarRelationFilter, VoterWhereInput>
+    voter?: XOR<VoterNullableScalarRelationFilter, VoterWhereInput> | null
     candidate?: XOR<CandidateNullableScalarRelationFilter, CandidateWhereInput> | null
     election?: XOR<ElectionNullableScalarRelationFilter, ElectionWhereInput> | null
   }
@@ -12886,7 +14282,7 @@ export namespace Prisma {
     id_vote?: SortOrder
     fecha_vote?: SortOrder
     hora_vote?: SortOrder
-    voterId?: SortOrder
+    voterId?: SortOrderInput | SortOrder
     candidateId?: SortOrderInput | SortOrder
     electionId?: SortOrderInput | SortOrder
     voter?: VoterOrderByWithRelationInput
@@ -12901,10 +14297,10 @@ export namespace Prisma {
     NOT?: VoteWhereInput | VoteWhereInput[]
     fecha_vote?: DateTimeFilter<"Vote"> | Date | string
     hora_vote?: DateTimeFilter<"Vote"> | Date | string
-    voterId?: IntFilter<"Vote"> | number
+    voterId?: IntNullableFilter<"Vote"> | number | null
     candidateId?: IntNullableFilter<"Vote"> | number | null
     electionId?: IntNullableFilter<"Vote"> | number | null
-    voter?: XOR<VoterScalarRelationFilter, VoterWhereInput>
+    voter?: XOR<VoterNullableScalarRelationFilter, VoterWhereInput> | null
     candidate?: XOR<CandidateNullableScalarRelationFilter, CandidateWhereInput> | null
     election?: XOR<ElectionNullableScalarRelationFilter, ElectionWhereInput> | null
   }, "id_vote">
@@ -12913,7 +14309,7 @@ export namespace Prisma {
     id_vote?: SortOrder
     fecha_vote?: SortOrder
     hora_vote?: SortOrder
-    voterId?: SortOrder
+    voterId?: SortOrderInput | SortOrder
     candidateId?: SortOrderInput | SortOrder
     electionId?: SortOrderInput | SortOrder
     _count?: VoteCountOrderByAggregateInput
@@ -12930,7 +14326,7 @@ export namespace Prisma {
     id_vote?: IntWithAggregatesFilter<"Vote"> | number
     fecha_vote?: DateTimeWithAggregatesFilter<"Vote"> | Date | string
     hora_vote?: DateTimeWithAggregatesFilter<"Vote"> | Date | string
-    voterId?: IntWithAggregatesFilter<"Vote"> | number
+    voterId?: IntNullableWithAggregatesFilter<"Vote"> | number | null
     candidateId?: IntNullableWithAggregatesFilter<"Vote"> | number | null
     electionId?: IntNullableWithAggregatesFilter<"Vote"> | number | null
   }
@@ -12944,7 +14340,9 @@ export namespace Prisma {
     descripcion_proposal?: StringFilter<"Proposal"> | string
     estado_proposal?: StringFilter<"Proposal"> | string
     candidateId?: IntFilter<"Proposal"> | number
+    electionId?: IntNullableFilter<"Proposal"> | number | null
     candidate?: XOR<CandidateScalarRelationFilter, CandidateWhereInput>
+    election?: XOR<ElectionNullableScalarRelationFilter, ElectionWhereInput> | null
   }
 
   export type ProposalOrderByWithRelationInput = {
@@ -12953,7 +14351,9 @@ export namespace Prisma {
     descripcion_proposal?: SortOrder
     estado_proposal?: SortOrder
     candidateId?: SortOrder
+    electionId?: SortOrderInput | SortOrder
     candidate?: CandidateOrderByWithRelationInput
+    election?: ElectionOrderByWithRelationInput
   }
 
   export type ProposalWhereUniqueInput = Prisma.AtLeast<{
@@ -12965,7 +14365,9 @@ export namespace Prisma {
     descripcion_proposal?: StringFilter<"Proposal"> | string
     estado_proposal?: StringFilter<"Proposal"> | string
     candidateId?: IntFilter<"Proposal"> | number
+    electionId?: IntNullableFilter<"Proposal"> | number | null
     candidate?: XOR<CandidateScalarRelationFilter, CandidateWhereInput>
+    election?: XOR<ElectionNullableScalarRelationFilter, ElectionWhereInput> | null
   }, "id_proposal">
 
   export type ProposalOrderByWithAggregationInput = {
@@ -12974,6 +14376,7 @@ export namespace Prisma {
     descripcion_proposal?: SortOrder
     estado_proposal?: SortOrder
     candidateId?: SortOrder
+    electionId?: SortOrderInput | SortOrder
     _count?: ProposalCountOrderByAggregateInput
     _avg?: ProposalAvgOrderByAggregateInput
     _max?: ProposalMaxOrderByAggregateInput
@@ -12990,6 +14393,7 @@ export namespace Prisma {
     descripcion_proposal?: StringWithAggregatesFilter<"Proposal"> | string
     estado_proposal?: StringWithAggregatesFilter<"Proposal"> | string
     candidateId?: IntWithAggregatesFilter<"Proposal"> | number
+    electionId?: IntNullableWithAggregatesFilter<"Proposal"> | number | null
   }
 
   export type CareerWhereInput = {
@@ -13140,6 +14544,73 @@ export namespace Prisma {
     NOT?: RoleScalarWhereWithAggregatesInput | RoleScalarWhereWithAggregatesInput[]
     id_role?: IntWithAggregatesFilter<"Role"> | number
     nombre_role?: StringWithAggregatesFilter<"Role"> | string
+  }
+
+  export type NotificationWhereInput = {
+    AND?: NotificationWhereInput | NotificationWhereInput[]
+    OR?: NotificationWhereInput[]
+    NOT?: NotificationWhereInput | NotificationWhereInput[]
+    id_notification?: IntFilter<"Notification"> | number
+    id_candidate?: IntFilter<"Notification"> | number
+    titulo?: StringFilter<"Notification"> | string
+    mensaje?: StringFilter<"Notification"> | string
+    tipo?: StringFilter<"Notification"> | string
+    leida?: BoolFilter<"Notification"> | boolean
+    fecha_creacion?: DateTimeFilter<"Notification"> | Date | string
+    candidate?: XOR<CandidateScalarRelationFilter, CandidateWhereInput>
+  }
+
+  export type NotificationOrderByWithRelationInput = {
+    id_notification?: SortOrder
+    id_candidate?: SortOrder
+    titulo?: SortOrder
+    mensaje?: SortOrder
+    tipo?: SortOrder
+    leida?: SortOrder
+    fecha_creacion?: SortOrder
+    candidate?: CandidateOrderByWithRelationInput
+  }
+
+  export type NotificationWhereUniqueInput = Prisma.AtLeast<{
+    id_notification?: number
+    AND?: NotificationWhereInput | NotificationWhereInput[]
+    OR?: NotificationWhereInput[]
+    NOT?: NotificationWhereInput | NotificationWhereInput[]
+    id_candidate?: IntFilter<"Notification"> | number
+    titulo?: StringFilter<"Notification"> | string
+    mensaje?: StringFilter<"Notification"> | string
+    tipo?: StringFilter<"Notification"> | string
+    leida?: BoolFilter<"Notification"> | boolean
+    fecha_creacion?: DateTimeFilter<"Notification"> | Date | string
+    candidate?: XOR<CandidateScalarRelationFilter, CandidateWhereInput>
+  }, "id_notification">
+
+  export type NotificationOrderByWithAggregationInput = {
+    id_notification?: SortOrder
+    id_candidate?: SortOrder
+    titulo?: SortOrder
+    mensaje?: SortOrder
+    tipo?: SortOrder
+    leida?: SortOrder
+    fecha_creacion?: SortOrder
+    _count?: NotificationCountOrderByAggregateInput
+    _avg?: NotificationAvgOrderByAggregateInput
+    _max?: NotificationMaxOrderByAggregateInput
+    _min?: NotificationMinOrderByAggregateInput
+    _sum?: NotificationSumOrderByAggregateInput
+  }
+
+  export type NotificationScalarWhereWithAggregatesInput = {
+    AND?: NotificationScalarWhereWithAggregatesInput | NotificationScalarWhereWithAggregatesInput[]
+    OR?: NotificationScalarWhereWithAggregatesInput[]
+    NOT?: NotificationScalarWhereWithAggregatesInput | NotificationScalarWhereWithAggregatesInput[]
+    id_notification?: IntWithAggregatesFilter<"Notification"> | number
+    id_candidate?: IntWithAggregatesFilter<"Notification"> | number
+    titulo?: StringWithAggregatesFilter<"Notification"> | string
+    mensaje?: StringWithAggregatesFilter<"Notification"> | string
+    tipo?: StringWithAggregatesFilter<"Notification"> | string
+    leida?: BoolWithAggregatesFilter<"Notification"> | boolean
+    fecha_creacion?: DateTimeWithAggregatesFilter<"Notification"> | Date | string
   }
 
   export type AdministradorCreateInput = {
@@ -13319,6 +14790,7 @@ export namespace Prisma {
     voters?: VoterCreateNestedManyWithoutElectionInput
     result?: ResultCreateNestedOneWithoutElectionInput
     Vote?: VoteCreateNestedManyWithoutElectionInput
+    proposals?: ProposalCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionUncheckedCreateInput = {
@@ -13332,6 +14804,7 @@ export namespace Prisma {
     voters?: VoterUncheckedCreateNestedManyWithoutElectionInput
     result?: ResultUncheckedCreateNestedOneWithoutElectionInput
     Vote?: VoteUncheckedCreateNestedManyWithoutElectionInput
+    proposals?: ProposalUncheckedCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionUpdateInput = {
@@ -13344,6 +14817,7 @@ export namespace Prisma {
     voters?: VoterUpdateManyWithoutElectionNestedInput
     result?: ResultUpdateOneWithoutElectionNestedInput
     Vote?: VoteUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionUncheckedUpdateInput = {
@@ -13357,6 +14831,7 @@ export namespace Prisma {
     voters?: VoterUncheckedUpdateManyWithoutElectionNestedInput
     result?: ResultUncheckedUpdateOneWithoutElectionNestedInput
     Vote?: VoteUncheckedUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUncheckedUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionCreateManyInput = {
@@ -13393,12 +14868,14 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     role: RoleCreateNestedOneWithoutCandidatesInput
     career: CareerCreateNestedOneWithoutCandidatesInput
     election?: ElectionCreateNestedOneWithoutCandidatesInput
     proposals?: ProposalCreateNestedManyWithoutCandidateInput
     result?: ResultCreateNestedOneWithoutCandidateInput
     votes?: VoteCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUncheckedCreateInput = {
@@ -13411,12 +14888,14 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     careerId: number
     electionId?: number | null
     proposals?: ProposalUncheckedCreateNestedManyWithoutCandidateInput
     result?: ResultUncheckedCreateNestedOneWithoutCandidateInput
     votes?: VoteUncheckedCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUpdateInput = {
@@ -13428,12 +14907,14 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     role?: RoleUpdateOneRequiredWithoutCandidatesNestedInput
     career?: CareerUpdateOneRequiredWithoutCandidatesNestedInput
     election?: ElectionUpdateOneWithoutCandidatesNestedInput
     proposals?: ProposalUpdateManyWithoutCandidateNestedInput
     result?: ResultUpdateOneWithoutCandidateNestedInput
     votes?: VoteUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateInput = {
@@ -13446,12 +14927,14 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     careerId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
     proposals?: ProposalUncheckedUpdateManyWithoutCandidateNestedInput
     result?: ResultUncheckedUpdateOneWithoutCandidateNestedInput
     votes?: VoteUncheckedUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateCreateManyInput = {
@@ -13464,6 +14947,7 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     careerId: number
     electionId?: number | null
@@ -13478,6 +14962,7 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CandidateUncheckedUpdateManyInput = {
@@ -13490,6 +14975,7 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     careerId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13498,7 +14984,7 @@ export namespace Prisma {
   export type VoteCreateInput = {
     fecha_vote: Date | string
     hora_vote: Date | string
-    voter: VoterCreateNestedOneWithoutVoteInput
+    voter?: VoterCreateNestedOneWithoutVoteInput
     candidate?: CandidateCreateNestedOneWithoutVotesInput
     election?: ElectionCreateNestedOneWithoutVoteInput
   }
@@ -13507,7 +14993,7 @@ export namespace Prisma {
     id_vote?: number
     fecha_vote: Date | string
     hora_vote: Date | string
-    voterId: number
+    voterId?: number | null
     candidateId?: number | null
     electionId?: number | null
   }
@@ -13515,7 +15001,7 @@ export namespace Prisma {
   export type VoteUpdateInput = {
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voter?: VoterUpdateOneRequiredWithoutVoteNestedInput
+    voter?: VoterUpdateOneWithoutVoteNestedInput
     candidate?: CandidateUpdateOneWithoutVotesNestedInput
     election?: ElectionUpdateOneWithoutVoteNestedInput
   }
@@ -13524,7 +15010,7 @@ export namespace Prisma {
     id_vote?: IntFieldUpdateOperationsInput | number
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voterId?: IntFieldUpdateOperationsInput | number
+    voterId?: NullableIntFieldUpdateOperationsInput | number | null
     candidateId?: NullableIntFieldUpdateOperationsInput | number | null
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -13533,7 +15019,7 @@ export namespace Prisma {
     id_vote?: number
     fecha_vote: Date | string
     hora_vote: Date | string
-    voterId: number
+    voterId?: number | null
     candidateId?: number | null
     electionId?: number | null
   }
@@ -13547,7 +15033,7 @@ export namespace Prisma {
     id_vote?: IntFieldUpdateOperationsInput | number
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voterId?: IntFieldUpdateOperationsInput | number
+    voterId?: NullableIntFieldUpdateOperationsInput | number | null
     candidateId?: NullableIntFieldUpdateOperationsInput | number | null
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -13557,6 +15043,7 @@ export namespace Prisma {
     descripcion_proposal: string
     estado_proposal: string
     candidate: CandidateCreateNestedOneWithoutProposalsInput
+    election?: ElectionCreateNestedOneWithoutProposalsInput
   }
 
   export type ProposalUncheckedCreateInput = {
@@ -13565,6 +15052,7 @@ export namespace Prisma {
     descripcion_proposal: string
     estado_proposal: string
     candidateId: number
+    electionId?: number | null
   }
 
   export type ProposalUpdateInput = {
@@ -13572,6 +15060,7 @@ export namespace Prisma {
     descripcion_proposal?: StringFieldUpdateOperationsInput | string
     estado_proposal?: StringFieldUpdateOperationsInput | string
     candidate?: CandidateUpdateOneRequiredWithoutProposalsNestedInput
+    election?: ElectionUpdateOneWithoutProposalsNestedInput
   }
 
   export type ProposalUncheckedUpdateInput = {
@@ -13580,6 +15069,7 @@ export namespace Prisma {
     descripcion_proposal?: StringFieldUpdateOperationsInput | string
     estado_proposal?: StringFieldUpdateOperationsInput | string
     candidateId?: IntFieldUpdateOperationsInput | number
+    electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type ProposalCreateManyInput = {
@@ -13588,6 +15078,7 @@ export namespace Prisma {
     descripcion_proposal: string
     estado_proposal: string
     candidateId: number
+    electionId?: number | null
   }
 
   export type ProposalUpdateManyMutationInput = {
@@ -13602,6 +15093,7 @@ export namespace Prisma {
     descripcion_proposal?: StringFieldUpdateOperationsInput | string
     estado_proposal?: StringFieldUpdateOperationsInput | string
     candidateId?: IntFieldUpdateOperationsInput | number
+    electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type CareerCreateInput = {
@@ -13733,6 +15225,72 @@ export namespace Prisma {
   export type RoleUncheckedUpdateManyInput = {
     id_role?: IntFieldUpdateOperationsInput | number
     nombre_role?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type NotificationCreateInput = {
+    titulo: string
+    mensaje: string
+    tipo: string
+    leida?: boolean
+    fecha_creacion?: Date | string
+    candidate: CandidateCreateNestedOneWithoutNotificationsInput
+  }
+
+  export type NotificationUncheckedCreateInput = {
+    id_notification?: number
+    id_candidate: number
+    titulo: string
+    mensaje: string
+    tipo: string
+    leida?: boolean
+    fecha_creacion?: Date | string
+  }
+
+  export type NotificationUpdateInput = {
+    titulo?: StringFieldUpdateOperationsInput | string
+    mensaje?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    leida?: BoolFieldUpdateOperationsInput | boolean
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    candidate?: CandidateUpdateOneRequiredWithoutNotificationsNestedInput
+  }
+
+  export type NotificationUncheckedUpdateInput = {
+    id_notification?: IntFieldUpdateOperationsInput | number
+    id_candidate?: IntFieldUpdateOperationsInput | number
+    titulo?: StringFieldUpdateOperationsInput | string
+    mensaje?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    leida?: BoolFieldUpdateOperationsInput | boolean
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationCreateManyInput = {
+    id_notification?: number
+    id_candidate: number
+    titulo: string
+    mensaje: string
+    tipo: string
+    leida?: boolean
+    fecha_creacion?: Date | string
+  }
+
+  export type NotificationUpdateManyMutationInput = {
+    titulo?: StringFieldUpdateOperationsInput | string
+    mensaje?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    leida?: BoolFieldUpdateOperationsInput | boolean
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationUncheckedUpdateManyInput = {
+    id_notification?: IntFieldUpdateOperationsInput | number
+    id_candidate?: IntFieldUpdateOperationsInput | number
+    titulo?: StringFieldUpdateOperationsInput | string
+    mensaje?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    leida?: BoolFieldUpdateOperationsInput | boolean
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -14020,11 +15578,21 @@ export namespace Prisma {
     isNot?: ResultWhereInput | null
   }
 
+  export type ProposalListRelationFilter = {
+    every?: ProposalWhereInput
+    some?: ProposalWhereInput
+    none?: ProposalWhereInput
+  }
+
   export type CandidateOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type VoterOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ProposalOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -14094,13 +15662,13 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
-  export type ProposalListRelationFilter = {
-    every?: ProposalWhereInput
-    some?: ProposalWhereInput
-    none?: ProposalWhereInput
+  export type NotificationListRelationFilter = {
+    every?: NotificationWhereInput
+    some?: NotificationWhereInput
+    none?: NotificationWhereInput
   }
 
-  export type ProposalOrderByRelationAggregateInput = {
+  export type NotificationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -14114,6 +15682,7 @@ export namespace Prisma {
     estado_candidate?: SortOrder
     foto_candidate?: SortOrder
     contrasena_candidate?: SortOrder
+    motivo_rechazo?: SortOrder
     roleId?: SortOrder
     careerId?: SortOrder
     electionId?: SortOrder
@@ -14137,6 +15706,7 @@ export namespace Prisma {
     estado_candidate?: SortOrder
     foto_candidate?: SortOrder
     contrasena_candidate?: SortOrder
+    motivo_rechazo?: SortOrder
     roleId?: SortOrder
     careerId?: SortOrder
     electionId?: SortOrder
@@ -14152,6 +15722,7 @@ export namespace Prisma {
     estado_candidate?: SortOrder
     foto_candidate?: SortOrder
     contrasena_candidate?: SortOrder
+    motivo_rechazo?: SortOrder
     roleId?: SortOrder
     careerId?: SortOrder
     electionId?: SortOrder
@@ -14183,9 +15754,9 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
-  export type VoterScalarRelationFilter = {
-    is?: VoterWhereInput
-    isNot?: VoterWhereInput
+  export type VoterNullableScalarRelationFilter = {
+    is?: VoterWhereInput | null
+    isNot?: VoterWhereInput | null
   }
 
   export type CandidateNullableScalarRelationFilter = {
@@ -14245,11 +15816,13 @@ export namespace Prisma {
     descripcion_proposal?: SortOrder
     estado_proposal?: SortOrder
     candidateId?: SortOrder
+    electionId?: SortOrder
   }
 
   export type ProposalAvgOrderByAggregateInput = {
     id_proposal?: SortOrder
     candidateId?: SortOrder
+    electionId?: SortOrder
   }
 
   export type ProposalMaxOrderByAggregateInput = {
@@ -14258,6 +15831,7 @@ export namespace Prisma {
     descripcion_proposal?: SortOrder
     estado_proposal?: SortOrder
     candidateId?: SortOrder
+    electionId?: SortOrder
   }
 
   export type ProposalMinOrderByAggregateInput = {
@@ -14266,11 +15840,13 @@ export namespace Prisma {
     descripcion_proposal?: SortOrder
     estado_proposal?: SortOrder
     candidateId?: SortOrder
+    electionId?: SortOrder
   }
 
   export type ProposalSumOrderByAggregateInput = {
     id_proposal?: SortOrder
     candidateId?: SortOrder
+    electionId?: SortOrder
   }
 
   export type CareerCountOrderByAggregateInput = {
@@ -14360,6 +15936,59 @@ export namespace Prisma {
 
   export type RoleSumOrderByAggregateInput = {
     id_role?: SortOrder
+  }
+
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type NotificationCountOrderByAggregateInput = {
+    id_notification?: SortOrder
+    id_candidate?: SortOrder
+    titulo?: SortOrder
+    mensaje?: SortOrder
+    tipo?: SortOrder
+    leida?: SortOrder
+    fecha_creacion?: SortOrder
+  }
+
+  export type NotificationAvgOrderByAggregateInput = {
+    id_notification?: SortOrder
+    id_candidate?: SortOrder
+  }
+
+  export type NotificationMaxOrderByAggregateInput = {
+    id_notification?: SortOrder
+    id_candidate?: SortOrder
+    titulo?: SortOrder
+    mensaje?: SortOrder
+    tipo?: SortOrder
+    leida?: SortOrder
+    fecha_creacion?: SortOrder
+  }
+
+  export type NotificationMinOrderByAggregateInput = {
+    id_notification?: SortOrder
+    id_candidate?: SortOrder
+    titulo?: SortOrder
+    mensaje?: SortOrder
+    tipo?: SortOrder
+    leida?: SortOrder
+    fecha_creacion?: SortOrder
+  }
+
+  export type NotificationSumOrderByAggregateInput = {
+    id_notification?: SortOrder
+    id_candidate?: SortOrder
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type ElectionCreateNestedManyWithoutAdministradorInput = {
@@ -14551,6 +16180,13 @@ export namespace Prisma {
     connect?: VoteWhereUniqueInput | VoteWhereUniqueInput[]
   }
 
+  export type ProposalCreateNestedManyWithoutElectionInput = {
+    create?: XOR<ProposalCreateWithoutElectionInput, ProposalUncheckedCreateWithoutElectionInput> | ProposalCreateWithoutElectionInput[] | ProposalUncheckedCreateWithoutElectionInput[]
+    connectOrCreate?: ProposalCreateOrConnectWithoutElectionInput | ProposalCreateOrConnectWithoutElectionInput[]
+    createMany?: ProposalCreateManyElectionInputEnvelope
+    connect?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+  }
+
   export type CandidateUncheckedCreateNestedManyWithoutElectionInput = {
     create?: XOR<CandidateCreateWithoutElectionInput, CandidateUncheckedCreateWithoutElectionInput> | CandidateCreateWithoutElectionInput[] | CandidateUncheckedCreateWithoutElectionInput[]
     connectOrCreate?: CandidateCreateOrConnectWithoutElectionInput | CandidateCreateOrConnectWithoutElectionInput[]
@@ -14576,6 +16212,13 @@ export namespace Prisma {
     connectOrCreate?: VoteCreateOrConnectWithoutElectionInput | VoteCreateOrConnectWithoutElectionInput[]
     createMany?: VoteCreateManyElectionInputEnvelope
     connect?: VoteWhereUniqueInput | VoteWhereUniqueInput[]
+  }
+
+  export type ProposalUncheckedCreateNestedManyWithoutElectionInput = {
+    create?: XOR<ProposalCreateWithoutElectionInput, ProposalUncheckedCreateWithoutElectionInput> | ProposalCreateWithoutElectionInput[] | ProposalUncheckedCreateWithoutElectionInput[]
+    connectOrCreate?: ProposalCreateOrConnectWithoutElectionInput | ProposalCreateOrConnectWithoutElectionInput[]
+    createMany?: ProposalCreateManyElectionInputEnvelope
+    connect?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
@@ -14642,6 +16285,20 @@ export namespace Prisma {
     deleteMany?: VoteScalarWhereInput | VoteScalarWhereInput[]
   }
 
+  export type ProposalUpdateManyWithoutElectionNestedInput = {
+    create?: XOR<ProposalCreateWithoutElectionInput, ProposalUncheckedCreateWithoutElectionInput> | ProposalCreateWithoutElectionInput[] | ProposalUncheckedCreateWithoutElectionInput[]
+    connectOrCreate?: ProposalCreateOrConnectWithoutElectionInput | ProposalCreateOrConnectWithoutElectionInput[]
+    upsert?: ProposalUpsertWithWhereUniqueWithoutElectionInput | ProposalUpsertWithWhereUniqueWithoutElectionInput[]
+    createMany?: ProposalCreateManyElectionInputEnvelope
+    set?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    disconnect?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    delete?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    connect?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    update?: ProposalUpdateWithWhereUniqueWithoutElectionInput | ProposalUpdateWithWhereUniqueWithoutElectionInput[]
+    updateMany?: ProposalUpdateManyWithWhereWithoutElectionInput | ProposalUpdateManyWithWhereWithoutElectionInput[]
+    deleteMany?: ProposalScalarWhereInput | ProposalScalarWhereInput[]
+  }
+
   export type CandidateUncheckedUpdateManyWithoutElectionNestedInput = {
     create?: XOR<CandidateCreateWithoutElectionInput, CandidateUncheckedCreateWithoutElectionInput> | CandidateCreateWithoutElectionInput[] | CandidateUncheckedCreateWithoutElectionInput[]
     connectOrCreate?: CandidateCreateOrConnectWithoutElectionInput | CandidateCreateOrConnectWithoutElectionInput[]
@@ -14694,6 +16351,20 @@ export namespace Prisma {
     deleteMany?: VoteScalarWhereInput | VoteScalarWhereInput[]
   }
 
+  export type ProposalUncheckedUpdateManyWithoutElectionNestedInput = {
+    create?: XOR<ProposalCreateWithoutElectionInput, ProposalUncheckedCreateWithoutElectionInput> | ProposalCreateWithoutElectionInput[] | ProposalUncheckedCreateWithoutElectionInput[]
+    connectOrCreate?: ProposalCreateOrConnectWithoutElectionInput | ProposalCreateOrConnectWithoutElectionInput[]
+    upsert?: ProposalUpsertWithWhereUniqueWithoutElectionInput | ProposalUpsertWithWhereUniqueWithoutElectionInput[]
+    createMany?: ProposalCreateManyElectionInputEnvelope
+    set?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    disconnect?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    delete?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    connect?: ProposalWhereUniqueInput | ProposalWhereUniqueInput[]
+    update?: ProposalUpdateWithWhereUniqueWithoutElectionInput | ProposalUpdateWithWhereUniqueWithoutElectionInput[]
+    updateMany?: ProposalUpdateManyWithWhereWithoutElectionInput | ProposalUpdateManyWithWhereWithoutElectionInput[]
+    deleteMany?: ProposalScalarWhereInput | ProposalScalarWhereInput[]
+  }
+
   export type RoleCreateNestedOneWithoutCandidatesInput = {
     create?: XOR<RoleCreateWithoutCandidatesInput, RoleUncheckedCreateWithoutCandidatesInput>
     connectOrCreate?: RoleCreateOrConnectWithoutCandidatesInput
@@ -14732,6 +16403,13 @@ export namespace Prisma {
     connect?: VoteWhereUniqueInput | VoteWhereUniqueInput[]
   }
 
+  export type NotificationCreateNestedManyWithoutCandidateInput = {
+    create?: XOR<NotificationCreateWithoutCandidateInput, NotificationUncheckedCreateWithoutCandidateInput> | NotificationCreateWithoutCandidateInput[] | NotificationUncheckedCreateWithoutCandidateInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutCandidateInput | NotificationCreateOrConnectWithoutCandidateInput[]
+    createMany?: NotificationCreateManyCandidateInputEnvelope
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+  }
+
   export type ProposalUncheckedCreateNestedManyWithoutCandidateInput = {
     create?: XOR<ProposalCreateWithoutCandidateInput, ProposalUncheckedCreateWithoutCandidateInput> | ProposalCreateWithoutCandidateInput[] | ProposalUncheckedCreateWithoutCandidateInput[]
     connectOrCreate?: ProposalCreateOrConnectWithoutCandidateInput | ProposalCreateOrConnectWithoutCandidateInput[]
@@ -14750,6 +16428,13 @@ export namespace Prisma {
     connectOrCreate?: VoteCreateOrConnectWithoutCandidateInput | VoteCreateOrConnectWithoutCandidateInput[]
     createMany?: VoteCreateManyCandidateInputEnvelope
     connect?: VoteWhereUniqueInput | VoteWhereUniqueInput[]
+  }
+
+  export type NotificationUncheckedCreateNestedManyWithoutCandidateInput = {
+    create?: XOR<NotificationCreateWithoutCandidateInput, NotificationUncheckedCreateWithoutCandidateInput> | NotificationCreateWithoutCandidateInput[] | NotificationUncheckedCreateWithoutCandidateInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutCandidateInput | NotificationCreateOrConnectWithoutCandidateInput[]
+    createMany?: NotificationCreateManyCandidateInputEnvelope
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -14820,6 +16505,20 @@ export namespace Prisma {
     deleteMany?: VoteScalarWhereInput | VoteScalarWhereInput[]
   }
 
+  export type NotificationUpdateManyWithoutCandidateNestedInput = {
+    create?: XOR<NotificationCreateWithoutCandidateInput, NotificationUncheckedCreateWithoutCandidateInput> | NotificationCreateWithoutCandidateInput[] | NotificationUncheckedCreateWithoutCandidateInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutCandidateInput | NotificationCreateOrConnectWithoutCandidateInput[]
+    upsert?: NotificationUpsertWithWhereUniqueWithoutCandidateInput | NotificationUpsertWithWhereUniqueWithoutCandidateInput[]
+    createMany?: NotificationCreateManyCandidateInputEnvelope
+    set?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    disconnect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    delete?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    update?: NotificationUpdateWithWhereUniqueWithoutCandidateInput | NotificationUpdateWithWhereUniqueWithoutCandidateInput[]
+    updateMany?: NotificationUpdateManyWithWhereWithoutCandidateInput | NotificationUpdateManyWithWhereWithoutCandidateInput[]
+    deleteMany?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+  }
+
   export type ProposalUncheckedUpdateManyWithoutCandidateNestedInput = {
     create?: XOR<ProposalCreateWithoutCandidateInput, ProposalUncheckedCreateWithoutCandidateInput> | ProposalCreateWithoutCandidateInput[] | ProposalUncheckedCreateWithoutCandidateInput[]
     connectOrCreate?: ProposalCreateOrConnectWithoutCandidateInput | ProposalCreateOrConnectWithoutCandidateInput[]
@@ -14858,6 +16557,20 @@ export namespace Prisma {
     deleteMany?: VoteScalarWhereInput | VoteScalarWhereInput[]
   }
 
+  export type NotificationUncheckedUpdateManyWithoutCandidateNestedInput = {
+    create?: XOR<NotificationCreateWithoutCandidateInput, NotificationUncheckedCreateWithoutCandidateInput> | NotificationCreateWithoutCandidateInput[] | NotificationUncheckedCreateWithoutCandidateInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutCandidateInput | NotificationCreateOrConnectWithoutCandidateInput[]
+    upsert?: NotificationUpsertWithWhereUniqueWithoutCandidateInput | NotificationUpsertWithWhereUniqueWithoutCandidateInput[]
+    createMany?: NotificationCreateManyCandidateInputEnvelope
+    set?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    disconnect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    delete?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    update?: NotificationUpdateWithWhereUniqueWithoutCandidateInput | NotificationUpdateWithWhereUniqueWithoutCandidateInput[]
+    updateMany?: NotificationUpdateManyWithWhereWithoutCandidateInput | NotificationUpdateManyWithWhereWithoutCandidateInput[]
+    deleteMany?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+  }
+
   export type VoterCreateNestedOneWithoutVoteInput = {
     create?: XOR<VoterCreateWithoutVoteInput, VoterUncheckedCreateWithoutVoteInput>
     connectOrCreate?: VoterCreateOrConnectWithoutVoteInput
@@ -14876,10 +16589,12 @@ export namespace Prisma {
     connect?: ElectionWhereUniqueInput
   }
 
-  export type VoterUpdateOneRequiredWithoutVoteNestedInput = {
+  export type VoterUpdateOneWithoutVoteNestedInput = {
     create?: XOR<VoterCreateWithoutVoteInput, VoterUncheckedCreateWithoutVoteInput>
     connectOrCreate?: VoterCreateOrConnectWithoutVoteInput
     upsert?: VoterUpsertWithoutVoteInput
+    disconnect?: VoterWhereInput | boolean
+    delete?: VoterWhereInput | boolean
     connect?: VoterWhereUniqueInput
     update?: XOR<XOR<VoterUpdateToOneWithWhereWithoutVoteInput, VoterUpdateWithoutVoteInput>, VoterUncheckedUpdateWithoutVoteInput>
   }
@@ -14910,12 +16625,28 @@ export namespace Prisma {
     connect?: CandidateWhereUniqueInput
   }
 
+  export type ElectionCreateNestedOneWithoutProposalsInput = {
+    create?: XOR<ElectionCreateWithoutProposalsInput, ElectionUncheckedCreateWithoutProposalsInput>
+    connectOrCreate?: ElectionCreateOrConnectWithoutProposalsInput
+    connect?: ElectionWhereUniqueInput
+  }
+
   export type CandidateUpdateOneRequiredWithoutProposalsNestedInput = {
     create?: XOR<CandidateCreateWithoutProposalsInput, CandidateUncheckedCreateWithoutProposalsInput>
     connectOrCreate?: CandidateCreateOrConnectWithoutProposalsInput
     upsert?: CandidateUpsertWithoutProposalsInput
     connect?: CandidateWhereUniqueInput
     update?: XOR<XOR<CandidateUpdateToOneWithWhereWithoutProposalsInput, CandidateUpdateWithoutProposalsInput>, CandidateUncheckedUpdateWithoutProposalsInput>
+  }
+
+  export type ElectionUpdateOneWithoutProposalsNestedInput = {
+    create?: XOR<ElectionCreateWithoutProposalsInput, ElectionUncheckedCreateWithoutProposalsInput>
+    connectOrCreate?: ElectionCreateOrConnectWithoutProposalsInput
+    upsert?: ElectionUpsertWithoutProposalsInput
+    disconnect?: ElectionWhereInput | boolean
+    delete?: ElectionWhereInput | boolean
+    connect?: ElectionWhereUniqueInput
+    update?: XOR<XOR<ElectionUpdateToOneWithWhereWithoutProposalsInput, ElectionUpdateWithoutProposalsInput>, ElectionUncheckedUpdateWithoutProposalsInput>
   }
 
   export type VoterCreateNestedManyWithoutCareerInput = {
@@ -15114,6 +16845,24 @@ export namespace Prisma {
     deleteMany?: CandidateScalarWhereInput | CandidateScalarWhereInput[]
   }
 
+  export type CandidateCreateNestedOneWithoutNotificationsInput = {
+    create?: XOR<CandidateCreateWithoutNotificationsInput, CandidateUncheckedCreateWithoutNotificationsInput>
+    connectOrCreate?: CandidateCreateOrConnectWithoutNotificationsInput
+    connect?: CandidateWhereUniqueInput
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
+  export type CandidateUpdateOneRequiredWithoutNotificationsNestedInput = {
+    create?: XOR<CandidateCreateWithoutNotificationsInput, CandidateUncheckedCreateWithoutNotificationsInput>
+    connectOrCreate?: CandidateCreateOrConnectWithoutNotificationsInput
+    upsert?: CandidateUpsertWithoutNotificationsInput
+    connect?: CandidateWhereUniqueInput
+    update?: XOR<XOR<CandidateUpdateToOneWithWhereWithoutNotificationsInput, CandidateUpdateWithoutNotificationsInput>, CandidateUncheckedUpdateWithoutNotificationsInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -15304,6 +17053,19 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
   export type ElectionCreateWithoutAdministradorInput = {
     nombre_election: string
     fecha_inicio: Date | string
@@ -15313,6 +17075,7 @@ export namespace Prisma {
     voters?: VoterCreateNestedManyWithoutElectionInput
     result?: ResultCreateNestedOneWithoutElectionInput
     Vote?: VoteCreateNestedManyWithoutElectionInput
+    proposals?: ProposalCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionUncheckedCreateWithoutAdministradorInput = {
@@ -15325,6 +17088,7 @@ export namespace Prisma {
     voters?: VoterUncheckedCreateNestedManyWithoutElectionInput
     result?: ResultUncheckedCreateNestedOneWithoutElectionInput
     Vote?: VoteUncheckedCreateNestedManyWithoutElectionInput
+    proposals?: ProposalUncheckedCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionCreateOrConnectWithoutAdministradorInput = {
@@ -15390,6 +17154,7 @@ export namespace Prisma {
     candidates?: CandidateCreateNestedManyWithoutElectionInput
     result?: ResultCreateNestedOneWithoutElectionInput
     Vote?: VoteCreateNestedManyWithoutElectionInput
+    proposals?: ProposalCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionUncheckedCreateWithoutVotersInput = {
@@ -15402,6 +17167,7 @@ export namespace Prisma {
     candidates?: CandidateUncheckedCreateNestedManyWithoutElectionInput
     result?: ResultUncheckedCreateNestedOneWithoutElectionInput
     Vote?: VoteUncheckedCreateNestedManyWithoutElectionInput
+    proposals?: ProposalUncheckedCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionCreateOrConnectWithoutVotersInput = {
@@ -15494,6 +17260,7 @@ export namespace Prisma {
     candidates?: CandidateUpdateManyWithoutElectionNestedInput
     result?: ResultUpdateOneWithoutElectionNestedInput
     Vote?: VoteUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionUncheckedUpdateWithoutVotersInput = {
@@ -15506,6 +17273,7 @@ export namespace Prisma {
     candidates?: CandidateUncheckedUpdateManyWithoutElectionNestedInput
     result?: ResultUncheckedUpdateOneWithoutElectionNestedInput
     Vote?: VoteUncheckedUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUncheckedUpdateManyWithoutElectionNestedInput
   }
 
   export type CareerUpsertWithoutVotersInput = {
@@ -15555,7 +17323,7 @@ export namespace Prisma {
     id_vote?: IntFilter<"Vote"> | number
     fecha_vote?: DateTimeFilter<"Vote"> | Date | string
     hora_vote?: DateTimeFilter<"Vote"> | Date | string
-    voterId?: IntFilter<"Vote"> | number
+    voterId?: IntNullableFilter<"Vote"> | number | null
     candidateId?: IntNullableFilter<"Vote"> | number | null
     electionId?: IntNullableFilter<"Vote"> | number | null
   }
@@ -15593,11 +17361,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     role: RoleCreateNestedOneWithoutCandidatesInput
     career: CareerCreateNestedOneWithoutCandidatesInput
     proposals?: ProposalCreateNestedManyWithoutCandidateInput
     result?: ResultCreateNestedOneWithoutCandidateInput
     votes?: VoteCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUncheckedCreateWithoutElectionInput = {
@@ -15610,11 +17380,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     careerId: number
     proposals?: ProposalUncheckedCreateNestedManyWithoutCandidateInput
     result?: ResultUncheckedCreateNestedOneWithoutCandidateInput
     votes?: VoteUncheckedCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateCreateOrConnectWithoutElectionInput = {
@@ -15683,7 +17455,7 @@ export namespace Prisma {
   export type VoteCreateWithoutElectionInput = {
     fecha_vote: Date | string
     hora_vote: Date | string
-    voter: VoterCreateNestedOneWithoutVoteInput
+    voter?: VoterCreateNestedOneWithoutVoteInput
     candidate?: CandidateCreateNestedOneWithoutVotesInput
   }
 
@@ -15691,7 +17463,7 @@ export namespace Prisma {
     id_vote?: number
     fecha_vote: Date | string
     hora_vote: Date | string
-    voterId: number
+    voterId?: number | null
     candidateId?: number | null
   }
 
@@ -15702,6 +17474,31 @@ export namespace Prisma {
 
   export type VoteCreateManyElectionInputEnvelope = {
     data: VoteCreateManyElectionInput | VoteCreateManyElectionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ProposalCreateWithoutElectionInput = {
+    titulo_proposal: string
+    descripcion_proposal: string
+    estado_proposal: string
+    candidate: CandidateCreateNestedOneWithoutProposalsInput
+  }
+
+  export type ProposalUncheckedCreateWithoutElectionInput = {
+    id_proposal?: number
+    titulo_proposal: string
+    descripcion_proposal: string
+    estado_proposal: string
+    candidateId: number
+  }
+
+  export type ProposalCreateOrConnectWithoutElectionInput = {
+    where: ProposalWhereUniqueInput
+    create: XOR<ProposalCreateWithoutElectionInput, ProposalUncheckedCreateWithoutElectionInput>
+  }
+
+  export type ProposalCreateManyElectionInputEnvelope = {
+    data: ProposalCreateManyElectionInput | ProposalCreateManyElectionInput[]
     skipDuplicates?: boolean
   }
 
@@ -15764,6 +17561,7 @@ export namespace Prisma {
     estado_candidate?: StringFilter<"Candidate"> | string
     foto_candidate?: StringNullableFilter<"Candidate"> | string | null
     contrasena_candidate?: StringFilter<"Candidate"> | string
+    motivo_rechazo?: StringNullableFilter<"Candidate"> | string | null
     roleId?: IntFilter<"Candidate"> | number
     careerId?: IntFilter<"Candidate"> | number
     electionId?: IntNullableFilter<"Candidate"> | number | null
@@ -15840,6 +17638,34 @@ export namespace Prisma {
     data: XOR<VoteUpdateManyMutationInput, VoteUncheckedUpdateManyWithoutElectionInput>
   }
 
+  export type ProposalUpsertWithWhereUniqueWithoutElectionInput = {
+    where: ProposalWhereUniqueInput
+    update: XOR<ProposalUpdateWithoutElectionInput, ProposalUncheckedUpdateWithoutElectionInput>
+    create: XOR<ProposalCreateWithoutElectionInput, ProposalUncheckedCreateWithoutElectionInput>
+  }
+
+  export type ProposalUpdateWithWhereUniqueWithoutElectionInput = {
+    where: ProposalWhereUniqueInput
+    data: XOR<ProposalUpdateWithoutElectionInput, ProposalUncheckedUpdateWithoutElectionInput>
+  }
+
+  export type ProposalUpdateManyWithWhereWithoutElectionInput = {
+    where: ProposalScalarWhereInput
+    data: XOR<ProposalUpdateManyMutationInput, ProposalUncheckedUpdateManyWithoutElectionInput>
+  }
+
+  export type ProposalScalarWhereInput = {
+    AND?: ProposalScalarWhereInput | ProposalScalarWhereInput[]
+    OR?: ProposalScalarWhereInput[]
+    NOT?: ProposalScalarWhereInput | ProposalScalarWhereInput[]
+    id_proposal?: IntFilter<"Proposal"> | number
+    titulo_proposal?: StringFilter<"Proposal"> | string
+    descripcion_proposal?: StringFilter<"Proposal"> | string
+    estado_proposal?: StringFilter<"Proposal"> | string
+    candidateId?: IntFilter<"Proposal"> | number
+    electionId?: IntNullableFilter<"Proposal"> | number | null
+  }
+
   export type RoleCreateWithoutCandidatesInput = {
     nombre_role: string
     voters?: VoterCreateNestedManyWithoutRoleInput
@@ -15883,6 +17709,7 @@ export namespace Prisma {
     voters?: VoterCreateNestedManyWithoutElectionInput
     result?: ResultCreateNestedOneWithoutElectionInput
     Vote?: VoteCreateNestedManyWithoutElectionInput
+    proposals?: ProposalCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionUncheckedCreateWithoutCandidatesInput = {
@@ -15895,6 +17722,7 @@ export namespace Prisma {
     voters?: VoterUncheckedCreateNestedManyWithoutElectionInput
     result?: ResultUncheckedCreateNestedOneWithoutElectionInput
     Vote?: VoteUncheckedCreateNestedManyWithoutElectionInput
+    proposals?: ProposalUncheckedCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionCreateOrConnectWithoutCandidatesInput = {
@@ -15906,6 +17734,7 @@ export namespace Prisma {
     titulo_proposal: string
     descripcion_proposal: string
     estado_proposal: string
+    election?: ElectionCreateNestedOneWithoutProposalsInput
   }
 
   export type ProposalUncheckedCreateWithoutCandidateInput = {
@@ -15913,6 +17742,7 @@ export namespace Prisma {
     titulo_proposal: string
     descripcion_proposal: string
     estado_proposal: string
+    electionId?: number | null
   }
 
   export type ProposalCreateOrConnectWithoutCandidateInput = {
@@ -15944,7 +17774,7 @@ export namespace Prisma {
   export type VoteCreateWithoutCandidateInput = {
     fecha_vote: Date | string
     hora_vote: Date | string
-    voter: VoterCreateNestedOneWithoutVoteInput
+    voter?: VoterCreateNestedOneWithoutVoteInput
     election?: ElectionCreateNestedOneWithoutVoteInput
   }
 
@@ -15952,7 +17782,7 @@ export namespace Prisma {
     id_vote?: number
     fecha_vote: Date | string
     hora_vote: Date | string
-    voterId: number
+    voterId?: number | null
     electionId?: number | null
   }
 
@@ -15963,6 +17793,33 @@ export namespace Prisma {
 
   export type VoteCreateManyCandidateInputEnvelope = {
     data: VoteCreateManyCandidateInput | VoteCreateManyCandidateInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type NotificationCreateWithoutCandidateInput = {
+    titulo: string
+    mensaje: string
+    tipo: string
+    leida?: boolean
+    fecha_creacion?: Date | string
+  }
+
+  export type NotificationUncheckedCreateWithoutCandidateInput = {
+    id_notification?: number
+    titulo: string
+    mensaje: string
+    tipo: string
+    leida?: boolean
+    fecha_creacion?: Date | string
+  }
+
+  export type NotificationCreateOrConnectWithoutCandidateInput = {
+    where: NotificationWhereUniqueInput
+    create: XOR<NotificationCreateWithoutCandidateInput, NotificationUncheckedCreateWithoutCandidateInput>
+  }
+
+  export type NotificationCreateManyCandidateInputEnvelope = {
+    data: NotificationCreateManyCandidateInput | NotificationCreateManyCandidateInput[]
     skipDuplicates?: boolean
   }
 
@@ -16032,6 +17889,7 @@ export namespace Prisma {
     voters?: VoterUpdateManyWithoutElectionNestedInput
     result?: ResultUpdateOneWithoutElectionNestedInput
     Vote?: VoteUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionUncheckedUpdateWithoutCandidatesInput = {
@@ -16044,6 +17902,7 @@ export namespace Prisma {
     voters?: VoterUncheckedUpdateManyWithoutElectionNestedInput
     result?: ResultUncheckedUpdateOneWithoutElectionNestedInput
     Vote?: VoteUncheckedUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUncheckedUpdateManyWithoutElectionNestedInput
   }
 
   export type ProposalUpsertWithWhereUniqueWithoutCandidateInput = {
@@ -16060,17 +17919,6 @@ export namespace Prisma {
   export type ProposalUpdateManyWithWhereWithoutCandidateInput = {
     where: ProposalScalarWhereInput
     data: XOR<ProposalUpdateManyMutationInput, ProposalUncheckedUpdateManyWithoutCandidateInput>
-  }
-
-  export type ProposalScalarWhereInput = {
-    AND?: ProposalScalarWhereInput | ProposalScalarWhereInput[]
-    OR?: ProposalScalarWhereInput[]
-    NOT?: ProposalScalarWhereInput | ProposalScalarWhereInput[]
-    id_proposal?: IntFilter<"Proposal"> | number
-    titulo_proposal?: StringFilter<"Proposal"> | string
-    descripcion_proposal?: StringFilter<"Proposal"> | string
-    estado_proposal?: StringFilter<"Proposal"> | string
-    candidateId?: IntFilter<"Proposal"> | number
   }
 
   export type ResultUpsertWithoutCandidateInput = {
@@ -16109,6 +17957,35 @@ export namespace Prisma {
   export type VoteUpdateManyWithWhereWithoutCandidateInput = {
     where: VoteScalarWhereInput
     data: XOR<VoteUpdateManyMutationInput, VoteUncheckedUpdateManyWithoutCandidateInput>
+  }
+
+  export type NotificationUpsertWithWhereUniqueWithoutCandidateInput = {
+    where: NotificationWhereUniqueInput
+    update: XOR<NotificationUpdateWithoutCandidateInput, NotificationUncheckedUpdateWithoutCandidateInput>
+    create: XOR<NotificationCreateWithoutCandidateInput, NotificationUncheckedCreateWithoutCandidateInput>
+  }
+
+  export type NotificationUpdateWithWhereUniqueWithoutCandidateInput = {
+    where: NotificationWhereUniqueInput
+    data: XOR<NotificationUpdateWithoutCandidateInput, NotificationUncheckedUpdateWithoutCandidateInput>
+  }
+
+  export type NotificationUpdateManyWithWhereWithoutCandidateInput = {
+    where: NotificationScalarWhereInput
+    data: XOR<NotificationUpdateManyMutationInput, NotificationUncheckedUpdateManyWithoutCandidateInput>
+  }
+
+  export type NotificationScalarWhereInput = {
+    AND?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+    OR?: NotificationScalarWhereInput[]
+    NOT?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+    id_notification?: IntFilter<"Notification"> | number
+    id_candidate?: IntFilter<"Notification"> | number
+    titulo?: StringFilter<"Notification"> | string
+    mensaje?: StringFilter<"Notification"> | string
+    tipo?: StringFilter<"Notification"> | string
+    leida?: BoolFilter<"Notification"> | boolean
+    fecha_creacion?: DateTimeFilter<"Notification"> | Date | string
   }
 
   export type VoterCreateWithoutVoteInput = {
@@ -16152,11 +18029,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     role: RoleCreateNestedOneWithoutCandidatesInput
     career: CareerCreateNestedOneWithoutCandidatesInput
     election?: ElectionCreateNestedOneWithoutCandidatesInput
     proposals?: ProposalCreateNestedManyWithoutCandidateInput
     result?: ResultCreateNestedOneWithoutCandidateInput
+    notifications?: NotificationCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUncheckedCreateWithoutVotesInput = {
@@ -16169,11 +18048,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     careerId: number
     electionId?: number | null
     proposals?: ProposalUncheckedCreateNestedManyWithoutCandidateInput
     result?: ResultUncheckedCreateNestedOneWithoutCandidateInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateCreateOrConnectWithoutVotesInput = {
@@ -16190,6 +18071,7 @@ export namespace Prisma {
     candidates?: CandidateCreateNestedManyWithoutElectionInput
     voters?: VoterCreateNestedManyWithoutElectionInput
     result?: ResultCreateNestedOneWithoutElectionInput
+    proposals?: ProposalCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionUncheckedCreateWithoutVoteInput = {
@@ -16202,6 +18084,7 @@ export namespace Prisma {
     candidates?: CandidateUncheckedCreateNestedManyWithoutElectionInput
     voters?: VoterUncheckedCreateNestedManyWithoutElectionInput
     result?: ResultUncheckedCreateNestedOneWithoutElectionInput
+    proposals?: ProposalUncheckedCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionCreateOrConnectWithoutVoteInput = {
@@ -16267,11 +18150,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     role?: RoleUpdateOneRequiredWithoutCandidatesNestedInput
     career?: CareerUpdateOneRequiredWithoutCandidatesNestedInput
     election?: ElectionUpdateOneWithoutCandidatesNestedInput
     proposals?: ProposalUpdateManyWithoutCandidateNestedInput
     result?: ResultUpdateOneWithoutCandidateNestedInput
+    notifications?: NotificationUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateWithoutVotesInput = {
@@ -16284,11 +18169,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     careerId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
     proposals?: ProposalUncheckedUpdateManyWithoutCandidateNestedInput
     result?: ResultUncheckedUpdateOneWithoutCandidateNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutCandidateNestedInput
   }
 
   export type ElectionUpsertWithoutVoteInput = {
@@ -16311,6 +18198,7 @@ export namespace Prisma {
     candidates?: CandidateUpdateManyWithoutElectionNestedInput
     voters?: VoterUpdateManyWithoutElectionNestedInput
     result?: ResultUpdateOneWithoutElectionNestedInput
+    proposals?: ProposalUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionUncheckedUpdateWithoutVoteInput = {
@@ -16323,6 +18211,7 @@ export namespace Prisma {
     candidates?: CandidateUncheckedUpdateManyWithoutElectionNestedInput
     voters?: VoterUncheckedUpdateManyWithoutElectionNestedInput
     result?: ResultUncheckedUpdateOneWithoutElectionNestedInput
+    proposals?: ProposalUncheckedUpdateManyWithoutElectionNestedInput
   }
 
   export type CandidateCreateWithoutProposalsInput = {
@@ -16334,11 +18223,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     role: RoleCreateNestedOneWithoutCandidatesInput
     career: CareerCreateNestedOneWithoutCandidatesInput
     election?: ElectionCreateNestedOneWithoutCandidatesInput
     result?: ResultCreateNestedOneWithoutCandidateInput
     votes?: VoteCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUncheckedCreateWithoutProposalsInput = {
@@ -16351,16 +18242,48 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     careerId: number
     electionId?: number | null
     result?: ResultUncheckedCreateNestedOneWithoutCandidateInput
     votes?: VoteUncheckedCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateCreateOrConnectWithoutProposalsInput = {
     where: CandidateWhereUniqueInput
     create: XOR<CandidateCreateWithoutProposalsInput, CandidateUncheckedCreateWithoutProposalsInput>
+  }
+
+  export type ElectionCreateWithoutProposalsInput = {
+    nombre_election: string
+    fecha_inicio: Date | string
+    fecha_fin: Date | string
+    estado_election: string
+    administrador: AdministradorCreateNestedOneWithoutElectionsInput
+    candidates?: CandidateCreateNestedManyWithoutElectionInput
+    voters?: VoterCreateNestedManyWithoutElectionInput
+    result?: ResultCreateNestedOneWithoutElectionInput
+    Vote?: VoteCreateNestedManyWithoutElectionInput
+  }
+
+  export type ElectionUncheckedCreateWithoutProposalsInput = {
+    id_election?: number
+    nombre_election: string
+    fecha_inicio: Date | string
+    fecha_fin: Date | string
+    estado_election: string
+    admin_id: number
+    candidates?: CandidateUncheckedCreateNestedManyWithoutElectionInput
+    voters?: VoterUncheckedCreateNestedManyWithoutElectionInput
+    result?: ResultUncheckedCreateNestedOneWithoutElectionInput
+    Vote?: VoteUncheckedCreateNestedManyWithoutElectionInput
+  }
+
+  export type ElectionCreateOrConnectWithoutProposalsInput = {
+    where: ElectionWhereUniqueInput
+    create: XOR<ElectionCreateWithoutProposalsInput, ElectionUncheckedCreateWithoutProposalsInput>
   }
 
   export type CandidateUpsertWithoutProposalsInput = {
@@ -16383,11 +18306,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     role?: RoleUpdateOneRequiredWithoutCandidatesNestedInput
     career?: CareerUpdateOneRequiredWithoutCandidatesNestedInput
     election?: ElectionUpdateOneWithoutCandidatesNestedInput
     result?: ResultUpdateOneWithoutCandidateNestedInput
     votes?: VoteUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateWithoutProposalsInput = {
@@ -16400,11 +18325,49 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     careerId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
     result?: ResultUncheckedUpdateOneWithoutCandidateNestedInput
     votes?: VoteUncheckedUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutCandidateNestedInput
+  }
+
+  export type ElectionUpsertWithoutProposalsInput = {
+    update: XOR<ElectionUpdateWithoutProposalsInput, ElectionUncheckedUpdateWithoutProposalsInput>
+    create: XOR<ElectionCreateWithoutProposalsInput, ElectionUncheckedCreateWithoutProposalsInput>
+    where?: ElectionWhereInput
+  }
+
+  export type ElectionUpdateToOneWithWhereWithoutProposalsInput = {
+    where?: ElectionWhereInput
+    data: XOR<ElectionUpdateWithoutProposalsInput, ElectionUncheckedUpdateWithoutProposalsInput>
+  }
+
+  export type ElectionUpdateWithoutProposalsInput = {
+    nombre_election?: StringFieldUpdateOperationsInput | string
+    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
+    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    estado_election?: StringFieldUpdateOperationsInput | string
+    administrador?: AdministradorUpdateOneRequiredWithoutElectionsNestedInput
+    candidates?: CandidateUpdateManyWithoutElectionNestedInput
+    voters?: VoterUpdateManyWithoutElectionNestedInput
+    result?: ResultUpdateOneWithoutElectionNestedInput
+    Vote?: VoteUpdateManyWithoutElectionNestedInput
+  }
+
+  export type ElectionUncheckedUpdateWithoutProposalsInput = {
+    id_election?: IntFieldUpdateOperationsInput | number
+    nombre_election?: StringFieldUpdateOperationsInput | string
+    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
+    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    estado_election?: StringFieldUpdateOperationsInput | string
+    admin_id?: IntFieldUpdateOperationsInput | number
+    candidates?: CandidateUncheckedUpdateManyWithoutElectionNestedInput
+    voters?: VoterUncheckedUpdateManyWithoutElectionNestedInput
+    result?: ResultUncheckedUpdateOneWithoutElectionNestedInput
+    Vote?: VoteUncheckedUpdateManyWithoutElectionNestedInput
   }
 
   export type VoterCreateWithoutCareerInput = {
@@ -16453,11 +18416,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     role: RoleCreateNestedOneWithoutCandidatesInput
     election?: ElectionCreateNestedOneWithoutCandidatesInput
     proposals?: ProposalCreateNestedManyWithoutCandidateInput
     result?: ResultCreateNestedOneWithoutCandidateInput
     votes?: VoteCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUncheckedCreateWithoutCareerInput = {
@@ -16470,11 +18435,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     electionId?: number | null
     proposals?: ProposalUncheckedCreateNestedManyWithoutCandidateInput
     result?: ResultUncheckedCreateNestedOneWithoutCandidateInput
     votes?: VoteUncheckedCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateCreateOrConnectWithoutCareerInput = {
@@ -16528,6 +18495,7 @@ export namespace Prisma {
     candidates?: CandidateCreateNestedManyWithoutElectionInput
     voters?: VoterCreateNestedManyWithoutElectionInput
     Vote?: VoteCreateNestedManyWithoutElectionInput
+    proposals?: ProposalCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionUncheckedCreateWithoutResultInput = {
@@ -16540,6 +18508,7 @@ export namespace Prisma {
     candidates?: CandidateUncheckedCreateNestedManyWithoutElectionInput
     voters?: VoterUncheckedCreateNestedManyWithoutElectionInput
     Vote?: VoteUncheckedCreateNestedManyWithoutElectionInput
+    proposals?: ProposalUncheckedCreateNestedManyWithoutElectionInput
   }
 
   export type ElectionCreateOrConnectWithoutResultInput = {
@@ -16556,11 +18525,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     role: RoleCreateNestedOneWithoutCandidatesInput
     career: CareerCreateNestedOneWithoutCandidatesInput
     election?: ElectionCreateNestedOneWithoutCandidatesInput
     proposals?: ProposalCreateNestedManyWithoutCandidateInput
     votes?: VoteCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUncheckedCreateWithoutResultInput = {
@@ -16573,11 +18544,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     careerId: number
     electionId?: number | null
     proposals?: ProposalUncheckedCreateNestedManyWithoutCandidateInput
     votes?: VoteUncheckedCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateCreateOrConnectWithoutResultInput = {
@@ -16605,6 +18578,7 @@ export namespace Prisma {
     candidates?: CandidateUpdateManyWithoutElectionNestedInput
     voters?: VoterUpdateManyWithoutElectionNestedInput
     Vote?: VoteUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionUncheckedUpdateWithoutResultInput = {
@@ -16617,6 +18591,7 @@ export namespace Prisma {
     candidates?: CandidateUncheckedUpdateManyWithoutElectionNestedInput
     voters?: VoterUncheckedUpdateManyWithoutElectionNestedInput
     Vote?: VoteUncheckedUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUncheckedUpdateManyWithoutElectionNestedInput
   }
 
   export type CandidateUpsertWithoutResultInput = {
@@ -16639,11 +18614,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     role?: RoleUpdateOneRequiredWithoutCandidatesNestedInput
     career?: CareerUpdateOneRequiredWithoutCandidatesNestedInput
     election?: ElectionUpdateOneWithoutCandidatesNestedInput
     proposals?: ProposalUpdateManyWithoutCandidateNestedInput
     votes?: VoteUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateWithoutResultInput = {
@@ -16656,11 +18633,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     careerId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
     proposals?: ProposalUncheckedUpdateManyWithoutCandidateNestedInput
     votes?: VoteUncheckedUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutCandidateNestedInput
   }
 
   export type VoterCreateWithoutRoleInput = {
@@ -16709,11 +18688,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     career: CareerCreateNestedOneWithoutCandidatesInput
     election?: ElectionCreateNestedOneWithoutCandidatesInput
     proposals?: ProposalCreateNestedManyWithoutCandidateInput
     result?: ResultCreateNestedOneWithoutCandidateInput
     votes?: VoteCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateUncheckedCreateWithoutRoleInput = {
@@ -16726,11 +18707,13 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     careerId: number
     electionId?: number | null
     proposals?: ProposalUncheckedCreateNestedManyWithoutCandidateInput
     result?: ResultUncheckedCreateNestedOneWithoutCandidateInput
     votes?: VoteUncheckedCreateNestedManyWithoutCandidateInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutCandidateInput
   }
 
   export type CandidateCreateOrConnectWithoutRoleInput = {
@@ -16775,6 +18758,96 @@ export namespace Prisma {
     data: XOR<CandidateUpdateManyMutationInput, CandidateUncheckedUpdateManyWithoutRoleInput>
   }
 
+  export type CandidateCreateWithoutNotificationsInput = {
+    nombre_candidate: string
+    apellido_candidate: string
+    tipo_doc_candidate: string
+    num_doc_candidate: bigint | number
+    correo_candidate: string
+    estado_candidate: string
+    foto_candidate?: string | null
+    contrasena_candidate: string
+    motivo_rechazo?: string | null
+    role: RoleCreateNestedOneWithoutCandidatesInput
+    career: CareerCreateNestedOneWithoutCandidatesInput
+    election?: ElectionCreateNestedOneWithoutCandidatesInput
+    proposals?: ProposalCreateNestedManyWithoutCandidateInput
+    result?: ResultCreateNestedOneWithoutCandidateInput
+    votes?: VoteCreateNestedManyWithoutCandidateInput
+  }
+
+  export type CandidateUncheckedCreateWithoutNotificationsInput = {
+    id_candidate?: number
+    nombre_candidate: string
+    apellido_candidate: string
+    tipo_doc_candidate: string
+    num_doc_candidate: bigint | number
+    correo_candidate: string
+    estado_candidate: string
+    foto_candidate?: string | null
+    contrasena_candidate: string
+    motivo_rechazo?: string | null
+    roleId: number
+    careerId: number
+    electionId?: number | null
+    proposals?: ProposalUncheckedCreateNestedManyWithoutCandidateInput
+    result?: ResultUncheckedCreateNestedOneWithoutCandidateInput
+    votes?: VoteUncheckedCreateNestedManyWithoutCandidateInput
+  }
+
+  export type CandidateCreateOrConnectWithoutNotificationsInput = {
+    where: CandidateWhereUniqueInput
+    create: XOR<CandidateCreateWithoutNotificationsInput, CandidateUncheckedCreateWithoutNotificationsInput>
+  }
+
+  export type CandidateUpsertWithoutNotificationsInput = {
+    update: XOR<CandidateUpdateWithoutNotificationsInput, CandidateUncheckedUpdateWithoutNotificationsInput>
+    create: XOR<CandidateCreateWithoutNotificationsInput, CandidateUncheckedCreateWithoutNotificationsInput>
+    where?: CandidateWhereInput
+  }
+
+  export type CandidateUpdateToOneWithWhereWithoutNotificationsInput = {
+    where?: CandidateWhereInput
+    data: XOR<CandidateUpdateWithoutNotificationsInput, CandidateUncheckedUpdateWithoutNotificationsInput>
+  }
+
+  export type CandidateUpdateWithoutNotificationsInput = {
+    nombre_candidate?: StringFieldUpdateOperationsInput | string
+    apellido_candidate?: StringFieldUpdateOperationsInput | string
+    tipo_doc_candidate?: StringFieldUpdateOperationsInput | string
+    num_doc_candidate?: BigIntFieldUpdateOperationsInput | bigint | number
+    correo_candidate?: StringFieldUpdateOperationsInput | string
+    estado_candidate?: StringFieldUpdateOperationsInput | string
+    foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
+    contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: RoleUpdateOneRequiredWithoutCandidatesNestedInput
+    career?: CareerUpdateOneRequiredWithoutCandidatesNestedInput
+    election?: ElectionUpdateOneWithoutCandidatesNestedInput
+    proposals?: ProposalUpdateManyWithoutCandidateNestedInput
+    result?: ResultUpdateOneWithoutCandidateNestedInput
+    votes?: VoteUpdateManyWithoutCandidateNestedInput
+  }
+
+  export type CandidateUncheckedUpdateWithoutNotificationsInput = {
+    id_candidate?: IntFieldUpdateOperationsInput | number
+    nombre_candidate?: StringFieldUpdateOperationsInput | string
+    apellido_candidate?: StringFieldUpdateOperationsInput | string
+    tipo_doc_candidate?: StringFieldUpdateOperationsInput | string
+    num_doc_candidate?: BigIntFieldUpdateOperationsInput | bigint | number
+    correo_candidate?: StringFieldUpdateOperationsInput | string
+    estado_candidate?: StringFieldUpdateOperationsInput | string
+    foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
+    contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
+    roleId?: IntFieldUpdateOperationsInput | number
+    careerId?: IntFieldUpdateOperationsInput | number
+    electionId?: NullableIntFieldUpdateOperationsInput | number | null
+    proposals?: ProposalUncheckedUpdateManyWithoutCandidateNestedInput
+    result?: ResultUncheckedUpdateOneWithoutCandidateNestedInput
+    votes?: VoteUncheckedUpdateManyWithoutCandidateNestedInput
+  }
+
   export type ElectionCreateManyAdministradorInput = {
     id_election?: number
     nombre_election: string
@@ -16792,6 +18865,7 @@ export namespace Prisma {
     voters?: VoterUpdateManyWithoutElectionNestedInput
     result?: ResultUpdateOneWithoutElectionNestedInput
     Vote?: VoteUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionUncheckedUpdateWithoutAdministradorInput = {
@@ -16804,6 +18878,7 @@ export namespace Prisma {
     voters?: VoterUncheckedUpdateManyWithoutElectionNestedInput
     result?: ResultUncheckedUpdateOneWithoutElectionNestedInput
     Vote?: VoteUncheckedUpdateManyWithoutElectionNestedInput
+    proposals?: ProposalUncheckedUpdateManyWithoutElectionNestedInput
   }
 
   export type ElectionUncheckedUpdateManyWithoutAdministradorInput = {
@@ -16855,6 +18930,7 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     careerId: number
   }
@@ -16876,8 +18952,16 @@ export namespace Prisma {
     id_vote?: number
     fecha_vote: Date | string
     hora_vote: Date | string
-    voterId: number
+    voterId?: number | null
     candidateId?: number | null
+  }
+
+  export type ProposalCreateManyElectionInput = {
+    id_proposal?: number
+    titulo_proposal: string
+    descripcion_proposal: string
+    estado_proposal: string
+    candidateId: number
   }
 
   export type CandidateUpdateWithoutElectionInput = {
@@ -16889,11 +18973,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     role?: RoleUpdateOneRequiredWithoutCandidatesNestedInput
     career?: CareerUpdateOneRequiredWithoutCandidatesNestedInput
     proposals?: ProposalUpdateManyWithoutCandidateNestedInput
     result?: ResultUpdateOneWithoutCandidateNestedInput
     votes?: VoteUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateWithoutElectionInput = {
@@ -16906,11 +18992,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     careerId?: IntFieldUpdateOperationsInput | number
     proposals?: ProposalUncheckedUpdateManyWithoutCandidateNestedInput
     result?: ResultUncheckedUpdateOneWithoutCandidateNestedInput
     votes?: VoteUncheckedUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateManyWithoutElectionInput = {
@@ -16923,6 +19011,7 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     careerId?: IntFieldUpdateOperationsInput | number
   }
@@ -16970,7 +19059,7 @@ export namespace Prisma {
   export type VoteUpdateWithoutElectionInput = {
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voter?: VoterUpdateOneRequiredWithoutVoteNestedInput
+    voter?: VoterUpdateOneWithoutVoteNestedInput
     candidate?: CandidateUpdateOneWithoutVotesNestedInput
   }
 
@@ -16978,7 +19067,7 @@ export namespace Prisma {
     id_vote?: IntFieldUpdateOperationsInput | number
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voterId?: IntFieldUpdateOperationsInput | number
+    voterId?: NullableIntFieldUpdateOperationsInput | number | null
     candidateId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -16986,8 +19075,31 @@ export namespace Prisma {
     id_vote?: IntFieldUpdateOperationsInput | number
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voterId?: IntFieldUpdateOperationsInput | number
+    voterId?: NullableIntFieldUpdateOperationsInput | number | null
     candidateId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type ProposalUpdateWithoutElectionInput = {
+    titulo_proposal?: StringFieldUpdateOperationsInput | string
+    descripcion_proposal?: StringFieldUpdateOperationsInput | string
+    estado_proposal?: StringFieldUpdateOperationsInput | string
+    candidate?: CandidateUpdateOneRequiredWithoutProposalsNestedInput
+  }
+
+  export type ProposalUncheckedUpdateWithoutElectionInput = {
+    id_proposal?: IntFieldUpdateOperationsInput | number
+    titulo_proposal?: StringFieldUpdateOperationsInput | string
+    descripcion_proposal?: StringFieldUpdateOperationsInput | string
+    estado_proposal?: StringFieldUpdateOperationsInput | string
+    candidateId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ProposalUncheckedUpdateManyWithoutElectionInput = {
+    id_proposal?: IntFieldUpdateOperationsInput | number
+    titulo_proposal?: StringFieldUpdateOperationsInput | string
+    descripcion_proposal?: StringFieldUpdateOperationsInput | string
+    estado_proposal?: StringFieldUpdateOperationsInput | string
+    candidateId?: IntFieldUpdateOperationsInput | number
   }
 
   export type ProposalCreateManyCandidateInput = {
@@ -16995,20 +19107,31 @@ export namespace Prisma {
     titulo_proposal: string
     descripcion_proposal: string
     estado_proposal: string
+    electionId?: number | null
   }
 
   export type VoteCreateManyCandidateInput = {
     id_vote?: number
     fecha_vote: Date | string
     hora_vote: Date | string
-    voterId: number
+    voterId?: number | null
     electionId?: number | null
+  }
+
+  export type NotificationCreateManyCandidateInput = {
+    id_notification?: number
+    titulo: string
+    mensaje: string
+    tipo: string
+    leida?: boolean
+    fecha_creacion?: Date | string
   }
 
   export type ProposalUpdateWithoutCandidateInput = {
     titulo_proposal?: StringFieldUpdateOperationsInput | string
     descripcion_proposal?: StringFieldUpdateOperationsInput | string
     estado_proposal?: StringFieldUpdateOperationsInput | string
+    election?: ElectionUpdateOneWithoutProposalsNestedInput
   }
 
   export type ProposalUncheckedUpdateWithoutCandidateInput = {
@@ -17016,6 +19139,7 @@ export namespace Prisma {
     titulo_proposal?: StringFieldUpdateOperationsInput | string
     descripcion_proposal?: StringFieldUpdateOperationsInput | string
     estado_proposal?: StringFieldUpdateOperationsInput | string
+    electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type ProposalUncheckedUpdateManyWithoutCandidateInput = {
@@ -17023,12 +19147,13 @@ export namespace Prisma {
     titulo_proposal?: StringFieldUpdateOperationsInput | string
     descripcion_proposal?: StringFieldUpdateOperationsInput | string
     estado_proposal?: StringFieldUpdateOperationsInput | string
+    electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type VoteUpdateWithoutCandidateInput = {
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voter?: VoterUpdateOneRequiredWithoutVoteNestedInput
+    voter?: VoterUpdateOneWithoutVoteNestedInput
     election?: ElectionUpdateOneWithoutVoteNestedInput
   }
 
@@ -17036,7 +19161,7 @@ export namespace Prisma {
     id_vote?: IntFieldUpdateOperationsInput | number
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voterId?: IntFieldUpdateOperationsInput | number
+    voterId?: NullableIntFieldUpdateOperationsInput | number | null
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
@@ -17044,8 +19169,34 @@ export namespace Prisma {
     id_vote?: IntFieldUpdateOperationsInput | number
     fecha_vote?: DateTimeFieldUpdateOperationsInput | Date | string
     hora_vote?: DateTimeFieldUpdateOperationsInput | Date | string
-    voterId?: IntFieldUpdateOperationsInput | number
+    voterId?: NullableIntFieldUpdateOperationsInput | number | null
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type NotificationUpdateWithoutCandidateInput = {
+    titulo?: StringFieldUpdateOperationsInput | string
+    mensaje?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    leida?: BoolFieldUpdateOperationsInput | boolean
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationUncheckedUpdateWithoutCandidateInput = {
+    id_notification?: IntFieldUpdateOperationsInput | number
+    titulo?: StringFieldUpdateOperationsInput | string
+    mensaje?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    leida?: BoolFieldUpdateOperationsInput | boolean
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationUncheckedUpdateManyWithoutCandidateInput = {
+    id_notification?: IntFieldUpdateOperationsInput | number
+    titulo?: StringFieldUpdateOperationsInput | string
+    mensaje?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    leida?: BoolFieldUpdateOperationsInput | boolean
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type VoterCreateManyCareerInput = {
@@ -17071,6 +19222,7 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     roleId: number
     electionId?: number | null
   }
@@ -17124,11 +19276,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     role?: RoleUpdateOneRequiredWithoutCandidatesNestedInput
     election?: ElectionUpdateOneWithoutCandidatesNestedInput
     proposals?: ProposalUpdateManyWithoutCandidateNestedInput
     result?: ResultUpdateOneWithoutCandidateNestedInput
     votes?: VoteUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateWithoutCareerInput = {
@@ -17141,11 +19295,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
     proposals?: ProposalUncheckedUpdateManyWithoutCandidateNestedInput
     result?: ResultUncheckedUpdateOneWithoutCandidateNestedInput
     votes?: VoteUncheckedUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateManyWithoutCareerInput = {
@@ -17158,6 +19314,7 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -17185,6 +19342,7 @@ export namespace Prisma {
     estado_candidate: string
     foto_candidate?: string | null
     contrasena_candidate: string
+    motivo_rechazo?: string | null
     careerId: number
     electionId?: number | null
   }
@@ -17238,11 +19396,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     career?: CareerUpdateOneRequiredWithoutCandidatesNestedInput
     election?: ElectionUpdateOneWithoutCandidatesNestedInput
     proposals?: ProposalUpdateManyWithoutCandidateNestedInput
     result?: ResultUpdateOneWithoutCandidateNestedInput
     votes?: VoteUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateWithoutRoleInput = {
@@ -17255,11 +19415,13 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     careerId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
     proposals?: ProposalUncheckedUpdateManyWithoutCandidateNestedInput
     result?: ResultUncheckedUpdateOneWithoutCandidateNestedInput
     votes?: VoteUncheckedUpdateManyWithoutCandidateNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutCandidateNestedInput
   }
 
   export type CandidateUncheckedUpdateManyWithoutRoleInput = {
@@ -17272,6 +19434,7 @@ export namespace Prisma {
     estado_candidate?: StringFieldUpdateOperationsInput | string
     foto_candidate?: NullableStringFieldUpdateOperationsInput | string | null
     contrasena_candidate?: StringFieldUpdateOperationsInput | string
+    motivo_rechazo?: NullableStringFieldUpdateOperationsInput | string | null
     careerId?: IntFieldUpdateOperationsInput | number
     electionId?: NullableIntFieldUpdateOperationsInput | number | null
   }

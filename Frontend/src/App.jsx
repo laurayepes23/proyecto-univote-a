@@ -11,6 +11,7 @@ import Navbar from "./components/Navbar";
 import Navbar_admin from "./components/Navbar_admin";
 import NavbarCandidato from "./components/NavbarCandidato";
 import Carrusel from "./components/Carrusel";
+import NotificacionesCandidato from "./components/NotificacionesCandidato";
 import Administrador from "./pages/Administrador";
 import Gestionar_votantes from "./pages/Gestionar_votantes"
 import Crear_eleccion_adm from "./pages/Crear_eleccion_adm";

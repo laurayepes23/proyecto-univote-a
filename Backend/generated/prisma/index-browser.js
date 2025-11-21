@@ -163,6 +163,7 @@ exports.Prisma.CandidateScalarFieldEnum = {
   estado_candidate: 'estado_candidate',
   foto_candidate: 'foto_candidate',
   contrasena_candidate: 'contrasena_candidate',
+  motivo_rechazo: 'motivo_rechazo',
   roleId: 'roleId',
   careerId: 'careerId',
   electionId: 'electionId'
@@ -182,7 +183,8 @@ exports.Prisma.ProposalScalarFieldEnum = {
   titulo_proposal: 'titulo_proposal',
   descripcion_proposal: 'descripcion_proposal',
   estado_proposal: 'estado_proposal',
-  candidateId: 'candidateId'
+  candidateId: 'candidateId',
+  electionId: 'electionId'
 };
 
 exports.Prisma.CareerScalarFieldEnum = {
@@ -201,6 +203,16 @@ exports.Prisma.ResultScalarFieldEnum = {
 exports.Prisma.RoleScalarFieldEnum = {
   id_role: 'id_role',
   nombre_role: 'nombre_role'
+};
+
+exports.Prisma.NotificationScalarFieldEnum = {
+  id_notification: 'id_notification',
+  id_candidate: 'id_candidate',
+  titulo: 'titulo',
+  mensaje: 'mensaje',
+  tipo: 'tipo',
+  leida: 'leida',
+  fecha_creacion: 'fecha_creacion'
 };
 
 exports.Prisma.SortOrder = {
@@ -228,7 +240,8 @@ exports.Prisma.ModelName = {
   Proposal: 'Proposal',
   Career: 'Career',
   Result: 'Result',
-  Role: 'Role'
+  Role: 'Role',
+  Notification: 'Notification'
 };
 
 /**

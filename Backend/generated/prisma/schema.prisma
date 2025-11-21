@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -6,14 +7,10 @@ generator client {
   output   = "../generated/prisma"
 }
 
-// Este bloque es fundamental, le dice a Prisma
-// qué base de datos usar y dónde encontrar la URL de conexión.
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// Modelos del proyecto
 
 model Administrador {
   id_admin         Int        @id @default(autoincrement())
@@ -36,17 +33,19 @@ model Voter {
   estado_voter     String
   contrasena_voter String
 
-  // Relaciones
   roleId Int  @map("id_role")
   role   Role @relation(fields: [roleId], references: [id_role])
 
+  // CAMBIO: electionId ahora es opcional
   electionId Int?      @map("id_election")
   election   Election? @relation(fields: [electionId], references: [id_election])
 
   careerId Int    @map("id_career")
   career   Career @relation(fields: [careerId], references: [id_career])
 
-  vote Vote[] // Relación 1 a 1
+  vote Vote[]
+
+  @@map("voters")
 }
 
 model Election {
@@ -56,15 +55,15 @@ model Election {
   fecha_fin       DateTime
   estado_election String
 
-  // Relaciones
   admin_id      Int           @map("id_admin")
   administrador Administrador @relation(fields: [admin_id], references: [id_admin])
 
-  candidates Candidate[] // 1 a muchos con Candidato
-  voters     Voter[] // 1 a muchos con Votante
-  result     Result? // 1 a 1 con Resultado
+  candidates Candidate[]
+  voters     Voter[]
+  result     Result?
 
-  Vote Vote[]
+  Vote      Vote[]
+  proposals Proposal[]
 }
 
 model Candidate {
@@ -75,22 +74,23 @@ model Candidate {
   num_doc_candidate    BigInt  @unique
   correo_candidate     String  @unique
   estado_candidate     String
-  foto_candidate       String? // Campo opcional
+  foto_candidate       String?
   contrasena_candidate String
+  motivo_rechazo       String?
 
-  // Claves foráneas y relaciones
   roleId Int  @map("id_role")
   role   Role @relation(fields: [roleId], references: [id_role])
 
   careerId Int    @map("id_career")
   career   Career @relation(fields: [careerId], references: [id_career])
 
-  electionId Int?      @map("id_election") // Campo opcional
+  electionId Int?      @map("id_election")
   election   Election? @relation(fields: [electionId], references: [id_election])
 
-  proposals Proposal[]
-  result    Result?
-  votes     Vote[]
+  proposals     Proposal[]
+  result        Result?
+  votes         Vote[]
+  notifications Notification[]
 }
 
 model Vote {
@@ -98,16 +98,17 @@ model Vote {
   fecha_vote DateTime
   hora_vote  DateTime
 
-  // Relación 1 a 1 con Votante
-  voterId Int   @map("id_voter")
-  voter   Voter @relation(fields: [voterId], references: [id_voter])
+  // CAMBIO: Hacer voterId opcional para permitir votos sin votante específico
+  voterId Int?   @map("id_voter")
+  voter   Voter? @relation(fields: [voterId], references: [id_voter])
 
-  // Relación con Candidato
-  candidateId Int?       @map("id_candidate") // <-- Este es el nombre del campo
+  candidateId Int?       @map("id_candidate")
   candidate   Candidate? @relation(fields: [candidateId], references: [id_candidate])
 
   electionId Int?      @map("id_election")
   election   Election? @relation(fields: [electionId], references: [id_election])
+
+  @@map("votes")
 }
 
 model Proposal {
@@ -116,9 +117,13 @@ model Proposal {
   descripcion_proposal String
   estado_proposal      String
 
-  // Relación con Candidato
   candidateId Int       @map("id_candidate")
   candidate   Candidate @relation(fields: [candidateId], references: [id_candidate])
+
+  electionId Int?      @map("id_election")
+  election   Election? @relation(fields: [electionId], references: [id_election])
+
+  @@map("proposals")
 }
 
 model Career {
@@ -126,7 +131,6 @@ model Career {
   nombre_career   String
   facultad_career String
 
-  // Relación 1 a muchos con Votantes
   voters     Voter[]
   candidates Candidate[]
 }
@@ -135,7 +139,6 @@ model Result {
   id_result   Int @id @default(autoincrement())
   total_votes Int
 
-  // Relaciones 1 a 1
   electionId Int      @unique @map("id_election")
   election   Election @relation(fields: [electionId], references: [id_election])
 
@@ -147,7 +150,20 @@ model Role {
   id_role     Int    @id @default(autoincrement())
   nombre_role String
 
-  // Relación 1 a muchos con Votantes
   voters     Voter[]
   candidates Candidate[]
+}
+
+model Notification {
+  id_notification Int      @id @default(autoincrement())
+  id_candidate    Int
+  titulo          String
+  mensaje         String
+  tipo            String // 'rechazo', 'aprobacion'
+  leida           Boolean  @default(false)
+  fecha_creacion  DateTime @default(now())
+
+  candidate Candidate @relation(fields: [id_candidate], references: [id_candidate], onDelete: Cascade)
+
+  @@map("notifications")
 }

@@ -11,7 +11,15 @@ export class ElectionsService {
   async getResults() {
     const elections = await this.prisma.election.findMany({
       include: {
-        candidates: true,
+        candidates: {
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
+          },
+        },
       },
     });
 
@@ -48,7 +56,15 @@ export class ElectionsService {
       },
       include: {
         administrador: true,
-        candidates: true,
+        candidates: {
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
+          }
+        },
         voters: true,
         result: true
       }
@@ -59,7 +75,15 @@ export class ElectionsService {
     const elections = await this.prisma.election.findMany({
       include: {
         administrador: true,
-        candidates: true,
+        candidates: {
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
+          }
+        },
         voters: true,
         result: true
       }
@@ -95,7 +119,63 @@ export class ElectionsService {
         administrador: true,
         candidates: {
           include: {
-            proposals: true,
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            },
+            career: true
+          },
+        },
+        voters: true,
+        result: true
+      }
+    });
+
+    if (election) {
+      return {
+        ...election,
+        fecha_inicio: election.fecha_inicio.toLocaleString('es-ES', { 
+          timeZone: 'UTC',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }),
+        fecha_fin: election.fecha_fin.toLocaleString('es-ES', { 
+          timeZone: 'UTC',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }),
+      };
+    }
+
+    return null;
+  }
+
+  // NUEVO: Método específico para obtener elección con propuestas para votantes
+  async findOneWithProposalsForVoter(id: number) {
+    const election = await this.prisma.election.findUnique({
+      where: { id_election: id },
+      include: {
+        administrador: true,
+        candidates: {
+          where: {
+            estado_candidate: 'Aprobado' // Solo candidatos aprobados
+          },
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa' // Solo propuestas activas
+              }
+            },
+            career: true
           },
         },
         voters: true,
@@ -136,7 +216,15 @@ export class ElectionsService {
       data: updateElectionDto,
       include: {
         administrador: true,
-        candidates: true,
+        candidates: {
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
+          }
+        },
         voters: true,
         result: true
       }
@@ -149,14 +237,21 @@ export class ElectionsService {
     });
   }
 
-  // NUEVO: Validar si una elección puede iniciarse
+  // NUEVO: Validar si una elección puede iniciarse - CORREGIDO
   async canStartElection(id: number): Promise<{ canStart: boolean; message?: string }> {
     const election = await this.prisma.election.findUnique({
       where: { id_election: id },
       include: {
         candidates: {
+          where: {
+            estado_candidate: 'Aprobado', // Solo candidatos aprobados
+          },
           include: {
-            role: true,
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
           }
         },
       },
@@ -166,15 +261,27 @@ export class ElectionsService {
       throw new BadRequestException('Elección no encontrada');
     }
 
-    // Verificar que hay al menos un candidato (excluyendo Voto en Blanco)
-    const realCandidates = election.candidates.filter(
-      candidate => candidate.nombre_candidate !== 'Voto en Blanco'
+    // Verificar que hay al menos un candidato aprobado
+    const approvedCandidates = election.candidates.filter(
+      candidate => candidate.estado_candidate === 'Aprobado'
     );
 
-    if (realCandidates.length === 0) {
+    if (approvedCandidates.length === 0) {
       return { 
         canStart: false, 
-        message: 'No se puede iniciar la elección. Debe haber al menos un candidato registrado (excluyendo Voto en Blanco).' 
+        message: 'No se puede iniciar la elección. Debe haber al menos un candidato aprobado registrado.' 
+      };
+    }
+
+    // Verificar que los candidatos aprobados tengan al menos una propuesta activa
+    const candidatesWithProposals = approvedCandidates.filter(
+      candidate => candidate.proposals.length > 0
+    );
+
+    if (candidatesWithProposals.length === 0) {
+      return { 
+        canStart: false, 
+        message: 'No se puede iniciar la elección. Los candidatos aprobados deben tener al menos una propuesta activa.' 
       };
     }
 
@@ -215,7 +322,7 @@ export class ElectionsService {
       throw new BadRequestException('Elección no encontrada');
     }
 
-    // Verificar si ya existe el voto en blanco
+    // Verificar si ya existe el voto en blanco (por nombre)
     const blankVoteExists = election.candidates.some(
       candidate => candidate.nombre_candidate === 'Voto en Blanco'
     );
@@ -253,7 +360,7 @@ export class ElectionsService {
           tipo_doc_candidate: 'N/A',
           num_doc_candidate: uniqueDocNumber,
           correo_candidate: `voto.en.blanco.${id}@sistema.com`,
-          estado_candidate: 'Activo',
+          estado_candidate: 'Aprobado', // Voto en Blanco siempre está aprobado
           foto_candidate: null,
           contrasena_candidate: 'no_password',
           role: {
@@ -294,7 +401,15 @@ export class ElectionsService {
       where: { id_election: id },
       data: { estado_election: status },
       include: {
-        candidates: true,
+        candidates: {
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
+          }
+        },
         administrador: true
       }
     });
@@ -305,7 +420,15 @@ export class ElectionsService {
     const election = await this.prisma.election.findUnique({
       where: { id_election: id },
       include: {
-        candidates: true, // Traer TODOS los candidatos sin filtrar
+        candidates: {
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
+          }
+        },
         voters: true,
       }
     });
@@ -327,9 +450,14 @@ export class ElectionsService {
       }
     });
 
-    // Filtrar candidatos reales (excluyendo Voto en Blanco) después de obtenerlos
-    const realCandidates = election.candidates.filter(
-      candidate => candidate.nombre_candidate !== 'Voto en Blanco'
+    // Filtrar candidatos reales aprobados (excluyendo Voto en Blanco) después de obtenerlos
+    const approvedCandidates = election.candidates.filter(
+      candidate => candidate.nombre_candidate !== 'Voto en Blanco' && candidate.estado_candidate === 'Aprobado'
+    );
+
+    // Contar candidatos con propuestas activas
+    const candidatesWithProposals = approvedCandidates.filter(
+      candidate => candidate.proposals.length > 0
     );
 
     // Verificar si existe voto en blanco
@@ -338,29 +466,36 @@ export class ElectionsService {
     );
 
     return {
-      totalCandidates: realCandidates.length, // Solo contar candidatos reales
+      totalCandidates: approvedCandidates.length, // Solo contar candidatos aprobados reales
+      candidatesWithProposals: candidatesWithProposals.length, // Candidatos con propuestas
       totalVoters: totalVoters,
       totalVotes: totalVotes,
       hasBlankVote: hasBlankVote,
-      canStart: realCandidates.length >= 1
+      canStart: approvedCandidates.length >= 1 && candidatesWithProposals.length >= 1
     };
   }
 
-  // Método alternativo más simple para verificar candidatos
+  // Método alternativo más simple para verificar candidatos - CORREGIDO
   async getElectionCandidatesCount(id: number): Promise<number> {
     const candidates = await this.prisma.candidate.findMany({
       where: {
         electionId: id,
-        NOT: {
-          nombre_candidate: 'Voto en Blanco'
+        estado_candidate: 'Aprobado', // Solo candidatos aprobados
+      },
+      include: {
+        proposals: {
+          where: {
+            estado_proposal: 'Activa'
+          }
         }
       }
     });
 
-    return candidates.length;
+    // Solo contar candidatos que tengan al menos una propuesta activa
+    return candidates.filter(candidate => candidate.proposals.length > 0).length;
   }
 
-  // Método simplificado para verificar si puede iniciar
+  // Método simplificado para verificar si puede iniciar - CORREGIDO
   async canStartSimple(id: number): Promise<{ canStart: boolean; message?: string }> {
     try {
       const candidateCount = await this.getElectionCandidatesCount(id);
@@ -368,7 +503,7 @@ export class ElectionsService {
       if (candidateCount === 0) {
         return {
           canStart: false,
-          message: 'No se puede iniciar la elección. Debe haber al menos un candidato registrado.'
+          message: 'No se puede iniciar la elección. Debe haber al menos un candidato aprobado con propuestas activas registrado.'
         };
       }
 
@@ -381,25 +516,37 @@ export class ElectionsService {
     }
   }
 
-  // NUEVO: Método específico para obtener conteo de candidatos para frontend
+  // NUEVO: Método específico para obtener conteo de candidatos para frontend - CORREGIDO
   async getElectionsWithCandidateCount() {
     const elections = await this.prisma.election.findMany({
       include: {
         administrador: true,
-        candidates: true,
+        candidates: {
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            }
+          }
+        },
         voters: true,
         result: true
       }
     });
 
-    // Para cada elección, contar candidatos reales
+    // Para cada elección, contar candidatos aprobados con propuestas
     const electionsWithCounts = await Promise.all(
       elections.map(async (election) => {
-        const realCandidatesCount = await this.prisma.candidate.count({
+        // CONTAR TODOS LOS CANDIDATOS APROBADOS (sin filtrar por es_blanco)
+        const approvedCandidatesWithProposals = await this.prisma.candidate.count({
           where: {
             electionId: election.id_election,
-            NOT: {
-              nombre_candidate: 'Voto en Blanco'
+            estado_candidate: 'Aprobado',
+            proposals: {
+              some: {
+                estado_proposal: 'Activa'
+              }
             }
           }
         });
@@ -424,11 +571,96 @@ export class ElectionsService {
             minute: '2-digit',
             hour12: false
           }),
-          realCandidatesCount: realCandidatesCount
+          // Usar el nombre que espera el frontend
+          realCandidatesCount: approvedCandidatesWithProposals
         };
       })
     );
 
     return electionsWithCounts;
+  }
+
+  // NUEVO: Método para obtener propuestas de una elección específica
+  async getElectionProposals(electionId: number) {
+    const election = await this.prisma.election.findUnique({
+      where: { id_election: electionId },
+      include: {
+        candidates: {
+          where: {
+            estado_candidate: 'Aprobado'
+          },
+          include: {
+            proposals: {
+              where: {
+                estado_proposal: 'Activa'
+              }
+            },
+            career: true
+          }
+        }
+      }
+    });
+
+    if (!election) {
+      throw new BadRequestException('Elección no encontrada');
+    }
+
+    // Extraer y aplanar todas las propuestas de los candidatos
+    const allProposals = election.candidates.flatMap(candidate => 
+      candidate.proposals.map(proposal => ({
+        ...proposal,
+        candidate: {
+          id_candidate: candidate.id_candidate,
+          nombre_candidate: candidate.nombre_candidate,
+          apellido_candidate: candidate.apellido_candidate,
+          foto_candidate: candidate.foto_candidate,
+          career: candidate.career
+        }
+      }))
+    );
+
+    return {
+      election: {
+        id_election: election.id_election,
+        nombre_election: election.nombre_election,
+        estado_election: election.estado_election
+      },
+      proposals: allProposals
+    };
+  }
+
+  // NUEVO: Método de debug para verificar candidatos
+  async debugCandidatesCount(id: number) {
+    const totalCandidates = await this.prisma.candidate.count({
+      where: {
+        electionId: id
+      }
+    });
+
+    const approvedCandidates = await this.prisma.candidate.count({
+      where: {
+        electionId: id,
+        estado_candidate: 'Aprobado'
+      }
+    });
+
+    const candidatesWithProposals = await this.prisma.candidate.count({
+      where: {
+        electionId: id,
+        estado_candidate: 'Aprobado',
+        proposals: {
+          some: {
+            estado_proposal: 'Activa'
+          }
+        }
+      }
+    });
+
+    return {
+      electionId: id,
+      totalCandidates,
+      approvedCandidates,
+      candidatesWithProposals
+    };
   }
 }

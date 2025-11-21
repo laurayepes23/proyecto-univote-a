@@ -1,3 +1,4 @@
+// create.proposal.dto.ts
 import { IsString, IsNotEmpty, IsNumber, IsOptional, IsEnum } from 'class-validator';
 
 export class CreateProposalDto {
@@ -17,4 +18,5 @@ export class CreateProposalDto {
   @IsNumber()
   @IsNotEmpty()
   candidateId: number;
+
 }

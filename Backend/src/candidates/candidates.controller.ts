@@ -15,6 +15,7 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { CandidatesService } from "./candidates.service";
+import { NotificationsService } from "../notications/notifications.service";
 import { CreateCandidateDto } from "./dto/create-candidate.dto";
 import { LoginCandidateDto } from "./dto/login-candidate.dto";
 import { UpdateCandidateDto } from "./dto/update-candidate.dto";
@@ -23,7 +24,10 @@ import { multerConfig } from "./upload.config";
 
 @Controller("candidates")
 export class CandidatesController {
-  constructor(private readonly candidatesService: CandidatesService) { }
+  constructor(
+    private readonly candidatesService: CandidatesService,
+    private readonly notificationsService: NotificationsService
+  ) { }
 
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
@@ -104,9 +108,26 @@ export class CandidatesController {
     return this.candidatesService.withdrawFromElection(id);
   }
 
+  @Patch(":id/approve")
+  @HttpCode(HttpStatus.OK)
+  approveCandidate(@Param("id", ParseIntPipe) id: number) {
+    return this.candidatesService.approveCandidate(id);
+  }
+
   @Patch(":id/reject")
   @HttpCode(HttpStatus.OK)
-  async rejectCandidate(@Param("id", ParseIntPipe) id: number) {
-    return this.candidatesService.withdrawFromElection(id, 'No Aprobado');
+  async rejectCandidate(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { motivo_rechazo: string }
+  ) {
+    if (!body.motivo_rechazo || body.motivo_rechazo.trim() === '') {
+      throw new BadRequestException('El motivo de rechazo es obligatorio');
+    }
+    return this.candidatesService.rejectCandidate(id, body.motivo_rechazo);
+  }
+
+  @Get(":id/notifications")
+  getCandidateNotifications(@Param("id", ParseIntPipe) id: number) {
+    return this.notificationsService.findByCandidateId(id);
   }
 }

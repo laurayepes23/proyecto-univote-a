@@ -1,8 +1,9 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import NavbarCandidato from "../components/NavbarCandidato";
 import Footer from "../components/Footer";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaRegLightbulb, FaExclamationTriangle, FaSave, FaTimes, FaChevronLeft, FaChevronRight, FaExclamationCircle } from 'react-icons/fa';
+import { FaEdit, FaTrashAlt, FaPlusCircle, FaRegLightbulb, FaExclamationTriangle, FaSave, FaTimes, FaChevronLeft, FaChevronRight, FaExclamationCircle, FaCheckCircle, FaBan } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -28,10 +29,8 @@ export default function GestionarPropuestas() {
     const [itemsPerPage, setItemsPerPage] = useState(6);
     const [totalItems, setTotalItems] = useState(0);
 
-    // Calcular el número total de páginas
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-    // Obtener información del candidato desde localStorage
+    // Información del candidato
+    const [candidateInfo, setCandidateInfo] = useState(null);
     const candidateData = JSON.parse(localStorage.getItem('candidateData') || '{}');
     const candidateId = candidateData.id_candidate;
 
@@ -41,25 +40,30 @@ export default function GestionarPropuestas() {
             setLoading(false);
             return;
         }
+        fetchCandidateInfo();
         fetchProposals();
     }, [candidateId]);
+
+    const fetchCandidateInfo = async () => {
+        try {
+            const response = await api.get(`/candidates/${candidateId}`);
+            setCandidateInfo(response.data);
+        } catch (error) {
+            console.error("Error al cargar información del candidato:", error);
+        }
+    };
 
     const fetchProposals = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get('/proposals');
+            const response = await api.get(`/proposals/owner/${candidateId}`);
             
-            // Filtrar propuestas del candidato actual
-            const candidateProposals = response.data.filter(
-                proposal => proposal.candidateId === candidateId
-            );
-            
-            setTotalItems(candidateProposals.length);
+            setTotalItems(response.data.length);
             
             // Paginación en el frontend
             const startIndex = (page - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
-            const paginatedProposals = candidateProposals.slice(startIndex, endIndex);
+            const paginatedProposals = response.data.slice(startIndex, endIndex);
             
             setProposals(paginatedProposals);
             setCurrentPage(page);
@@ -71,7 +75,7 @@ export default function GestionarPropuestas() {
         }
     };
 
-    // Funciones de paginación
+    // Funciones de paginación (mantener las mismas)
     const goToPage = (page) => {
         if (page >= 1 && page <= totalPages) {
             fetchProposals(page);
@@ -91,7 +95,6 @@ export default function GestionarPropuestas() {
         }
     };
 
-    // Generar números de página para mostrar
     const getPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 5;
@@ -111,6 +114,18 @@ export default function GestionarPropuestas() {
     };
 
     const handleGoToCreatePage = () => {
+        // Verificar que el candidato esté aprobado
+        if (candidateInfo && candidateInfo.estado_candidate !== 'Aprobado') {
+            setError('Solo los candidatos aprobados pueden crear propuestas. Tu estado actual es: ' + candidateInfo.estado_candidate);
+            return;
+        }
+        
+        // Verificar que tenga elección asignada
+        if (candidateInfo && !candidateInfo.election) {
+            setError('No estás asignado a ninguna elección. Contacta al administrador.');
+            return;
+        }
+
         navigate("/CrearPropuesta");
     };
 
@@ -132,7 +147,6 @@ export default function GestionarPropuestas() {
 
         try {
             await api.delete(`/proposals/${proposalToDelete.id_proposal}`);
-            // Recargar las propuestas para mantener la paginación correcta
             await fetchProposals(currentPage);
             setSuccess('Propuesta eliminada correctamente');
             setShowDeleteModal(false);
@@ -175,7 +189,7 @@ export default function GestionarPropuestas() {
         }));
     };
 
-    // Guardar cambios - USANDO PATCH
+    // Guardar cambios
     const handleSaveEdit = async (proposalId) => {
         if (!editFormData.titulo_proposal.trim()) {
             setError('El título es obligatorio');
@@ -190,17 +204,12 @@ export default function GestionarPropuestas() {
         try {
             setLoading(true);
             
-            // USAR PATCH en lugar de PUT
             const response = await api.patch(`/proposals/${proposalId}`, {
                 titulo_proposal: editFormData.titulo_proposal,
                 descripcion_proposal: editFormData.descripcion_proposal,
                 estado_proposal: editFormData.estado_proposal
-                // NO enviar candidateId en update
             });
 
-            console.log("Propuesta actualizada:", response.data);
-
-            // Recargar las propuestas para mantener la paginación
             await fetchProposals(currentPage);
 
             setSuccess('Propuesta actualizada correctamente');
@@ -209,7 +218,6 @@ export default function GestionarPropuestas() {
             setTimeout(() => setSuccess(''), 3000);
         } catch (error) {
             console.error("Error al actualizar propuesta:", error);
-            console.error("Detalles del error:", error.response?.data);
             setError('Error al actualizar la propuesta. Inténtalo de nuevo.');
             setTimeout(() => setError(''), 3000);
         } finally {
@@ -217,23 +225,73 @@ export default function GestionarPropuestas() {
         }
     };
 
-    // Función para obtener el badge de estado - solo Activa e Inactiva
+    // Función para obtener el badge de estado
     const getStatusBadge = (estado) => {
         const statusConfig = {
-            'Activa': { color: 'bg-green-100 text-green-800', label: 'Activa' },
-            'Inactiva': { color: 'bg-gray-100 text-gray-800', label: 'Inactiva' }
+            'Activa': { color: 'bg-green-100 text-green-800', label: 'Activa', icon: FaCheckCircle },
+            'Inactiva': { color: 'bg-gray-100 text-gray-800', label: 'Inactiva', icon: FaBan }
         };
 
-        const config = statusConfig[estado] || { color: 'bg-gray-100 text-gray-800', label: estado };
+        const config = statusConfig[estado] || { color: 'bg-gray-100 text-gray-800', label: estado, icon: FaBan };
+        const IconComponent = config.icon;
         
         return (
-            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${config.color}`}>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${config.color} flex items-center`}>
+                <IconComponent className="mr-1" />
                 {config.label}
             </span>
         );
     };
 
-    // Solo dos opciones para el estado
+    // Información del estado del candidato
+    const getCandidateStatusInfo = () => {
+        if (!candidateInfo) return null;
+
+        const statusConfig = {
+            'Aprobado': { 
+                color: 'bg-green-50 border-green-200 text-green-800',
+                message: 'Puedes crear y gestionar propuestas para la elección.',
+                icon: FaCheckCircle
+            },
+            'Pendiente': { 
+                color: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                message: 'Tu postulación está pendiente de aprobación. No puedes crear propuestas aún.',
+                icon: FaExclamationCircle
+            },
+            'No Aprobado': { 
+                color: 'bg-red-50 border-red-200 text-red-800',
+                message: 'Tu postulación no fue aprobada. No puedes crear propuestas.',
+                icon: FaBan
+            },
+            'Inactivo': { 
+                color: 'bg-gray-50 border-gray-200 text-gray-800',
+                message: 'Tu cuenta está inactiva. Contacta al administrador.',
+                icon: FaBan
+            }
+        };
+
+        const config = statusConfig[candidateInfo.estado_candidate] || statusConfig.Inactivo;
+        const IconComponent = config.icon;
+
+        return (
+            <div className={`border rounded-lg p-4 mb-6 ${config.color}`}>
+                <div className="flex items-center">
+                    <IconComponent className="text-xl mr-3" />
+                    <div>
+                        <h3 className="font-semibold">Estado del Candidato: {candidateInfo.estado_candidate}</h3>
+                        <p className="text-sm mt-1">{config.message}</p>
+                        {candidateInfo.election && (
+                            <p className="text-sm mt-1">
+                                <strong>Elección asignada:</strong> {candidateInfo.election.nombre_election}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
     const estados = ['Activa', 'Inactiva'];
 
     if (!candidateId) {
@@ -286,12 +344,20 @@ export default function GestionarPropuestas() {
                     </h2>
                     <button
                         onClick={handleGoToCreatePage}
-                        className="bg-blue-900 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-blue-800 transition-colors flex items-center"
+                        disabled={candidateInfo && candidateInfo.estado_candidate !== 'Aprobado'}
+                        className={`font-semibold py-3 px-6 rounded-xl shadow-lg transition-colors flex items-center ${
+                            candidateInfo && candidateInfo.estado_candidate === 'Aprobado'
+                                ? 'bg-blue-900 text-white hover:bg-blue-800'
+                                : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        }`}
                     >
                         <FaPlusCircle className="mr-2" />
                         Crear Propuesta
                     </button>
                 </div>
+
+                {/* Información del estado del candidato */}
+                {candidateInfo && getCandidateStatusInfo()}
 
                 {/* Información de paginación */}
                 <div className="flex justify-between items-center mb-6">
@@ -299,7 +365,6 @@ export default function GestionarPropuestas() {
                         Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} propuestas
                     </div>
                     
-                    {/* Selector de items por página */}
                     <div className="flex items-center space-x-2">
                         <label htmlFor="itemsPerPage" className="text-sm text-gray-600">
                             Mostrar:
@@ -331,14 +396,19 @@ export default function GestionarPropuestas() {
                     <div className="text-center p-12 bg-white rounded-2xl shadow-lg border border-gray-100">
                         <FaRegLightbulb className="text-6xl text-blue-500 mx-auto mb-4" />
                         <p className="text-lg text-gray-600 font-semibold mb-4">
-                            Aún no tienes propuestas. ¡Crea la primera para empezar!
+                            {candidateInfo && candidateInfo.estado_candidate === 'Aprobado' 
+                                ? 'Aún no tienes propuestas. ¡Crea la primera para empezar!'
+                                : 'No puedes crear propuestas hasta que tu postulación sea aprobada.'
+                            }
                         </p>
-                        <button
-                            onClick={handleGoToCreatePage}
-                            className="bg-green-500 text-white font-semibold py-3 px-8 rounded-xl shadow-md hover:bg-green-600 transition-colors"
-                        >
-                            Crear Propuesta Ahora
-                        </button>
+                        {candidateInfo && candidateInfo.estado_candidate === 'Aprobado' && (
+                            <button
+                                onClick={handleGoToCreatePage}
+                                className="bg-green-500 text-white font-semibold py-3 px-8 rounded-xl shadow-md hover:bg-green-600 transition-colors"
+                            >
+                                Crear Propuesta Ahora
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <>
@@ -428,6 +498,12 @@ export default function GestionarPropuestas() {
                                                 <p className="text-gray-600 text-sm mb-4 line-clamp-4">
                                                     {proposal.descripcion_proposal}
                                                 </p>
+                                                
+                                                {proposal.election && (
+                                                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded inline-block">
+                                                        Elección: {proposal.election.nombre_election}
+                                                    </div>
+                                                )}
                                             </div>
                                             
                                             <div className="flex space-x-4 mt-4">
@@ -526,7 +602,6 @@ export default function GestionarPropuestas() {
             {showDeleteModal && proposalToDelete && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl shadow-xl max-w-md w-full transform transition-all">
-                        {/* Header del modal */}
                         <div className="flex items-center p-6 border-b border-gray-200">
                             <div className="flex-shrink-0">
                                 <FaExclamationCircle className="text-red-500 text-2xl" />
@@ -538,7 +613,6 @@ export default function GestionarPropuestas() {
                             </div>
                         </div>
 
-                        {/* Contenido del modal */}
                         <div className="p-6">
                             <p className="text-gray-600 mb-2">
                                 ¿Estás seguro de que deseas eliminar la siguiente propuesta?
@@ -556,7 +630,6 @@ export default function GestionarPropuestas() {
                             </p>
                         </div>
 
-                        {/* Footer del modal */}
                         <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
                             <button
                                 onClick={handleCloseDeleteModal}

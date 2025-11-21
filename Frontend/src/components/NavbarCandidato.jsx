@@ -1,5 +1,7 @@
+// src/components/NavbarCandidato.jsx
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import NotificacionesCandidato from './NotificacionesCandidato'
 
 const NavbarCandidato = () => {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -8,12 +10,13 @@ const NavbarCandidato = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('candidateData')
     console.log('Sesión cerrada')
     navigate('/login')
   }
 
   const handleGoBack = () => {
-    navigate(-1) // Esto lleva a la página anterior
+    navigate(-1)
   }
 
   return (
@@ -69,39 +72,49 @@ const NavbarCandidato = () => {
           <Link to="/ConsultarFunciones">Consultar Funciones</Link>
         </li>
 
-        {/* Consultar Postular a Eleccion */}
+        {/* Postular a Elección */}
         <li className="cursor-pointer hover:text-blue-300 transition">
           <Link to="/PostularseElecciones">Postularme a Eleccion</Link>
         </li>
 
-        {/* Crear Propuestas */}
+        {/* Gestionar Propuestas */}
         <li className="cursor-pointer hover:text-blue-300 transition">
           <Link to="/GestionarPropuestas">Gestionar Propuestas</Link>
         </li>
       </ul>
 
-      {/* Perfil + Cerrar sesión */}
+      {/* Perfil + Notificaciones + Cerrar sesión */}
       <div className="relative flex items-center gap-4">
+        
+        {/* Componente de Notificaciones */}
+        <NotificacionesCandidato />
+
         {/* Imagen de perfil */}
         <img
-          src="./public/img/mi_perfil.png"
+          src="/img/mi_perfil.png"
           alt="Perfil"
-          className="h-12 w-12 rounded-full cursor-pointer "
+          className="h-12 w-12 rounded-full cursor-pointer border-2 border-white"
           onClick={() => setProfileOpen(!profileOpen)}
         />
 
         {/* Menú perfil */}
         <ul
-          className={`absolute right-0 top-14 bg-blue-800 rounded-md shadow-lg min-w-[150px] ${
+          className={`absolute right-0 top-14 bg-blue-800 rounded-md shadow-lg min-w-[150px] z-50 ${
             profileOpen ? 'block' : 'hidden'
           }`}
         >
-          <li className="px-4 py-2 hover:bg-blue-700 cursor-pointer">
+          <li 
+            className="px-4 py-2 hover:bg-blue-700 cursor-pointer transition-colors"
+            onClick={() => setProfileOpen(false)}
+          >
             <Link to="/MiPerfilCandidato">Mi perfil</Link>
           </li>
           <li
-            className="px-4 py-2 hover:bg-blue-700 cursor-pointer"
-            onClick={handleLogout}
+            className="px-4 py-2 hover:bg-blue-700 cursor-pointer transition-colors"
+            onClick={() => {
+              setProfileOpen(false);
+              handleLogout();
+            }}
           >
             Cerrar sesión
           </li>

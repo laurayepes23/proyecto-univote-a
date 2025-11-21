@@ -1,15 +1,16 @@
-import { IsNotEmpty } from "class-validator";
-
 // src/votes/dto/create-vote.dto.ts
+import { IsNotEmpty, IsOptional, IsNumber } from "class-validator";
+
 export class CreateVoteDto {
-
-
     @IsNotEmpty()
+    @IsNumber()
     voterId: number;
 
     @IsNotEmpty()
+    @IsNumber()
     candidateId: number;
 
     @IsNotEmpty()
-    electionId: number; // NUEVO: Para identificar la elección
+    @IsNumber()
+    electionId: number;
 }
