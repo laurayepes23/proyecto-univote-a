@@ -19,7 +19,6 @@ import Ver_elecciones_admin from "./pages/Ver_elecciones_admin";
 import Resultado_elecciones_adm from "./pages/Resultado_elecciones_adm";
 import Iniciar_Cerrar_vot_adm from "./pages/Iniciar_Cerrar_vot_adm";
 import Ver_candidatos_adm from "./pages/Ver_candidatos_adm";
-import Resultado_candidatos_admin from "./pages/Resultado_candidatos_admin";
 import Aprobar_Eliminar_cand_admin from "./pages/Aprobar_Eliminar_cand_admin";
 import Mi_perfil_admin from "./pages/Mi_perfil_admin";
 import MiPerfilVotante from "./pages/MiPerfilVotante";
@@ -34,7 +33,10 @@ import ConsultarFunciones from "./pages/ConsultarFunciones";
 import GestionarPropuestas from "./pages/GestionarPropuestas";
 import CrearPropuesta from "./pages/CrearPropuesta";
 import MiPerfilCandidato from "./pages/MiPerfilCandidato";
-
+import ComoVotar from "./pages/ComoVotar";
+import CentroAyuda from "./pages/CentroAyuda";
+import TerminosServicio from "./pages/TerminosServicio";
+import Contacto from "./pages/Contacto";
 
 
 
@@ -59,7 +61,6 @@ export default function App() {
           <Route path="/Resultado_elecciones_adm" element={<Resultado_elecciones_adm />} />
           <Route path="/Iniciar_Cerrar_vot_adm" element={<Iniciar_Cerrar_vot_adm />} />
           <Route path="/Ver_candidatos_adm" element={<Ver_candidatos_adm />} />
-          <Route path="/Resultado_candidatos_admin" element={<Resultado_candidatos_admin />} />
           <Route path="/Aprobar_Eliminar_cand_admin" element={<Aprobar_Eliminar_cand_admin />} />
           <Route path="/Mi_perfil_admin" element={<Mi_perfil_admin />} />
           <Route path="/MiPerfilVotante" element={<MiPerfilVotante />} />
@@ -74,6 +75,11 @@ export default function App() {
           <Route path="/GestionarPropuestas" element={<GestionarPropuestas />} />
           <Route path="/CrearPropuesta" element={<CrearPropuesta />} />
           <Route path="/MiPerfilCandidato" element={<MiPerfilCandidato />} />
+          <Route path="/ComoVotar" element={<ComoVotar />} />
+          <Route path="/CentroAyuda" element={<CentroAyuda />} />
+          <Route path="/TerminosServicio" element={<TerminosServicio />} />
+          <Route path="/Contacto" element={<Contacto />} />
+
           
 
 

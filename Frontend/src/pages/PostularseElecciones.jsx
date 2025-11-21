@@ -152,13 +152,13 @@ export default function PostularseElecciones() {
         try {
           const response = await axios.get('http://localhost:3000/elections');
           const sortedElections = sortElections(response.data, candidateInfo.election);
-          
+
           setTotalItems(sortedElections.length);
-          
+
           const startIndex = (currentPage - 1) * itemsPerPage;
           const endIndex = startIndex + itemsPerPage;
           const paginatedElections = sortedElections.slice(startIndex, endIndex);
-          
+
           setElecciones(paginatedElections);
         } catch (error) {
           console.error("Error al recargar elecciones:", error);
@@ -283,7 +283,7 @@ export default function PostularseElecciones() {
     const isCandidateRejected = candidateInfo?.estado_candidate === 'No Aprobado';
     const isCandidateApproved = candidateInfo?.estado_candidate === 'Aprobado';
     const isCandidatePending = candidateInfo?.estado_candidate === 'Pendiente';
-    
+
     // CORREGIDO: Usar candidateInfo.election en lugar de candidateInfo.id_election
     const hasElection = candidateInfo?.election !== null && candidateInfo?.election !== undefined;
     const isCurrentElection = candidateInfo?.election?.id_election === eleccion.id_election;
@@ -317,7 +317,7 @@ export default function PostularseElecciones() {
         icon: FaExclamationCircle
       };
     }
-    
+
     // Si el candidato está APROBADO en OTRA elección
     if (hasElection && isCandidateApproved && !isCurrentElection) {
       return {
@@ -337,7 +337,7 @@ export default function PostularseElecciones() {
         icon: FaExclamationCircle
       };
     }
-    
+
     // Si la elección está Finalizada
     if (eleccion.estado_election === "Finalizada") {
       return {
@@ -347,7 +347,7 @@ export default function PostularseElecciones() {
         icon: FaTimesCircle
       };
     }
-    
+
     // Si la elección está Activa
     if (eleccion.estado_election === "Activa") {
       return {
@@ -357,7 +357,7 @@ export default function PostularseElecciones() {
         icon: FaPlayCircle
       };
     }
-    
+
     // Si la elección está Programada y el candidato puede postularse
     if (eleccion.estado_election === "Programada") {
       // Si el candidato no tiene elección
@@ -370,7 +370,7 @@ export default function PostularseElecciones() {
         };
       }
     }
-    
+
     // Caso por defecto
     return {
       text: 'No disponible',
@@ -394,12 +394,17 @@ export default function PostularseElecciones() {
     }
   };
 
-  // Función para formatear fecha
-  const formatDate = (dateString) => {
+  // Función para formatear fecha y hora - ACTUALIZADA
+  const formatDateTime = (dateString) => {
     if (!dateString) return 'Fecha no definida';
 
     try {
       let date;
+
+      // Si ya viene formateado desde el backend con hora
+      if (typeof dateString === 'string' && dateString.includes(',')) {
+        return dateString; // Ya está formateado
+      }
 
       // Si es string en formato DD/MM/YYYY
       if (typeof dateString === 'string' && dateString.includes('/')) {
@@ -418,15 +423,57 @@ export default function PostularseElecciones() {
         return 'Fecha inválida';
       }
 
-      return date.toLocaleDateString('es-ES', {
+      return date.toLocaleString('es-ES', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: false // Para formato 24 horas
       });
     } catch (error) {
+      console.error('Error formateando fecha:', error);
       return 'Error al formatear';
+    }
+  };
+
+  // Función para extraer solo la hora (opcional)
+  const formatTime = (dateString) => {
+    if (!dateString) return 'Hora no definida';
+
+    try {
+      let date;
+
+      // Si ya viene formateado desde el backend
+      if (typeof dateString === 'string' && dateString.includes(',')) {
+        const timePart = dateString.split(',')[1]?.trim();
+        return timePart || 'Hora no disponible';
+      }
+
+      // Si es string en formato DD/MM/YYYY
+      if (typeof dateString === 'string' && dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1;
+          const year = parseInt(parts[2]);
+          date = new Date(year, month, day);
+        }
+      } else {
+        date = new Date(dateString);
+      }
+
+      if (isNaN(date.getTime())) {
+        return 'Hora inválida';
+      }
+
+      return date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } catch (error) {
+      return 'Error al formatear hora';
     }
   };
 
@@ -577,11 +624,11 @@ export default function PostularseElecciones() {
                     <div className="text-gray-600 space-y-2 mb-4">
                       <p className="flex items-center">
                         <FaCalendarAlt className="mr-2 text-blue-500" />
-                        <span className="font-semibold">Inicio:</span> {formatDate(eleccion.fecha_inicio)}
+                        <span className="font-semibold">Inicio:</span> {formatDateTime(eleccion.fecha_inicio)}
                       </p>
                       <p className="flex items-center">
                         <FaCalendarAlt className="mr-2 text-blue-500" />
-                        <span className="font-semibold">Fin:</span> {formatDate(eleccion.fecha_fin)}
+                        <span className="font-semibold">Fin:</span> {formatDateTime(eleccion.fecha_fin)}
                       </p>
                     </div>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUser, FaUserTie } from 'react-icons/fa'; // Importa los íconos para el menú de registro
+import { FaUser, FaUserTie } from 'react-icons/fa'; 
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -8,7 +8,7 @@ const Navbar = () => {
   const [registerSubmenuOpen, setRegisterSubmenuOpen] = useState(false);
 
   const handleScroll = (id) => {
-    setMenuOpen(false); // Cierra el menú móvil
+    setMenuOpen(false); 
     setSubmenuOpen(false);
     setRegisterSubmenuOpen(false);
     const element = document.getElementById(id);
@@ -81,7 +81,7 @@ const Navbar = () => {
               `}
               onClick={(e) => e.stopPropagation()}
             >
-              {['quienes-somos', 'vision', 'mision', 'contactanos'].map((item) => (
+              {['quienes-somos', 'vision', 'mision'].map((item) => (
                 <li
                   key={item}
                   className="px-4 py-2 hover:bg-blue-700 cursor-pointer whitespace-nowrap"

@@ -67,8 +67,24 @@ export class ElectionsService {
 
     return elections.map(election => ({
       ...election,
-      fecha_inicio: election.fecha_inicio.toLocaleDateString('es-ES', { timeZone: 'UTC' }),
-      fecha_fin: election.fecha_fin.toLocaleDateString('es-ES', { timeZone: 'UTC' }),
+      fecha_inicio: election.fecha_inicio.toLocaleString('es-ES', { 
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }),
+      fecha_fin: election.fecha_fin.toLocaleString('es-ES', { 
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }),
     }));
   }
 
@@ -90,8 +106,24 @@ export class ElectionsService {
     if (election) {
       return {
         ...election,
-        fecha_inicio: election.fecha_inicio.toLocaleDateString('es-ES', { timeZone: 'UTC' }),
-        fecha_fin: election.fecha_fin.toLocaleDateString('es-ES', { timeZone: 'UTC' }),
+        fecha_inicio: election.fecha_inicio.toLocaleString('es-ES', { 
+          timeZone: 'UTC',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }),
+        fecha_fin: election.fecha_fin.toLocaleString('es-ES', { 
+          timeZone: 'UTC',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }),
       };
     }
 
@@ -374,8 +406,24 @@ export class ElectionsService {
 
         return {
           ...election,
-          fecha_inicio: election.fecha_inicio.toLocaleDateString('es-ES', { timeZone: 'UTC' }),
-          fecha_fin: election.fecha_fin.toLocaleDateString('es-ES', { timeZone: 'UTC' }),
+          fecha_inicio: election.fecha_inicio.toLocaleString('es-ES', { 
+            timeZone: 'UTC',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }),
+          fecha_fin: election.fecha_fin.toLocaleString('es-ES', { 
+            timeZone: 'UTC',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }),
           realCandidatesCount: realCandidatesCount
         };
       })

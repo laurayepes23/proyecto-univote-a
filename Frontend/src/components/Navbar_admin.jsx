@@ -203,15 +203,6 @@ const Navbar_admin = () => {
                         </li>
                         <li className="px-4 py-2 hover:bg-blue-700 transition-colors duration-200">
                             <Link 
-                                to="/Resultado_candidatos_admin" 
-                                className="block w-full"
-                                onClick={closeAllMenus}
-                            >
-                                Resultado de candidatos
-                            </Link>
-                        </li>
-                        <li className="px-4 py-2 hover:bg-blue-700 transition-colors duration-200">
-                            <Link 
                                 to="/Aprobar_Eliminar_cand_admin" 
                                 className="block w-full"
                                 onClick={closeAllMenus}
