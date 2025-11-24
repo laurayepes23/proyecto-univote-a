@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Injectable, Logger } from "@nestjs/common";
+import * as nodemailer from "nodemailer";
 
 @Injectable()
 export class EmailService {
@@ -8,21 +8,21 @@ export class EmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    this.verifyTransporter();
+    void this.verifyTransporter();
   }
 
   // Actualizar el tipo para aceptar telefono opcional
   async sendContactEmail(contactData: {
     nombre: string;
     email: string;
-    telefono?: string;  // Hacer opcional aquí también
+    telefono?: string; // Hacer opcional aquí también
     motivo: string;
     mensaje: string;
   }): Promise<boolean> {
@@ -61,7 +61,7 @@ export class EmailService {
               </div>
               <div class="field">
                 <span class="label">📞 Teléfono:</span> 
-                ${telefono ? `<a href="tel:${telefono}">${telefono}</a>` : 'No proporcionado'}
+                ${telefono ? `<a href="tel:${telefono}">${telefono}</a>` : "No proporcionado"}
               </div>
               <div class="field">
                 <span class="label">🎯 Motivo:</span> 
@@ -74,15 +74,15 @@ export class EmailService {
             </div>
             <div class="footer">
               <p>✉️ Este mensaje fue enviado desde el formulario de contacto de UnivotE</p>
-              <p>🕐 Fecha: ${new Date().toLocaleString('es-CO', { 
-                timeZone: 'America/Bogota',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+              <p>🕐 Fecha: ${new Date().toLocaleString("es-CO", {
+                timeZone: "America/Bogota",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
               })}</p>
-              <p>🌐 Sistema: ${process.env.NODE_ENV || 'development'}</p>
+              <p>🌐 Sistema: ${process.env.NODE_ENV || "development"}</p>
             </div>
           </body>
           </html>
@@ -90,10 +90,12 @@ export class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      this.logger.log(`✅ Correo enviado exitosamente de: ${nombre} (${email}) - Message ID: ${result.messageId}`);
+      this.logger.log(
+        `✅ Correo enviado exitosamente de: ${nombre} (${email}) - Message ID: ${result.messageId}`,
+      );
       return true;
     } catch (error) {
-      this.logger.error('❌ Error enviando correo de contacto:', error);
+      this.logger.error("❌ Error enviando correo de contacto:", error);
       return false;
     }
   }
@@ -101,10 +103,10 @@ export class EmailService {
   async verifyTransporter(): Promise<boolean> {
     try {
       await this.transporter.verify();
-      this.logger.log('✅ Transporter de correo verificado correctamente');
+      this.logger.log("✅ Transporter de correo verificado correctamente");
       return true;
     } catch (error) {
-      this.logger.error('❌ Error verificando transporter de correo:', error);
+      this.logger.error("❌ Error verificando transporter de correo:", error);
       return false;
     }
   }

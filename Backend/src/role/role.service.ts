@@ -1,8 +1,8 @@
 // src/roles/role.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateRoleDto } from "./dto/create-role.dto";
+import { UpdateRoleDto } from "./dto/update-role.dto";
 
 @Injectable()
 export class RolesService {
@@ -12,16 +12,16 @@ export class RolesService {
     return this.prisma.role.create({
       data: createRoleDto,
       include: {
-        voters: true // Incluir votantes relacionados
-      }
+        voters: true, // Incluir votantes relacionados
+      },
     });
   }
 
   async findAll() {
     return this.prisma.role.findMany({
       include: {
-        voters: true
-      }
+        voters: true,
+      },
     });
   }
 
@@ -29,8 +29,8 @@ export class RolesService {
     const role = await this.prisma.role.findUnique({
       where: { id_role: id },
       include: {
-        voters: true
-      }
+        voters: true,
+      },
     });
 
     if (!role) {
@@ -46,8 +46,8 @@ export class RolesService {
         where: { id_role: id },
         data: updateRoleDto,
         include: {
-          voters: true
-        }
+          voters: true,
+        },
       });
     } catch (error) {
       throw new NotFoundException(`Rol con ID ${id} no encontrado`);
@@ -57,7 +57,7 @@ export class RolesService {
   async remove(id: number) {
     try {
       return await this.prisma.role.delete({
-        where: { id_role: id }
+        where: { id_role: id },
       });
     } catch (error) {
       throw new NotFoundException(`Rol con ID ${id} no encontrado`);

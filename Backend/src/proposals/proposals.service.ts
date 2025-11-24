@@ -1,8 +1,13 @@
 // proposals.service.ts - ACTUALIZADO
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateProposalDto } from './dto/create-proposal.dto';
-import { UpdateProposalDto } from './dto/update-proposal.dto';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateProposalDto } from "./dto/create-proposal.dto";
+import { UpdateProposalDto } from "./dto/update-proposal.dto";
 
 @Injectable()
 export class ProposalsService {
@@ -13,38 +18,42 @@ export class ProposalsService {
     const candidate = await this.prisma.candidate.findUnique({
       where: { id_candidate: createProposalDto.candidateId },
       include: {
-        election: true
-      }
+        election: true,
+      },
     });
 
     if (!candidate) {
-      throw new NotFoundException('Candidato no encontrado');
+      throw new NotFoundException("Candidato no encontrado");
     }
 
     // Verificar que el candidato esté aprobado y tenga una elección asignada
-    if (candidate.estado_candidate !== 'Aprobado') {
-      throw new BadRequestException('Solo los candidatos aprobados pueden crear propuestas');
+    if (candidate.estado_candidate !== "Aprobado") {
+      throw new BadRequestException(
+        "Solo los candidatos aprobados pueden crear propuestas",
+      );
     }
 
     if (!candidate.electionId) {
-      throw new BadRequestException('El candidato no está asignado a ninguna elección');
+      throw new BadRequestException(
+        "El candidato no está asignado a ninguna elección",
+      );
     }
 
     return this.prisma.proposal.create({
       data: {
         titulo_proposal: createProposalDto.titulo_proposal,
         descripcion_proposal: createProposalDto.descripcion_proposal,
-        estado_proposal: createProposalDto.estado_proposal || 'Activa',
+        estado_proposal: createProposalDto.estado_proposal || "Activa",
         candidateId: createProposalDto.candidateId,
-        electionId: candidate.electionId
+        electionId: candidate.electionId,
       },
       include: {
         candidate: {
           include: {
-            election: true
-          }
-        }
-      }
+            election: true,
+          },
+        },
+      },
     });
   }
 
@@ -53,10 +62,10 @@ export class ProposalsService {
       include: {
         candidate: {
           include: {
-            election: true
-          }
-        }
-      }
+            election: true,
+          },
+        },
+      },
     });
   }
 
@@ -64,25 +73,25 @@ export class ProposalsService {
   async findAllPublicByElection(electionId: number) {
     return this.prisma.proposal.findMany({
       where: {
-        estado_proposal: 'Activa',
+        estado_proposal: "Activa",
         electionId: electionId,
         candidate: {
-          estado_candidate: 'Aprobado'
-        }
+          estado_candidate: "Aprobado",
+        },
       },
       include: {
         candidate: {
           include: {
             career: true,
-            election: true
-          }
-        }
+            election: true,
+          },
+        },
       },
       orderBy: {
         candidate: {
-          nombre_candidate: 'asc'
-        }
-      }
+          nombre_candidate: "asc",
+        },
+      },
     });
   }
 
@@ -90,69 +99,69 @@ export class ProposalsService {
   async getActiveElectionsWithProposals() {
     const elections = await this.prisma.election.findMany({
       where: {
-        estado_election: 'Activa'
+        estado_election: "Activa",
       },
       include: {
         candidates: {
           where: {
-            estado_candidate: 'Aprobado'
+            estado_candidate: "Aprobado",
           },
           include: {
             proposals: {
               where: {
-                estado_proposal: 'Activa'
-              }
+                estado_proposal: "Activa",
+              },
             },
-            career: true
-          }
-        }
-      }
+            career: true,
+          },
+        },
+      },
     });
 
     // Filtrar elecciones que tengan al menos un candidato con propuestas
-    return elections.filter(election => 
-      election.candidates.some(candidate => candidate.proposals.length > 0)
+    return elections.filter((election) =>
+      election.candidates.some((candidate) => candidate.proposals.length > 0),
     );
   }
 
   async findAllPublic() {
     return this.prisma.proposal.findMany({
       where: {
-        estado_proposal: 'Activa',
+        estado_proposal: "Activa",
         candidate: {
-          estado_candidate: 'Aprobado'
-        }
+          estado_candidate: "Aprobado",
+        },
       },
       include: {
         candidate: {
           include: {
-            election: true
-          }
-        }
-      }
+            election: true,
+          },
+        },
+      },
     });
   }
 
   async findAllByOwner(candidateId: number) {
     const candidate = await this.prisma.candidate.findUnique({
-      where: { id_candidate: candidateId }
+      where: { id_candidate: candidateId },
     });
 
     if (!candidate) {
-      throw new NotFoundException('Candidato no encontrado');
+      throw new NotFoundException("Candidato no encontrado");
     }
 
     return this.prisma.proposal.findMany({
       where: {
-        candidateId: candidateId
+        candidateId: candidateId,
       },
       include: {
         candidate: {
           include: {
-            election: true
-          }
-        }
-      }
+            election: true,
+          },
+        },
+      },
     });
   }
 
@@ -162,10 +171,10 @@ export class ProposalsService {
       include: {
         candidate: {
           include: {
-            election: true
-          }
-        }
-      }
+            election: true,
+          },
+        },
+      },
     });
 
     if (!proposal) {
@@ -183,10 +192,10 @@ export class ProposalsService {
         include: {
           candidate: {
             include: {
-              election: true
-            }
-          }
-        }
+              election: true,
+            },
+          },
+        },
       });
     } catch (error) {
       throw new NotFoundException(`Propuesta con ID ${id} no encontrada`);
@@ -196,12 +205,12 @@ export class ProposalsService {
   async remove(id: number) {
     try {
       await this.prisma.proposal.delete({
-        where: { id_proposal: id }
+        where: { id_proposal: id },
       });
-      
+
       return {
         success: true,
-        message: `Propuesta con ID ${id} eliminada correctamente`
+        message: `Propuesta con ID ${id} eliminada correctamente`,
       };
     } catch (error) {
       throw new NotFoundException(`Propuesta con ID ${id} no encontrada`);
@@ -213,18 +222,18 @@ export class ProposalsService {
     return this.prisma.proposal.findMany({
       where: {
         electionId: electionId,
-        estado_proposal: 'Activa',
+        estado_proposal: "Activa",
         candidate: {
-          estado_candidate: 'Aprobado'
-        }
+          estado_candidate: "Aprobado",
+        },
       },
       include: {
         candidate: {
           include: {
-            career: true
-          }
-        }
-      }
+            career: true,
+          },
+        },
+      },
     });
   }
 }

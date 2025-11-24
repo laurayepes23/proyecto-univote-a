@@ -19,7 +19,7 @@ export class CandidatesService {
   constructor(
     private prisma: PrismaService,
     private imageProcessor: ImageProcessorService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
   ) {}
 
   async findOne(id: number) {
@@ -79,13 +79,13 @@ export class CandidatesService {
 
     if (!candidate) {
       throw new NotFoundException(
-        `El candidato con ID ${candidateId} no fue encontrado.`
+        `El candidato con ID ${candidateId} no fue encontrado.`,
       );
     }
 
     if (candidate.electionId) {
       throw new ConflictException(
-        "Ya estás postulado a una elección. No puedes postularte a más de una."
+        "Ya estás postulado a una elección. No puedes postularte a más de una.",
       );
     }
 
@@ -95,13 +95,13 @@ export class CandidatesService {
 
     if (!election) {
       throw new NotFoundException(
-        `La elección con ID ${electionId} no fue encontrada.`
+        `La elección con ID ${electionId} no fue encontrada.`,
       );
     }
 
     if (election.estado_election !== "Programada") {
       throw new BadRequestException(
-        "Solo puedes postularte a elecciones programadas"
+        "Solo puedes postularte a elecciones programadas",
       );
     }
 
@@ -130,11 +130,13 @@ export class CandidatesService {
         candidate: result,
       };
     } catch (error) {
-      if (error.code === "P2025") {
+      const anyError = error;
+      if (anyError?.code === "P2025") {
         throw new NotFoundException("Candidato o elección no encontrada");
       }
       throw new BadRequestException(
-        "No se pudo completar la postulación: " + error.message
+        "No se pudo completar la postulación: " +
+          (anyError?.message ?? "Error desconocido"),
       );
     }
   }
@@ -197,7 +199,7 @@ export class CandidatesService {
       if (updateCandidateDto.contrasena_candidate) {
         updateCandidateDto.contrasena_candidate = await bcrypt.hash(
           updateCandidateDto.contrasena_candidate,
-          10
+          10,
         );
       }
 
@@ -223,14 +225,14 @@ export class CandidatesService {
 
     const isValid = await bcrypt.compare(
       password,
-      candidate.contrasena_candidate
+      candidate.contrasena_candidate,
     );
     return { valid: isValid };
   }
 
   async withdrawFromElection(
     candidateId: number,
-    nuevoEstado: string = "Inactivo"
+    nuevoEstado: string = "Inactivo",
   ) {
     const candidate = await this.prisma.candidate.findUnique({
       where: { id_candidate: candidateId },
@@ -242,7 +244,7 @@ export class CandidatesService {
 
     if (!candidate.electionId && nuevoEstado === "Inactivo") {
       throw new BadRequestException(
-        "El candidato no está postulado a ninguna elección"
+        "El candidato no está postulado a ninguna elección",
       );
     }
 
@@ -269,8 +271,10 @@ export class CandidatesService {
         candidate: result,
       };
     } catch (error) {
+      const anyError = error;
       throw new BadRequestException(
-        "Error al actualizar el candidato: " + error.message
+        "Error al actualizar el candidato: " +
+          (anyError?.message ?? "Error desconocido"),
       );
     }
   }
@@ -282,7 +286,7 @@ export class CandidatesService {
 
     if (!candidate) {
       throw new NotFoundException(
-        `Candidato con ID ${id_candidate} no encontrado.`
+        `Candidato con ID ${id_candidate} no encontrado.`,
       );
     }
 
@@ -319,7 +323,7 @@ export class CandidatesService {
 
     if (!candidate) {
       throw new NotFoundException(
-        `Candidato con ID ${id_candidate} no encontrado.`
+        `Candidato con ID ${id_candidate} no encontrado.`,
       );
     }
 
@@ -357,7 +361,7 @@ export class CandidatesService {
 
   async create(
     createCandidateDto: CreateCandidateDto,
-    foto_candidate?: Express.Multer.File
+    foto_candidate?: Express.Multer.File,
   ) {
     const numDocBigInt = BigInt(createCandidateDto.num_doc_candidate);
 
@@ -372,13 +376,13 @@ export class CandidatesService {
 
     if (existing) {
       throw new ConflictException(
-        "El correo o número de documento ya está registrado."
+        "El correo o número de documento ya está registrado.",
       );
     }
 
     const hashedPassword = await bcrypt.hash(
       createCandidateDto.contrasena_candidate,
-      10
+      10,
     );
 
     let fotoUrl: string | null = null;
@@ -387,11 +391,13 @@ export class CandidatesService {
         fotoUrl = await this.imageProcessor.processImage(
           foto_candidate.path,
           createCandidateDto.nombre_candidate,
-          createCandidateDto.apellido_candidate
+          createCandidateDto.apellido_candidate,
         );
       } catch (error) {
+        const anyError = error;
         throw new BadRequestException(
-          "Error al procesar la imagen: " + error.message
+          "Error al procesar la imagen: " +
+            (anyError?.message ?? "Error desconocido"),
         );
       }
     }
@@ -420,7 +426,7 @@ export class CandidatesService {
 
       if (!election) {
         throw new NotFoundException(
-          `La elección con ID ${createCandidateDto.id_election} no fue encontrada.`
+          `La elección con ID ${createCandidateDto.id_election} no fue encontrada.`,
         );
       }
 
@@ -470,7 +476,7 @@ export class CandidatesService {
       const photoUrl = await this.imageProcessor.processImage(
         file.path,
         candidate.nombre_candidate,
-        candidate.apellido_candidate
+        candidate.apellido_candidate,
       );
 
       const updatedCandidate = await this.prisma.candidate.update({
@@ -483,8 +489,10 @@ export class CandidatesService {
         foto_candidate: updatedCandidate.foto_candidate,
       };
     } catch (error) {
+      const anyError = error;
       throw new BadRequestException(
-        "Error al procesar la imagen: " + error.message
+        "Error al procesar la imagen: " +
+          (anyError?.message ?? "Error desconocido"),
       );
     }
   }
@@ -544,7 +552,7 @@ export class CandidatesService {
       !candidate ||
       !(await bcrypt.compare(
         loginCandidateDto.contrasena_candidate,
-        candidate.contrasena_candidate
+        candidate.contrasena_candidate,
       ))
     ) {
       throw new UnauthorizedException("Credenciales inválidas");
@@ -553,7 +561,7 @@ export class CandidatesService {
     // Verificar que el candidato esté activo
     if (candidate.estado_candidate === "Inactivo") {
       throw new UnauthorizedException(
-        "Tu cuenta está inactiva. Contacta al administrador."
+        "Tu cuenta está inactiva. Contacta al administrador.",
       );
     }
 

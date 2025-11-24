@@ -37,7 +37,7 @@ export class VotersService {
     } catch (error) {
       console.error("❌ Error asignando elección a votante:", error);
       throw new InternalServerErrorException(
-        "Error al asignar elección al votante"
+        "Error al asignar elección al votante",
       );
     }
   }
@@ -46,7 +46,7 @@ export class VotersService {
     try {
       const hashedPassword = await bcrypt.hash(
         createVoterDto.contrasena_voter,
-        10
+        10,
       );
 
       const existingVoter = await this.prisma.voter.findFirst({
@@ -61,14 +61,14 @@ export class VotersService {
       if (existingVoter) {
         if (existingVoter.correo_voter === createVoterDto.correo_voter) {
           throw new ConflictException(
-            "El correo electrónico ya está registrado."
+            "El correo electrónico ya está registrado.",
           );
         }
         if (
           existingVoter.num_doc_voter === BigInt(createVoterDto.num_doc_voter)
         ) {
           throw new ConflictException(
-            "El número de documento ya está registrado."
+            "El número de documento ya está registrado.",
           );
         }
       }
@@ -131,7 +131,7 @@ export class VotersService {
         throw error;
       }
       throw new InternalServerErrorException(
-        "Error interno del servidor al crear votante"
+        "Error interno del servidor al crear votante",
       );
     }
   }
@@ -163,7 +163,7 @@ export class VotersService {
         throw error;
       }
       throw new InternalServerErrorException(
-        "Error interno del servidor al iniciar sesión"
+        "Error interno del servidor al iniciar sesión",
       );
     }
   }
@@ -197,7 +197,7 @@ export class VotersService {
       if (voters.length === 0) {
         throw new HttpException(
           "No hay votantes registrados",
-          HttpStatus.NOT_FOUND
+          HttpStatus.NOT_FOUND,
         );
       }
 
@@ -214,7 +214,7 @@ export class VotersService {
         throw error;
       }
       throw new InternalServerErrorException(
-        "Error interno del servidor al obtener votantes"
+        "Error interno del servidor al obtener votantes",
       );
     }
   }
@@ -274,9 +274,9 @@ export class VotersService {
     } catch (error) {
       console.error("❌ Error en VotersService.findOne:", error);
       console.error("❌ Detalles del error:", {
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
       });
 
       if (error instanceof NotFoundException) {
@@ -284,7 +284,7 @@ export class VotersService {
       }
 
       throw new InternalServerErrorException(
-        "Error interno del servidor al obtener votante"
+        "Error interno del servidor al obtener votante",
       );
     }
   }
@@ -312,7 +312,7 @@ export class VotersService {
         console.log("🔐 Hasheando nueva contraseña");
         updateData.contrasena_voter = await bcrypt.hash(
           updateVoterDto.contrasena_voter,
-          10
+          10,
         );
       }
 
@@ -321,7 +321,7 @@ export class VotersService {
 
         if (!["Activo", "Inactivo"].includes(updateVoterDto.estado_voter)) {
           throw new BadRequestException(
-            'El estado debe ser "Activo" o "Inactivo"'
+            'El estado debe ser "Activo" o "Inactivo"',
           );
         }
 
@@ -332,12 +332,12 @@ export class VotersService {
       if (updateVoterDto.tipo_doc_voter !== undefined) {
         console.log(
           "📝 Actualizando tipo de documento a:",
-          updateVoterDto.tipo_doc_voter
+          updateVoterDto.tipo_doc_voter,
         );
 
         if (!["CC", "TI", "CE"].includes(updateVoterDto.tipo_doc_voter)) {
           throw new BadRequestException(
-            "El tipo de documento debe ser CC, TI o CE"
+            "El tipo de documento debe ser CC, TI o CE",
           );
         }
 
@@ -346,7 +346,7 @@ export class VotersService {
 
       if (Object.keys(updateData).length === 0) {
         throw new BadRequestException(
-          "No se proporcionaron datos para actualizar"
+          "No se proporcionaron datos para actualizar",
         );
       }
 
@@ -395,9 +395,9 @@ export class VotersService {
     } catch (error) {
       console.error("❌ Error en VotersService.update:", error);
       console.error("❌ Detalles del error:", {
-        message: error.message,
-        code: error.code,
-        meta: error.meta,
+        message: error?.message,
+        code: error?.code,
+        meta: error?.meta,
       });
 
       if (
@@ -407,17 +407,17 @@ export class VotersService {
         throw error;
       }
 
-      if (error.code === "P2002") {
-        const target = error.meta?.target;
+      if (error?.code === "P2002") {
+        const target = error?.meta?.target;
         if (target && target.includes("correo_voter")) {
           throw new ConflictException(
-            "El correo electrónico ya está registrado."
+            "El correo electrónico ya está registrado.",
           );
         }
       }
 
       throw new InternalServerErrorException(
-        "Error interno del servidor al actualizar votante"
+        "Error interno del servidor al actualizar votante",
       );
     }
   }
@@ -429,7 +429,7 @@ export class VotersService {
 
       if (!["Activo", "Inactivo"].includes(estado)) {
         throw new BadRequestException(
-          'El estado debe ser "Activo" o "Inactivo"'
+          'El estado debe ser "Activo" o "Inactivo"',
         );
       }
 
@@ -491,7 +491,7 @@ export class VotersService {
       }
 
       throw new InternalServerErrorException(
-        "Error interno del servidor al actualizar el estado del votante"
+        "Error interno del servidor al actualizar el estado del votante",
       );
     }
   }
@@ -517,7 +517,7 @@ export class VotersService {
         throw error;
       }
       throw new InternalServerErrorException(
-        "Error interno del servidor al validar contraseña"
+        "Error interno del servidor al validar contraseña",
       );
     }
   }
@@ -547,18 +547,18 @@ export class VotersService {
         throw error;
       }
 
-      if (error.code === "P2025") {
+      if (error?.code === "P2025") {
         throw new NotFoundException(`Votante con ID ${id} no encontrado.`);
       }
 
-      if (error.code === "P2003") {
+      if (error?.code === "P2003") {
         throw new ConflictException(
-          "No se puede eliminar el votante porque tiene votos asociados."
+          "No se puede eliminar el votante porque tiene votos asociados.",
         );
       }
 
       throw new InternalServerErrorException(
-        "Error interno del servidor al eliminar votante"
+        "Error interno del servidor al eliminar votante",
       );
     }
   }
@@ -592,7 +592,7 @@ export class VotersService {
 
       if (!["Activo", "Inactivo"].includes(estado)) {
         throw new BadRequestException(
-          'El estado debe ser "Activo" o "Inactivo"'
+          'El estado debe ser "Activo" o "Inactivo"',
         );
       }
 
@@ -634,7 +634,7 @@ export class VotersService {
         throw error;
       }
       throw new InternalServerErrorException(
-        "Error interno del servidor al buscar votantes por estado"
+        "Error interno del servidor al buscar votantes por estado",
       );
     }
   }
@@ -645,7 +645,7 @@ export class VotersService {
 
       if (!["CC", "TI", "CE"].includes(tipoDoc)) {
         throw new BadRequestException(
-          "El tipo de documento debe ser CC, TI o CE"
+          "El tipo de documento debe ser CC, TI o CE",
         );
       }
 
@@ -687,7 +687,7 @@ export class VotersService {
         throw error;
       }
       throw new InternalServerErrorException(
-        "Error interno del servidor al buscar votantes por tipo de documento"
+        "Error interno del servidor al buscar votantes por tipo de documento",
       );
     }
   }

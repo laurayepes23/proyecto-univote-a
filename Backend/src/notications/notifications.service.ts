@@ -1,7 +1,7 @@
 // src/notifications/notifications.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateNotificationDto } from "./dto/create-notification.dto";
 
 @Injectable()
 export class NotificationsService {
@@ -16,13 +16,13 @@ export class NotificationsService {
   async findByCandidateId(id_candidate: number) {
     const notifications = await this.prisma.notification.findMany({
       where: { id_candidate },
-      orderBy: { fecha_creacion: 'desc' },
+      orderBy: { fecha_creacion: "desc" },
     });
 
     // Convertir las fechas a string para evitar problemas de serialización
-    return notifications.map(notification => ({
+    return notifications.map((notification) => ({
       ...notification,
-      fecha_creacion: notification.fecha_creacion.toISOString()
+      fecha_creacion: notification.fecha_creacion.toISOString(),
     }));
   }
 
@@ -32,7 +32,7 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new NotFoundException('Notificación no encontrada');
+      throw new NotFoundException("Notificación no encontrada");
     }
 
     const updatedNotification = await this.prisma.notification.update({
@@ -42,15 +42,15 @@ export class NotificationsService {
 
     return {
       ...updatedNotification,
-      fecha_creacion: updatedNotification.fecha_creacion.toISOString()
+      fecha_creacion: updatedNotification.fecha_creacion.toISOString(),
     };
   }
 
   async getUnreadCount(id_candidate: number) {
     return await this.prisma.notification.count({
-      where: { 
+      where: {
         id_candidate,
-        leida: false 
+        leida: false,
       },
     });
   }
@@ -61,7 +61,7 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new NotFoundException('Notificación no encontrada');
+      throw new NotFoundException("Notificación no encontrada");
     }
 
     return await this.prisma.notification.delete({

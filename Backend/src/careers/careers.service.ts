@@ -1,8 +1,8 @@
 // src/careers/careers.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateCareerDto } from './dto/create-career.dto';
-import { UpdateCareerDto } from './dto/update-career.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateCareerDto } from "./dto/create-career.dto";
+import { UpdateCareerDto } from "./dto/update-career.dto";
 
 @Injectable()
 export class CareersService {
@@ -12,16 +12,16 @@ export class CareersService {
     return this.prisma.career.create({
       data: createCareerDto,
       include: {
-        voters: true // Incluir votantes relacionados
-      }
+        voters: true, // Incluir votantes relacionados
+      },
     });
   }
 
   async findAll() {
     return this.prisma.career.findMany({
       include: {
-        voters: true
-      }
+        voters: true,
+      },
     });
   }
 
@@ -29,8 +29,8 @@ export class CareersService {
     const career = await this.prisma.career.findUnique({
       where: { id_career: id },
       include: {
-        voters: true
-      }
+        voters: true,
+      },
     });
 
     if (!career) {
@@ -46,8 +46,8 @@ export class CareersService {
         where: { id_career: id },
         data: updateCareerDto,
         include: {
-          voters: true
-        }
+          voters: true,
+        },
       });
     } catch (error) {
       throw new NotFoundException(`Carrera con ID ${id} no encontrada`);
@@ -57,7 +57,7 @@ export class CareersService {
   async remove(id: number) {
     try {
       return await this.prisma.career.delete({
-        where: { id_career: id }
+        where: { id_career: id },
       });
     } catch (error) {
       throw new NotFoundException(`Carrera con ID ${id} no encontrada`);

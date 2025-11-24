@@ -1,7 +1,7 @@
 // src/results/results.service.ts
 
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class ResultsService {
@@ -21,7 +21,7 @@ export class ResultsService {
         // Incluimos los candidatos de cada elección
         candidates: {
           orderBy: {
-            nombre_candidate: 'asc', // Ordenar candidatos alfabéticamente
+            nombre_candidate: "asc", // Ordenar candidatos alfabéticamente
           },
           select: {
             id_candidate: true,
@@ -37,7 +37,7 @@ export class ResultsService {
       },
       // Ordenar para mostrar las elecciones más recientes primero
       orderBy: {
-        fecha_inicio: 'desc',
+        fecha_inicio: "desc",
       },
     });
 

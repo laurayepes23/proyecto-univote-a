@@ -1,8 +1,17 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Logger } from '@nestjs/common';
-import { CreateContactDto } from './dto/create-contact.dto';
-import { EmailService } from '../email/email.service';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Logger,
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { CreateContactDto } from "./dto/create-contact.dto";
+import { EmailService } from "../email/email.service";
 
-@Controller('contact')
+@ApiTags("Contact")
+@Controller("contact")
 export class ContactController {
   private readonly logger = new Logger(ContactController.name);
 
@@ -10,17 +19,21 @@ export class ContactController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Enviar formulario de contacto" })
+  @ApiResponse({ status: 200, description: "Mensaje procesado" })
   async create(@Body() createContactDto: CreateContactDto) {
     try {
-      this.logger.log(`Recibido formulario de contacto de: ${createContactDto.nombre}`);
+      this.logger.log(
+        `Recibido formulario de contacto de: ${createContactDto.nombre}`,
+      );
 
       // Proporcionar valor por defecto para teléfono
       const contactData = {
         nombre: createContactDto.nombre,
         email: createContactDto.email,
-        telefono: createContactDto.telefono || '', // Valor por defecto
+        telefono: createContactDto.telefono || "", // Valor por defecto
         motivo: createContactDto.motivo,
-        mensaje: createContactDto.mensaje
+        mensaje: createContactDto.mensaje,
       };
 
       const emailSent = await this.emailService.sendContactEmail(contactData);
@@ -28,19 +41,19 @@ export class ContactController {
       if (emailSent) {
         return {
           success: true,
-          message: 'Mensaje enviado exitosamente. Te contactaremos pronto.',
+          message: "Mensaje enviado exitosamente. Te contactaremos pronto.",
         };
       } else {
         return {
           success: false,
-          message: 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.',
+          message: "Error al enviar el mensaje. Por favor, inténtalo de nuevo.",
         };
       }
     } catch (error) {
-      this.logger.error('Error procesando formulario de contacto:', error);
+      this.logger.error("Error procesando formulario de contacto:", error);
       return {
         success: false,
-        message: 'Error interno del servidor. Por favor, inténtalo más tarde.',
+        message: "Error interno del servidor. Por favor, inténtalo más tarde.",
       };
     }
   }

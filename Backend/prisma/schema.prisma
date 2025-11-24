@@ -3,11 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  // Connection URL suministrada dinámicamente en PrismaService (ver prisma.service.ts)
   url      = env("DATABASE_URL")
 }
 
@@ -58,7 +58,7 @@ model Election {
 
   candidates Candidate[]
   voters     Voter[]
-  result     Result?
+  results    Result[]
 
   Vote Vote[]
   proposals Proposal[]
@@ -86,7 +86,7 @@ model Candidate {
   election   Election? @relation(fields: [electionId], references: [id_election])
 
   proposals Proposal[]
-  result    Result?
+  results   Result[]
   votes     Vote[]
   notifications Notification[]
 }
@@ -136,11 +136,13 @@ model Result {
   id_result   Int @id @default(autoincrement())
   total_votes Int
 
-  electionId Int      @unique @map("id_election")
-  election   Election @relation(fields: [electionId], references: [id_election])
+  electionId  Int      @map("id_election")
+  election    Election @relation(fields: [electionId], references: [id_election])
 
-  candidateId Int       @unique @map("id_candidate")
+  candidateId Int       @map("id_candidate")
   candidate   Candidate @relation(fields: [candidateId], references: [id_candidate])
+
+  @@unique([electionId, candidateId])
 }
 
 model Role {

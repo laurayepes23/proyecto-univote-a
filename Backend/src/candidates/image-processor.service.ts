@@ -1,15 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import sharp from 'sharp';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Injectable, Logger } from "@nestjs/common";
+import sharp from "sharp";
+import * as fs from "fs";
+import * as path from "path";
 
 @Injectable()
 export class ImageProcessorService {
   private readonly logger = new Logger(ImageProcessorService.name);
   private readonly uploadsDir = path.join(
     process.cwd(),
-    'uploads',
-    'candidatos'
+    "uploads",
+    "candidatos",
   );
 
   constructor() {
@@ -22,7 +22,7 @@ export class ImageProcessorService {
   async processImage(
     tempFilePath: string,
     nombre: string,
-    apellido: string
+    apellido: string,
   ): Promise<string> {
     try {
       const cleanNombre = this.cleanFileName(nombre);
@@ -33,7 +33,7 @@ export class ImageProcessorService {
 
       await sharp(tempFilePath)
         .resize(800, 800, {
-          fit: 'inside',
+          fit: "inside",
           withoutEnlargement: true,
         })
         .webp({
@@ -48,24 +48,24 @@ export class ImageProcessorService {
 
       return `/uploads/candidatos/${fileName}`;
     } catch (error) {
-      this.logger.error('Error al procesar imagen:', error);
+      this.logger.error("Error al procesar imagen:", error);
 
       if (fs.existsSync(tempFilePath)) {
         fs.unlinkSync(tempFilePath);
       }
 
-      throw new Error('Error al procesar la imagen');
+      throw new Error("Error al procesar la imagen");
     }
   }
 
   private cleanFileName(text: string): string {
     return text
       .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '');
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
   }
 
   async deleteImage(fotoCandidato: string): Promise<void> {
@@ -80,7 +80,7 @@ export class ImageProcessorService {
         this.logger.log(`Imagen eliminada: ${fileName}`);
       }
     } catch (error) {
-      this.logger.error('Error al eliminar imagen:', error);
+      this.logger.error("Error al eliminar imagen:", error);
     }
   }
 
