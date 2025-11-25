@@ -1,5 +1,5 @@
 // src/votes/dto/create-vote.dto.ts
-import { IsNotEmpty, IsOptional, IsNumber } from "class-validator";
+import { IsNotEmpty, IsNumber } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateVoteDto {

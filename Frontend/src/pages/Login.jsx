@@ -20,148 +20,71 @@ export default function Login() {
     setLoading(true)
 
     try {
-      console.log('🔍 Intentando login con:', { correo })
+      console.log('🔍 Intentando login unificado con:', { correo })
 
-      // Intento 1: Iniciar sesión como candidato
-      const candidateResponse = await api.post('/candidates/login', {
-        correo_candidate: correo,
-        contrasena_candidate: contrasena,
+      // Login unificado que retorna JWT token
+      const response = await api.post('/api/auth/login', {
+        correo,
+        contrasena,
       })
 
-      console.log('✅ Respuesta completa del login:', candidateResponse.data)
+      console.log('✅ Respuesta login:', response.data)
 
-      // VERIFICAR ESTRUCTURA DE LA RESPUESTA CORRECTAMENTE
-      let candidateData;
-      
-      if (candidateResponse.data.candidate) {
-        // Si viene en { success, message, candidate }
-        candidateData = candidateResponse.data.candidate;
-      } else if (candidateResponse.data.id_candidate) {
-        // Si viene directamente el objeto candidate
-        candidateData = candidateResponse.data;
-      } else {
-        throw new Error('Estructura de respuesta inesperada');
+      const { token, usuario } = response.data
+
+      if (!token || !usuario) {
+        throw new Error('Respuesta inválida del servidor')
       }
 
-      console.log('📊 Datos del candidato extraídos:', candidateData)
-
-      if (!candidateData.id_candidate) {
-        throw new Error('No se recibió ID del candidato en la respuesta')
-      }
-
-      // GUARDAR INFORMACIÓN DEL CANDIDATO EN LOCALSTORAGE
-      localStorage.setItem('candidateData', JSON.stringify(candidateData))
-      localStorage.setItem('candidateId', candidateData.id_candidate.toString())
-      localStorage.setItem(
-        'candidateName',
-        `${candidateData.nombre_candidate} ${candidateData.apellido_candidate}`
-      )
-      localStorage.setItem('userRole', 'candidate')
-
-      // DEBUG: Verificar que se guardó correctamente
-      console.log('🔍 DEBUG - localStorage:')
-      console.log('- candidateId:', localStorage.getItem('candidateId'))
-      console.log('- userRole:', localStorage.getItem('userRole'))
-      console.log('- candidateData:', localStorage.getItem('candidateData'))
-
-      setSuccess('¡Inicio de sesión exitoso!')
-
-      // Pequeño delay para asegurar que se guarde en localStorage
-      setTimeout(() => {
-        console.log('🔄 Redirigiendo a /Candidato...')
-        navigate('/candidato')
-      }, 500)
-
-      return
-
-    } catch (candidateError) {
-      console.log('❌ Error detallado login candidato:')
-      console.log('- Status:', candidateError.response?.status)
-      console.log('- Data:', candidateError.response?.data)
-      console.log('- Message:', candidateError.message)
+      // Guardar JWT token
+      localStorage.setItem('token', token)
       
-      try {
-        // Intento 2: Iniciar sesión como votante
-        const voterResponse = await api.post('/voters/login', {
-          correo_voter: correo,
-          contrasena_voter: contrasena,
-        })
-        console.log(
-          '✅ Inicio de sesión de votante exitoso:',
-          voterResponse.data
-        )
+      console.log('📊 Usuario autenticado:', usuario)
+      console.log('🔑 Token JWT guardado')
 
-        // Manejar estructura de respuesta del votante
-        let voterData;
-        if (voterResponse.data.voter) {
-          voterData = voterResponse.data.voter;
-        } else if (voterResponse.data.id_voter) {
-          voterData = voterResponse.data;
-        } else {
-          throw new Error('Estructura de respuesta inesperada para votante');
-        }
-
-        console.log('📊 Datos del votante:', voterData)
-
-        if (!voterData.id_voter) {
-          throw new Error('No se recibió ID del votante')
-        }
-
-        localStorage.setItem('voterData', JSON.stringify(voterData))
-        localStorage.setItem('voterId', voterData.id_voter.toString())
-        localStorage.setItem(
-          'voterName',
-          `${voterData.nombre_voter} ${voterData.apellido_voter}`
-        )
-        localStorage.setItem('userRole', 'voter')
-
-        console.log(
-          '🔍 DEBUG - voterId guardado:',
-          localStorage.getItem('voterId')
-        )
-        console.log(
-          '🔍 DEBUG - userRole guardado:',
-          localStorage.getItem('userRole')
-        )
-
-        setSuccess('¡Inicio de sesión exitoso!')
-        setTimeout(() => {
-          console.log('🔄 Redirigiendo a /votante...')
-          navigate('/votante')
-        }, 500)
-        return
-      } catch (voterError) {
-        console.log(
-          '❌ Error login votante:',
-          voterError.response?.data || voterError.message
-        )
-
+      // Según el rol, obtener datos completos del usuario
+      if (usuario.rol === 'CANDIDATE') {
         try {
-          // Intento 3: Iniciar sesión como administrador
-          const adminResponse = await api.post('/administrators/login', {
-            correo_admin: correo,
-            contrasena_admin: contrasena,
-          })
-          console.log(
-            '✅ Inicio de sesión de administrador exitoso:',
-            adminResponse.data
+          const candidateResponse = await api.get(`/candidates/${usuario.id}`)
+          const candidateData = candidateResponse.data
+
+          localStorage.setItem('candidateData', JSON.stringify(candidateData))
+          localStorage.setItem('candidateId', candidateData.id_candidate.toString())
+          localStorage.setItem(
+            'candidateName',
+            `${candidateData.nombre_candidate} ${candidateData.apellido_candidate}`
           )
+          localStorage.setItem('userRole', 'candidate')
 
-          // Manejar estructura de respuesta del administrador
-          let adminData;
-          if (adminResponse.data.admin) {
-            adminData = adminResponse.data.admin;
-          } else if (adminResponse.data.id_admin) {
-            adminData = adminResponse.data;
-          } else {
-            throw new Error('Estructura de respuesta inesperada para administrador');
-          }
+          setSuccess('¡Inicio de sesión exitoso!')
+          setTimeout(() => navigate('/candidato'), 500)
+        } catch (err) {
+          console.error('Error al obtener datos del candidato:', err)
+          throw new Error('Error al cargar datos del candidato')
+        }
+      } else if (usuario.rol === 'VOTER') {
+        try {
+          const voterResponse = await api.get(`/voters/${usuario.id}`)
+          const voterData = voterResponse.data
 
-          console.log('📊 Datos del administrador:', adminData)
+          localStorage.setItem('voterData', JSON.stringify(voterData))
+          localStorage.setItem('voterId', voterData.id_voter.toString())
+          localStorage.setItem(
+            'voterName',
+            `${voterData.nombre_voter} ${voterData.apellido_voter}`
+          )
+          localStorage.setItem('userRole', 'voter')
 
-          if (!adminData.id_admin) {
-            throw new Error('No se recibió ID del administrador')
-          }
+          setSuccess('¡Inicio de sesión exitoso!')
+          setTimeout(() => navigate('/votante'), 500)
+        } catch (err) {
+          console.error('Error al obtener datos del votante:', err)
+          throw new Error('Error al cargar datos del votante')
+        }
+      } else if (usuario.rol === 'ADMIN') {
+        try {
+          const adminResponse = await api.get(`/administrators/${usuario.id}`)
+          const adminData = adminResponse.data
 
           localStorage.setItem('adminData', JSON.stringify(adminData))
           localStorage.setItem('adminId', adminData.id_admin.toString())
@@ -171,48 +94,28 @@ export default function Login() {
           )
           localStorage.setItem('userRole', 'admin')
 
-          console.log(
-            '🔍 DEBUG - adminId guardado:',
-            localStorage.getItem('adminId')
-          )
-          console.log(
-            '🔍 DEBUG - userRole guardado:',
-            localStorage.getItem('userRole')
-          )
-
           setSuccess('¡Inicio de sesión exitoso!')
-          setTimeout(() => {
-            console.log('🔄 Redirigiendo a /administrador...')
-            navigate('/administrador')
-          }, 500)
-          return
-        } catch (adminError) {
-          // Si los tres intentos fallan
-          console.log('❌ Error login administrador:', adminError.response?.data || adminError.message)
-          
-          const errorMessage =
-            candidateError.response?.data?.message ||
-            candidateError.response?.data?.error ||
-            voterError.response?.data?.message ||
-            adminError.response?.data?.message ||
-            'Correo o contraseña incorrectos.'
-          
-          setError(errorMessage)
-          console.error('❌ Error final al iniciar sesión:', errorMessage)
-
-          // Limpiar localStorage en caso de error
-          localStorage.removeItem('candidateData')
-          localStorage.removeItem('candidateId')
-          localStorage.removeItem('candidateName')
-          localStorage.removeItem('voterData')
-          localStorage.removeItem('voterId')
-          localStorage.removeItem('voterName')
-          localStorage.removeItem('adminData')
-          localStorage.removeItem('adminId')
-          localStorage.removeItem('adminName')
-          localStorage.removeItem('userRole')
+          setTimeout(() => navigate('/administrador'), 500)
+        } catch (err) {
+          console.error('Error al obtener datos del administrador:', err)
+          throw new Error('Error al cargar datos del administrador')
         }
+      } else {
+        throw new Error('Rol de usuario no reconocido')
       }
+
+    } catch (error) {
+      console.error('❌ Error al iniciar sesión:', error)
+      
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        'Correo o contraseña incorrectos.'
+      
+      setError(errorMessage)
+
+      // Limpiar localStorage en caso de error
+      localStorage.clear()
     } finally {
       setLoading(false)
     }

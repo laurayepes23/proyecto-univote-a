@@ -60,7 +60,7 @@ export class ElectionsController {
   async findAllWithCandidateCount() {
     try {
       return await this.electionsService.getElectionsWithCandidateCount();
-    } catch (error) {
+    } catch {
       throw new BadRequestException(
         "Error al cargar las elecciones con conteo de candidatos",
       );
@@ -85,7 +85,7 @@ export class ElectionsController {
   async findOneForVoter(@Param("id") id: string) {
     try {
       return await this.electionsService.findOneWithProposalsForVoter(+id);
-    } catch (error) {
+    } catch {
       throw new BadRequestException("Error al cargar la elección para votante");
     }
   }
@@ -97,7 +97,7 @@ export class ElectionsController {
   async getElectionProposals(@Param("id") id: string) {
     try {
       return await this.electionsService.getElectionProposals(+id);
-    } catch (error) {
+    } catch {
       throw new BadRequestException(
         "Error al cargar las propuestas de la elección",
       );

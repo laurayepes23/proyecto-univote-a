@@ -63,7 +63,7 @@ export class CandidatesService {
       throw new NotFoundException(`Candidato con ID ${id} no encontrado.`);
     }
 
-    const { contrasena_candidate, ...result } = candidate;
+    const { _contrasena_candidate, ...result } = candidate;
     return {
       ...result,
       num_doc_candidate: result.num_doc_candidate.toString(),
@@ -123,7 +123,7 @@ export class CandidatesService {
         },
       });
 
-      const { contrasena_candidate, ...result } = updatedCandidate;
+      const { _contrasena_candidate, ...result } = updatedCandidate;
       return {
         message:
           "Postulación exitosa. Tu solicitud está pendiente de aprobación.",
@@ -190,7 +190,7 @@ export class CandidatesService {
       throw new NotFoundException(`Candidato con ID ${id} no encontrado.`);
     }
 
-    const { contrasena_candidate, ...result } = candidate;
+    const { _contrasena_candidate, ...result } = candidate;
     return result;
   }
 
@@ -198,7 +198,7 @@ export class CandidatesService {
     try {
       if (updateCandidateDto.contrasena_candidate) {
         updateCandidateDto.contrasena_candidate = await bcrypt.hash(
-          updateCandidateDto.contrasena_candidate,
+          updateCandidateDto._contrasena_candidate,
           10,
         );
       }
@@ -207,9 +207,9 @@ export class CandidatesService {
         where: { id_candidate: id },
         data: updateCandidateDto,
       });
-      const { contrasena_candidate, ...result } = updatedCandidate;
+      const { _contrasena_candidate, ...result } = updatedCandidate;
       return result;
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Candidato con ID ${id} no encontrado.`);
     }
   }
@@ -225,7 +225,7 @@ export class CandidatesService {
 
     const isValid = await bcrypt.compare(
       password,
-      candidate.contrasena_candidate,
+      candidate._contrasena_candidate,
     );
     return { valid: isValid };
   }
@@ -262,7 +262,7 @@ export class CandidatesService {
         data: updateData,
       });
 
-      const { contrasena_candidate, ...result } = updatedCandidate;
+      const { _contrasena_candidate, ...result } = updatedCandidate;
       return {
         message:
           nuevoEstado === "No Aprobado"
@@ -312,7 +312,7 @@ export class CandidatesService {
       tipo: "aprobacion",
     });
 
-    const { contrasena_candidate, ...result } = updatedCandidate;
+    const { _contrasena_candidate, ...result } = updatedCandidate;
     return result;
   }
 
@@ -355,7 +355,7 @@ export class CandidatesService {
       tipo: "rechazo",
     });
 
-    const { contrasena_candidate, ...result } = updatedCandidate;
+    const { _contrasena_candidate, ...result } = updatedCandidate;
     return result;
   }
 
@@ -381,7 +381,7 @@ export class CandidatesService {
     }
 
     const hashedPassword = await bcrypt.hash(
-      createCandidateDto.contrasena_candidate,
+      createCandidateDto._contrasena_candidate,
       10,
     );
 
@@ -455,7 +455,7 @@ export class CandidatesService {
       },
     });
 
-    const { contrasena_candidate, ...result } = candidate;
+    const { _contrasena_candidate, ...result } = candidate;
     return result;
   }
 
@@ -551,8 +551,8 @@ export class CandidatesService {
     if (
       !candidate ||
       !(await bcrypt.compare(
-        loginCandidateDto.contrasena_candidate,
-        candidate.contrasena_candidate,
+        loginCandidateDto._contrasena_candidate,
+        candidate._contrasena_candidate,
       ))
     ) {
       throw new UnauthorizedException("Credenciales inválidas");
@@ -565,7 +565,7 @@ export class CandidatesService {
       );
     }
 
-    const { contrasena_candidate, ...result } = candidate;
+    const { _contrasena_candidate, ...result } = candidate;
 
     // Asegurar que la respuesta tenga una estructura consistente
     return {

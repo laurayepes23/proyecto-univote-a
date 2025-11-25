@@ -49,7 +49,7 @@ export class CareersService {
           voters: true,
         },
       });
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Carrera con ID ${id} no encontrada`);
     }
   }
@@ -59,7 +59,7 @@ export class CareersService {
       return await this.prisma.career.delete({
         where: { id_career: id },
       });
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Carrera con ID ${id} no encontrada`);
     }
   }

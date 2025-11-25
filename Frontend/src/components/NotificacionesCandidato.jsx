@@ -1,9 +1,7 @@
 // src/components/NotificacionesCandidato.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { FaBell, FaTimes, FaExclamationTriangle, FaCheckCircle, FaInfoCircle, FaEnvelope } from 'react-icons/fa';
-
-const API_BASE_URL = "http://localhost:3000";
 
 const NotificacionesCandidato = () => {
   const [notificaciones, setNotificaciones] = useState([]);
@@ -23,7 +21,7 @@ const NotificacionesCandidato = () => {
 
       const candidate = JSON.parse(candidateData);
       
-      const response = await axios.get(`${API_BASE_URL}/notifications/candidate/${candidate.id_candidate}`);
+      const response = await api.get(`/notifications/candidate/${candidate.id_candidate}`);
       console.log('Notificaciones recibidas:', response.data); // Para debug
       
       setNotificaciones(response.data);
@@ -40,7 +38,7 @@ const NotificacionesCandidato = () => {
 
   const marcarComoLeida = async (id_notification) => {
     try {
-      await axios.patch(`${API_BASE_URL}/notifications/${id_notification}/read`);
+      await api.patch(`/notifications/${id_notification}/read`);
       
       setNotificaciones(notificaciones.map(notif => 
         notif.id_notification === id_notification 

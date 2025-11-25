@@ -121,7 +121,7 @@ export class AdministratorsService {
 
       const { contrasena_admin: _contrasena_admin, ...result } = updatedAdmin;
       return result;
-    } catch (_error) {
+    } catch {
       throw new NotFoundException(`Administrador con ID ${id} no encontrado`);
     }
   }
@@ -137,7 +137,7 @@ export class AdministratorsService {
         success: true,
         message: `Administrador con ID ${id} eliminado correctamente`,
       };
-    } catch (_error) {
+    } catch {
       throw new NotFoundException(`Administrador con ID ${id} no encontrado`);
     }
   }

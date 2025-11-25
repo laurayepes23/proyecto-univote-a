@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import Navbar_admin from "../components/Navbar_admin";
 
 // SVG Icons como componentes de React
@@ -21,8 +21,6 @@ const BuildingIcon = () => (
     <path d="M19 12h-2v2h2v-2zm0 4h-2v2h2v-2zm0-8h-2v2h2V8zm-4 4H9v6h6v-6zm-2-2h2v2h-2v-2zm0 4h2v2h-2v-2zm-4-4h2v2H7v-2zm0 4h2v2H7v-2zm-2-4H3v6h2v-6zm0-4H3v2h2V8zM7 2h10v2h-2v-2H9v2H7V2zm2 2h6v2h2V4h-6v2H9V4zM5 4h2v2H5V4zM3 4h2v2H3V4z"/>
   </svg>
 );
-
-const API_BASE_URL = "http://localhost:3000";
 
 const Ver_candidatos_adm = () => {
   const [candidatos, setCandidatos] = useState([]);
@@ -61,7 +59,7 @@ const Ver_candidatos_adm = () => {
   const fetchCandidatos = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/candidates`);
+      const response = await api.get('/candidates');
       if (Array.isArray(response.data)) {
         const allCandidates = response.data;
         setTotalItems(allCandidates.length);

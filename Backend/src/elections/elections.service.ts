@@ -2,13 +2,6 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateElectionDto } from "./dto/create-election.dto";
 import { UpdateElectionDto } from "./dto/update-election.dto";
-import {
-  ProposalStatus,
-  CandidateStatus,
-  SYSTEM_CONSTANTS,
-  ElectionStatus,
-} from "../common/constants";
-import { formatDateToESLocale } from "../common/utils/date.utils";
 
 @Injectable()
 export class ElectionsService {
@@ -530,7 +523,7 @@ export class ElectionsService {
       }
 
       return { canStart: true };
-    } catch (error) {
+    } catch {
       return {
         canStart: false,
         message: "Error al verificar la elección.",

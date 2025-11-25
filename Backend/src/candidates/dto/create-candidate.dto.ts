@@ -3,7 +3,6 @@ import {
   IsString,
   IsEmail,
   IsOptional,
-  IsNumber,
   IsInt,
 } from "class-validator";
 import { Transform } from "class-transformer";

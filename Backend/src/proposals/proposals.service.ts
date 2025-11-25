@@ -2,7 +2,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
@@ -197,7 +196,7 @@ export class ProposalsService {
           },
         },
       });
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Propuesta con ID ${id} no encontrada`);
     }
   }
@@ -212,7 +211,7 @@ export class ProposalsService {
         success: true,
         message: `Propuesta con ID ${id} eliminada correctamente`,
       };
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Propuesta con ID ${id} no encontrada`);
     }
   }

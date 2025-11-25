@@ -49,7 +49,7 @@ export class RolesService {
           voters: true,
         },
       });
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Rol con ID ${id} no encontrado`);
     }
   }
@@ -59,7 +59,7 @@ export class RolesService {
       return await this.prisma.role.delete({
         where: { id_role: id },
       });
-    } catch (error) {
+    } catch {
       throw new NotFoundException(`Rol con ID ${id} no encontrado`);
     }
   }

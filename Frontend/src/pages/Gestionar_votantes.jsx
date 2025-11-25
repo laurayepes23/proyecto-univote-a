@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Navbar_admin from "../components/Navbar_admin";
 import Footer from "../components/Footer";
-import axios from 'axios'; 
+import api from '../api/axios';
 
-const API_BASE_URL = 'http://localhost:3000/voters';
+const API_BASE_URL = '/voters';
 
 const Gestionar_votantes = () => {
   const [votantes, setVotantes] = useState([]);
@@ -22,7 +22,7 @@ const Gestionar_votantes = () => {
   const fetchVoters = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get(API_BASE_URL);
+      const response = await api.get(API_BASE_URL);
       const allVoters = response.data;
       
       // Ordenar alfabéticamente por nombre (primera letra)
@@ -71,8 +71,8 @@ const Gestionar_votantes = () => {
       // Cambiar entre "Activo" e "Inactivo"
       const nuevoEstado = votanteToUpdate.estado === "Activo" ? "Inactivo" : "Activo";
       
-      // Llama a la API para actualizar el estado del votante
-      await axios.patch(`${API_BASE_URL}/${id}`, { estado_voter: nuevoEstado });
+      // Llama a la API para actualizar el estado del votante usando el endpoint específico
+      await api.patch(`${API_BASE_URL}/${id}/estado`, { estado_voter: nuevoEstado });
 
       // Actualiza el estado localmente y reordena
       setVotantes((prevVotantes) => {
