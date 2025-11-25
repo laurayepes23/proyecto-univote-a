@@ -29,7 +29,7 @@ export class VotersService {
         },
       });
 
-      const { _contrasena_voter, ...result } = updatedVoter;
+      const { contrasena_voter: _contrasena_voter, ...result } = updatedVoter;
       return {
         ...result,
         num_doc_voter: result.num_doc_voter.toString(),
@@ -45,7 +45,7 @@ export class VotersService {
   async create(createVoterDto: CreateVoterDto) {
     try {
       const hashedPassword = await bcrypt.hash(
-        createVoterDto._contrasena_voter,
+        createVoterDto.contrasena_voter,
         10,
       );
 
@@ -117,7 +117,8 @@ export class VotersService {
         },
       });
 
-      const { _contrasena_voter, ...voterWithoutPassword } = result;
+      const { contrasena_voter: _contrasena_voter, ...voterWithoutPassword } =
+        result;
       return {
         ...voterWithoutPassword,
         num_doc_voter: voterWithoutPassword.num_doc_voter.toString(),
@@ -152,7 +153,7 @@ export class VotersService {
         throw new NotFoundException("Correo o contraseña incorrectos.");
       }
 
-      const { _contrasena_voter, ...result } = voter;
+      const { contrasena_voter: _contrasena_voter, ...result } = voter;
       return {
         ...result,
         num_doc_voter: result.num_doc_voter.toString(),
@@ -202,7 +203,8 @@ export class VotersService {
       }
 
       return voters.map((voter) => {
-        const { _contrasena_voter, ...voterWithoutPassword } = voter;
+        const { contrasena_voter: _contrasena_voter, ...voterWithoutPassword } =
+          voter;
         return {
           ...voterWithoutPassword,
           num_doc_voter: voterWithoutPassword.num_doc_voter.toString(),
@@ -262,7 +264,7 @@ export class VotersService {
         throw new NotFoundException(`Votante con ID ${id} no encontrado`);
       }
 
-      const { _contrasena_voter, ...result } = voter;
+      const { contrasena_voter: _contrasena_voter, ...result } = voter;
 
       const formattedResult = {
         ...result,
@@ -311,7 +313,7 @@ export class VotersService {
       if (updateVoterDto.contrasena_voter) {
         console.log("🔐 Hasheando nueva contraseña");
         updateData.contrasena_voter = await bcrypt.hash(
-          updateVoterDto._contrasena_voter,
+          updateVoterDto.contrasena_voter,
           10,
         );
       }
@@ -377,7 +379,7 @@ export class VotersService {
         },
       });
 
-      const { _contrasena_voter, ...result } = updatedVoter;
+      const { contrasena_voter: _contrasena_voter, ...result } = updatedVoter;
 
       const formattedResult = {
         ...result,
@@ -466,7 +468,7 @@ export class VotersService {
         },
       });
 
-      const { _contrasena_voter, ...result } = updatedVoter;
+      const { contrasena_voter: _contrasena_voter, ...result } = updatedVoter;
 
       const formattedResult = {
         ...result,
@@ -622,7 +624,8 @@ export class VotersService {
       });
 
       return voters.map((voter) => {
-        const { _contrasena_voter, ...voterWithoutPassword } = voter;
+        const { contrasena_voter: _contrasena_voter, ...voterWithoutPassword } =
+          voter;
         return {
           ...voterWithoutPassword,
           num_doc_voter: voterWithoutPassword.num_doc_voter.toString(),
@@ -675,7 +678,8 @@ export class VotersService {
       });
 
       return voters.map((voter) => {
-        const { _contrasena_voter, ...voterWithoutPassword } = voter;
+        const { contrasena_voter: _contrasena_voter, ...voterWithoutPassword } =
+          voter;
         return {
           ...voterWithoutPassword,
           num_doc_voter: voterWithoutPassword.num_doc_voter.toString(),
