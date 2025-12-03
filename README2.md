@@ -1,90 +1,114 @@
-Proceso de software personal
-Acerca de este repositorio
-Repositorio para almacenar mis soluciones para las tareas del Proceso Personal de Software.
+# Personal-Software-Process
 
-Materiales utilizados para realizar las tareas de PSP
-PSP: Un proceso de autosuperación para ingenieros de software ;
-El cuerpo de conocimientos del proceso de software personal, versión 2.0
-Material de autoaprendizaje de PSP
-Acerca de la PSP (según Wikipedia)
-El Proceso Personal de Software (PSP) es un proceso estructurado de desarrollo de software diseñado (planificado) para ayudar a los ingenieros de software a comprender y mejorar su rendimiento mediante el seguimiento del desarrollo de código, tanto previsto como real. El PSP fue creado por Watts Humphrey para aplicar los principios subyacentes del Modelo de Madurez de Capacidades (CMM) del Instituto de Ingeniería de Software (SEI) a las prácticas de desarrollo de software de un solo desarrollador. Su objetivo es proporcionar a los ingenieros de software las habilidades necesarias para trabajar en un equipo de procesos de software (TSP).
+## About this repository
 
-Objetivos
-El PSP tiene como objetivo proporcionar a los ingenieros de software métodos rigurosos para mejorar sus procesos personales de desarrollo de software. El PSP ayuda a los ingenieros de software a:
+Repository to store my solutions for the Personal Software Process assignments.
 
-Mejorar sus habilidades de estimación y planificación.
-Asuma compromisos que puedan cumplir.
-Gestionar la calidad de sus proyectos.
-Reducir el número de defectos en su trabajo.
-Estructura del PSP
-La formación en PSP sigue un enfoque de mejora evolutiva: un ingeniero que aprende a integrar el PSP en su proceso comienza en el primer nivel (PSP0) y progresa en la madurez del proceso hasta el nivel final (PSP2.1). Cada nivel incluye guiones detallados, listas de verificación y plantillas que guían al ingeniero a través de los pasos necesarios y le ayudan a mejorar su propio proceso de software. Humphrey anima a los ingenieros competentes a personalizar estos guiones y plantillas a medida que comprenden sus propias fortalezas y debilidades.
+## Materials used to do the PSP assignments
 
-Proceso
-La entrada al PSP son los requisitos; el documento de requisitos se completa y se entrega al ingeniero.
+- [PSP: A Self-Improvement Process for Software Engineers](https://www.amazon.com/PSP-Self-Improvement-Process-Software-Engineers/dp/0321305493);
+- [The Personal Software Process Body of Knowledge, Version 2.0](http://resources.sei.cmu.edu/asset_files/SpecialReport/2009_003_001_15029.pdf)
+- [Self-Study PSP Material](http://www.sei.cmu.edu/tsp/tools/studypsp-form.cfm)
 
-PSP0, PSP0.1 (Introduce la disciplina y medición de procesos)
-El PSP0 consta de tres fases: planificación, desarrollo (diseño, codificación, compilación y pruebas) y un análisis post mortem. Se establece una línea base del proceso actual, que mide: tiempo dedicado a la programación, fallos detectados/eliminados, tamaño del programa. En el análisis post mortem, el ingeniero se asegura de que todos los datos de los proyectos se hayan registrado y analizado correctamente. El PSP0.1 avanza en el proceso añadiendo un estándar de codificación, una medición del tamaño y el desarrollo de un plan personal de mejora de procesos (PIP). En el PIP, el ingeniero registra ideas para mejorar su propio proceso.
+## About the PSP (according to wikipedia)
 
-PSP1, PSP1.1 (Introduce la estimación y la planificación)
-Con base en los datos de referencia recopilados en PSP0 y PSP0.1, el ingeniero estima el tamaño del nuevo programa y elabora un informe de pruebas (PSP1). Los datos acumulados de proyectos anteriores se utilizan para estimar el tiempo total. Cada nuevo proyecto registrará el tiempo real empleado. Esta información se utiliza para la planificación y estimación de tareas y cronogramas (PSP1.1).
+The Personal Software Process (PSP) is a structured software development process that is intended (planned) to help software engineers better understand and improve their performance by tracking their predicted and actual development of code. The PSP was created by Watts Humphrey to apply the underlying principles of the Software Engineering Institute's (SEI) Capability Maturity Model (CMM) to the software development practices of a single developer. It claims to give software engineers the process skills necessary to work on a team software process (TSP) team.
 
-PSP2, PSP2.1 (Introduce la gestión de calidad y el diseño)
-PSP2 añade dos nuevas fases: revisión del diseño y revisión del código. La prevención y eliminación de defectos son el enfoque principal de PSP2. Los ingenieros aprenden a evaluar y mejorar sus procesos midiendo la duración de las tareas y la cantidad de defectos que introducen y eliminan en cada fase de desarrollo. Los ingenieros crean y utilizan listas de verificación para las revisiones de diseño y código. PSP2.1 introduce técnicas de especificación y análisis del diseño.
+### Objectives
 
-La importancia de los datos
-Uno de los aspectos fundamentales del PSP es el uso de datos históricos para analizar y mejorar el rendimiento del proceso. La recopilación de datos del PSP se sustenta en cuatro elementos principales:
+The PSP aims to provide software engineers with disciplined methods for improving personal software development processes. The PSP helps software engineers to:
 
-Guiones.
-Medidas.
-Normas.
-Formularios.
-Los guiones del PSP ofrecen orientación experta para seguir los pasos del proceso y proporcionan un marco para la aplicación de las medidas del PSP. El PSP consta de cuatro medidas fundamentales:
+- Improve their estimating and planning skills.
+- Make commitments they can keep.
+- Manage the quality of their projects.
+- Reduce the number of defects in their work.
 
-Tamaño: la medida del tamaño de una parte del producto, como líneas de código (LOC).
-Esfuerzo: el tiempo necesario para completar una tarea, generalmente registrado en minutos.
-Calidad: el número de defectos del producto.
-Cronograma: una medida del progreso del proyecto, comparada con las fechas de finalización planificadas y reales.
-La aplicación de estándares al proceso garantiza la precisión y consistencia de los datos. Los datos se registran en formularios, normalmente mediante una herramienta de software PSP. El SEI ha desarrollado una herramienta PSP y también existen opciones de código abierto, como Process Dashboard. Los datos clave recopilados en la herramienta PSP son datos de tiempo, defectos y tamaño: el tiempo empleado en cada fase; cuándo y dónde se inyectaron, detectaron y solucionaron los defectos; y el tamaño de las piezas del producto. Los desarrolladores de software utilizan muchas otras medidas derivadas de estas tres medidas básicas para comprender y mejorar su rendimiento. Las medidas derivadas incluyen:
+### PSP structure 
 
-precisión de la estimación (tamaño/tiempo)
-intervalos de predicción (tamaño/tiempo)
-distribución del tiempo en fase
-distribución de inyección de defectos
-distribución de eliminación de defectos
-productividad
-porcentaje de reutilización
-índice de rendimiento de costos
-valor planificado
-valor ganado
-valor ganado previsto
-densidad de defectos
-densidad de defectos por fase
-tasa de eliminación de defectos por fase
-apalancamiento para la eliminación de defectos
-tarifas de revisión
-rendimiento del proceso
-rendimiento de fase
-costo de falla de la calidad (COQ)
-COQ de evaluación
-Relación COQ de evaluación/fracaso
-Planificación y seguimiento
-El registro de datos de tiempo, defectos y tamaño es una parte esencial de la planificación y el seguimiento de proyectos de PSP, ya que los datos históricos se utilizan para mejorar la precisión de las estimaciones.
+PSP training follows an evolutionary improvement approach: an engineer learning to integrate the PSP into his or her process begins at the first level – PSP0 – and progresses in process maturity to the final level – PSP2.1. Each Level has detailed scripts, checklists and templates to guide the engineer through required steps and helps the engineer improve his own personal software process. Humphrey encourages proficient engineers to customise these scripts and templates as they gain an understanding of their own strengths and weaknesses.
 
-El PSP utiliza el método de Estimación Basada en Proxy (PROBE) para mejorar las habilidades de estimación del desarrollador y lograr una planificación de proyectos más precisa. Para el seguimiento de proyectos, el PSP utiliza el método del valor ganado.
+#### Process
 
-El PSP también utiliza técnicas estadísticas, como la correlación, la regresión lineal y la desviación estándar, para convertir los datos en información útil que mejore la estimación, la planificación y la calidad. Estas fórmulas estadísticas son calculadas por la herramienta PSP.
+The input to PSP is the requirements; requirements document is completed and delivered to the engineer.
 
-Calidad
-El objetivo del PSP es un software de alta calidad, y la calidad se mide en términos de defectos. Para el PSP, un proceso de calidad debe producir software con pocos defectos que satisfaga las necesidades del usuario.
+#### PSP0, PSP0.1 (Introduces process discipline and measurement)
 
-La estructura de fases del PSP permite a los desarrolladores detectar defectos con antelación. Al detectarlos a tiempo, el PSP puede reducir el tiempo dedicado a fases posteriores, como la de pruebas.
+PSP0 has 3 phases: planning, development (design, coding,Compile,test) and a post mortem. A baseline is established of current process measuring: time spent on programming, faults injected/removed, size of a program. In a post mortem, the engineer ensures all data for the projects has been properly recorded and analysed. PSP0.1 advances the process by adding a coding standard, a size measurement and the development of a personal process improvement plan (PIP). In the PIP, the engineer records ideas for improving his own process.
 
-La teoría del PSP sostiene que es más económico y eficaz eliminar los defectos lo más cerca posible de dónde y cuándo se inyectaron, por lo que se anima a los ingenieros de software a realizar revisiones personales de cada fase de desarrollo. Por lo tanto, la estructura de fases del PSP incluye dos fases de revisión:
 
-Revisión de diseño.
-Revisión de código.
-Para realizar una revisión eficaz, es necesario seguir un proceso estructurado. El PSP recomienda usar listas de verificación para ayudar a los desarrolladores a seguir un procedimiento ordenado y consistente.
+#### PSP1, PSP1.1 (Introduces estimating and planning)
 
-El PSP parte de la premisa de que, cuando las personas cometen errores, estos suelen ser predecibles. Por ello, los desarrolladores de PSP pueden personalizar sus listas de verificación para abordar sus propios errores comunes. También se espera que los ingenieros de software elaboren propuestas de mejora de procesos para identificar áreas de debilidad en su desempeño actual que deberían abordar. Los datos históricos del proyecto, que revelan dónde se invierte el tiempo y se introducen los defectos, ayudan a los desarrolladores a identificar áreas de mejora.
+Based upon the baseline data collected in PSP0 and PSP0.1, the engineer estimates how large a new program will be and prepares a test report (PSP1). Accumulated data from previous projects is used to estimate the total time. Each new project will record the actual time spent. This information is used for task and schedule planning and estimation (PSP1.1).
 
-También se espera que los desarrolladores de PSP realicen revisiones personales antes de que su trabajo se someta a una revisión por pares o por equipo.
+#### PSP2, PSP2.1 (Introduces quality management and design)
+
+PSP2 adds two new phases: design review and code review. Defect prevention and removal of them are the focus at the PSP2. Engineers learn to evaluate and improve their process by measuring how long tasks take and the number of defects they inject and remove in each phase of development. Engineers construct and use checklists for design and code reviews. PSP2.1 introduces design specification and analysis techniques
+
+### The importance of data
+
+One of the core aspects of the PSP is using historical data to analyze and improve process performance. PSP data collection is supported by four main elements:
+
+- Scripts.
+- Measures.
+- Standards.
+- Forms.
+
+The PSP scripts provide expert-level guidance to following the process steps and they provide a framework for applying the PSP measures. The PSP has four core measures:
+
+- Size – the size measure for a product part, such as lines of code (LOC).
+- Effort – the time required to complete a task, usually recorded in minutes.
+- Quality – the number of defects in the product.
+- Schedule – a measure of project progression, tracked against planned and actual completion dates.
+
+Applying standards to the process can ensure the data is precise and consistent. Data is logged in forms, normally using a PSP software tool. The SEI has developed a PSP tool and there are also open source options available, such as Process Dashboard.
+The key data collected in the PSP tool are time, defect, and size data – the time spent in each phase; when and where defects were injected, found, and fixed; and the size of the product parts. Software developers use many other measures that are derived from these three basic measures to understand and improve their performance. Derived measures include:
+
+- estimation accuracy (size/time)
+- prediction intervals (size/time)
+- time in phase distribution
+- defect injection distribution
+- defect removal distribution
+- productivity
+- reuse percentage
+- cost performance index
+- planned value
+- earned value
+- predicted earned value
+- defect density
+- defect density by phase
+- defect removal rate by phase
+- defect removal leverage
+- review rates
+- process yield
+- phase yield
+- failure cost of quality (COQ)
+- appraisal COQ
+- appraisal/failure COQ ratio 
+
+### Planning and tracking
+
+Logging time, defect, and size data is an essential part of planning and tracking PSP projects, as historical data is used to improve estimating accuracy.
+
+The PSP uses the PROxy-Based Estimation (PROBE) method to improve a developer's estimating skills for more accurate project planning. For project tracking, the PSP uses the earned value method.
+
+The PSP also uses statistical techniques, such as correlation, linear regression, and standard deviation, to translate data into useful information for improving estimating, planning and quality. These statistical formulas are calculated by the PSP tool.
+
+
+### Quality
+
+High-quality software is the goal of the PSP, and quality is measured in terms of defects. For the PSP, a quality process should produce low-defect software that meets the user needs.
+
+The PSP phase structure enables PSP developers to catch defects early. By catching defects early, the PSP can reduce the amount of time spent in later phases, such as Test.
+
+The PSP theory is that it is more economical and effective to remove defects as close as possible to where and when they were injected, so software engineers are encouraged to conduct personal reviews for each phase of development. Therefore, the PSP phase structure includes two review phases:
+
+- Design Review.
+- Code Review.
+
+To do an effective review, you need to follow a structured review process. The PSP recommends using checklists to help developers to consistently follow an orderly procedure.
+
+The PSP follows the premise that when people make mistakes, their errors are usually predictable, so PSP developers can personalize their checklists to target their own common errors. Software engineers are also expected to complete process improvement proposals, to identify areas of weakness in their current performance that they should target for improvement. Historical project data, which exposes where time is spent and defects introduced, help developers to identify areas to improve.
+
+PSP developers are also expected to conduct personal reviews before their work undergoes a peer or team review.
+
+
